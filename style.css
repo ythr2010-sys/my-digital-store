@@ -1,11 +1,11 @@
 :root {
     --bg-color: #0d1117;
-    --card-bg: #161b22;
+    --card-bg: rgba(22, 27, 34, 0.85);
     --accent-color: #00f2fe;
     --accent-hover: #00c8d2;
     --text-color: #f0f6fc;
     --text-muted: #8b949e;
-    --border-color: #30363d;
+    --border-color: rgba(48, 54, 61, 0.7);
 }
 
 * {
@@ -17,17 +17,42 @@
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
-    font-family: 'Tajawal', sans-serif;
+    font-family: 'Tajawal', system-ui, sans-serif;
     line-height: 1.6;
+    overflow-x: hidden;
 }
 
-/* الشريط العلوي */
+/* 1. خلفية الفيديو والطبقة المظلمة */
+#bg-video {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    min-width: 100%;
+    min-height: 100%;
+    z-index: -2;
+    object-fit: cover;
+    filter: brightness(0.5);
+}
+
+.video-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(13, 17, 23, 0.7);
+    z-index: -1;
+}
+
+/* 2. الشريط العلوي */
 .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 20px 8%;
     background-color: var(--card-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border-color);
     position: sticky;
     top: 0;
@@ -55,11 +80,11 @@ body {
     color: var(--accent-color);
 }
 
-/* الواجهة الرئيسية */
+/* 3. الواجهة الرئيسية (Hero Section) */
 .hero {
     text-align: center;
-    padding: 90px 20px 60px;
-    background: radial-gradient(circle at top, #1f2937 0%, var(--bg-color) 70%);
+    padding: 100px 20px 70px;
+    background: transparent;
 }
 
 .hero-tag {
@@ -106,7 +131,7 @@ body {
     box-shadow: 0 0 25px rgba(0, 242, 254, 0.5);
 }
 
-/* قسم المنتجات */
+/* 4. قسم المنتجات */
 .products-section {
     padding: 60px 8%;
 }
@@ -115,7 +140,6 @@ body {
     text-align: center;
     font-size: 2rem;
     margin-bottom: 40px;
-    position: relative;
 }
 
 .products-grid {
@@ -126,6 +150,8 @@ body {
 
 .product-card {
     background-color: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 25px;
@@ -133,12 +159,13 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: transform 0.3s, border-color 0.3s;
+    transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
 }
 
 .product-card:hover {
     transform: translateY(-5px);
     border-color: var(--accent-color);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
 }
 
 .badge {
@@ -200,13 +227,15 @@ body {
     color: #000;
 }
 
-/* قسم المميزات */
+/* 5. قسم المميزات */
 .features-section {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 20px;
     padding: 60px 8%;
     background-color: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-top: 1px solid var(--border-color);
     border-bottom: 1px solid var(--border-color);
     text-align: center;
@@ -227,7 +256,7 @@ body {
     font-size: 0.9rem;
 }
 
-/* تذييل الصفحة */
+/* 6. تذييل الصفحة */
 footer {
     text-align: center;
     padding: 30px;
