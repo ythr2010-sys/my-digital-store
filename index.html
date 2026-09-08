@@ -11,34 +11,56 @@
 </head>
 <body>
 
-    <!-- خلفية الفيديو -->
-    <video autoplay loop muted playsinline id="bg-video">
-        <source src="https://cdn.pixabay.com/video/2021/04/12/70889-536768782_large.mp4" type="video/mp4">
-    </video>
-    <div class="video-overlay"></div>
-
-    <!-- الشريط العلوي -->
+    <!-- الشريط العلوي والقوائم -->
     <header class="navbar">
         <div class="logo">الخزنة<span>الرقمية</span></div>
         <nav class="nav-links">
-            <a href="#products">المنتجات</a>
-            <a href="#features">المميزات</a>
+            <a href="#products">تصفح المنتجات</a>
+            <a href="#whats-new">ما الجديد؟</a>
+            <a href="#contact">تواصل معنا</a>
         </nav>
+        <div class="nav-actions">
+            <button class="btn-login" onclick="openLoginModal()">تسجيل الدخول</button>
+        </div>
     </header>
 
     <!-- الواجهة الرئيسية -->
     <section class="hero">
-        <div class="hero-tag">⚡ تحميل فوري وآلي 100%</div>
-        <h1>كنوزك الرقمية بضغطة زر</h1>
-        <p>احصل على أفضل القوالب، الكتب الإلكترونية، والموارد الرقمية الجاهزة للتحميل المباشر بعد الشراء.</p>
-        <a href="#products" class="btn-primary">تصفح المنتجات الآن</a>
+        <div class="hero-tag">⚡ تسليم آلي وفوري للملفات 100%</div>
+        <h1>منصتك الأولى للموارد والمنتجات الرقمية</h1>
+        <p>احصل على أفضل القوالب، الكتب الإلكترونية، والأدوات البرمجية الجاهزة للتحميل المباشر فور الشراء.</p>
+        <div class="hero-buttons">
+            <a href="#products" class="btn-primary">تصفح المنتجات الرقمية</a>
+            <a href="#whats-new" class="btn-secondary">شاهد ما الجديد</a>
+        </div>
     </section>
 
-    <!-- شبكة المنتجات -->
-    <section id="products" class="products-section">
-        <h2 class="section-title">المنتجات المميزة</h2>
-        <div class="products-grid">
+    <!-- قسم ما الجديد؟ (أحدث الإضافات) -->
+    <section id="whats-new" class="news-section">
+        <div class="section-header">
+            <span class="badge-new">🔥 التحديثات الأخيرة</span>
+            <h2>ما الجديد في متجرنا؟</h2>
+            <p>إليك أحدث الموارد والمنتجات الرقمية التي تم إضافتها هذا الأسبوع.</p>
+        </div>
+        <div class="news-card">
+            <div class="news-content">
+                <span class="date">سبتمبر 2026</span>
+                <h3>إطلاق حزمة الأدوات والقوالب المحدثة v2.0</h3>
+                <p>قمنا بتحديث جميع ملفات الحزمة وإضافة موارد جديدة تضمن لك سرعة الإنجاز بأعلى جودة.</p>
+                <a href="#products" class="news-link">استكشف الحزمة ⬅️</a>
+            </div>
+        </div>
+    </section>
 
+    <!-- شبكة المنتجات الرقمية -->
+    <section id="products" class="products-section">
+        <div class="section-header">
+            <h2>تصفح المنتجات الرقمية</h2>
+            <p>اختر ما يناسبك واصل التحميل المباشر بعد الدفع الآمن</p>
+        </div>
+
+        <div class="products-grid">
+            <!-- منتج 1 -->
             <div class="product-card">
                 <div class="badge">الأكثر مبيعاً</div>
                 <div class="card-icon">🎨</div>
@@ -46,56 +68,116 @@
                 <p>مجموعة قوالب احترافية جاهزة للتعديل المباشر لتسهيل أعمالك وتوفير وقتك.</p>
                 <div class="card-footer">
                     <span class="price">$5.00</span>
-                    <a href="ضع_رابط_Payhip_هنا" target="_blank" class="buy-btn">شراء الآن</a>
+                    <a href="https://payhip.com" target="_blank" class="buy-btn">شراء وتحميل</a>
                 </div>
             </div>
 
+            <!-- منتج 2 -->
             <div class="product-card">
                 <div class="card-icon">📚</div>
                 <h3>دليل وكتاب إلكتروني</h3>
                 <p>دليل شامل ومفصل يحتوي على أفضل الممارسات والاستراتيجيات الجاهزة للتطبيق.</p>
                 <div class="card-footer">
                     <span class="price">$10.00</span>
-                    <a href="ضع_رابط_Payhip_هنا" target="_blank" class="buy-btn">شراء الآن</a>
+                    <a href="https://payhip.com" target="_blank" class="buy-btn">شراء وتحميل</a>
                 </div>
             </div>
 
+            <!-- منتج 3 -->
             <div class="product-card">
                 <div class="card-icon">⚡</div>
                 <h3>حزمة موارد وأيقونات</h3>
                 <p>ملحقات وأيقونات عالية الجودة لإضفاء لمسة جمالية على مشروعاتك.</p>
                 <div class="card-footer">
                     <span class="price">$3.00</span>
-                    <a href="ضع_رابط_Payhip_هنا" target="_blank" class="buy-btn">شراء الآن</a>
+                    <a href="https://payhip.com" target="_blank" class="buy-btn">شراء وتحميل</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- قسم تواصل معنا -->
+    <section id="contact" class="contact-section">
+        <div class="contact-container">
+            <div class="contact-info">
+                <h2>تواصل معنا 📬</h2>
+                <p>هل لديك استفسار حول أحد المنتجات أو واجهت مشكلة في التحميل؟ راسلنا وسنرد عليك فوراً.</p>
+                <div class="info-item">
+                    <span>📧 البريد الإلكتروني:</span>
+                    <strong>support@digivault.com</strong>
+                </div>
+                <div class="info-item">
+                    <span>⚡ الاستجابة:</span>
+                    <strong>خلال أقل من 24 ساعة</strong>
                 </div>
             </div>
 
+            <!-- نموذج المراسلة الفعلي -->
+            <form class="contact-form" action="https://formspree.io/f/xnqpolrd" method="POST">
+                <div class="form-group">
+                    <label>الاسم الكامل</label>
+                    <input type="text" name="name" placeholder="أدخل اسمك هنا" required>
+                </div>
+                <div class="form-group">
+                    <label>البريد الإلكتروني</label>
+                    <input type="email" name="email" placeholder="example@mail.com" required>
+                </div>
+                <div class="form-group">
+                    <label>الرسالة</label>
+                    <textarea name="message" rows="4" placeholder="اكتب استفسارك هنا..." required></textarea>
+                </div>
+                <button type="submit" class="btn-primary full-width">إرسال الرسالة</button>
+            </form>
         </div>
     </section>
 
-    <!-- قسم المميزات -->
-    <section id="features" class="features-section">
-        <div class="feature-item">
-            <span class="feature-icon">⚡</span>
-            <h4>تحميل فوري</h4>
-            <p>تصلك الملفات مباشرة على بريدك بعد الدفع فوراً.</p>
+    <!-- نافذة تسجيل الدخول / الحساب (Modal) -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeLoginModal()">&times;</span>
+            <h2>تسجيل الدخول / حسابي 🔐</h2>
+            <p>سجل دخولك لمتابعة مشترياتك وتحميل ملفاتك الرقمية في أي وقت.</p>
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>البريد الإلكتروني المستخدم في الشراء</label>
+                    <input type="email" id="loginEmail" placeholder="example@mail.com" required>
+                </div>
+                <button type="submit" class="btn-primary full-width">دخول لحسابي</button>
+            </form>
+            <div class="modal-footer">
+                <small>ملاحظة: يمكنك الوصول لمشترياتك وتنزيلاتها عبر الرابط المرسل لبريدك من Payhip تلقائياً.</small>
+            </div>
         </div>
-        <div class="feature-item">
-            <span class="feature-icon">🛡️</span>
-            <h4>جودة عالية</h4>
-            <p>ملفات جاهزة ومصممة بأعلى معايير الدقة.</p>
-        </div>
-        <div class="feature-item">
-            <span class="feature-icon">💳</span>
-            <h4>دفع آمن</h4>
-            <p>معاملات مالية مشفرة ومحمية بالكامل عبر Payhip.</p>
-        </div>
-    </section>
+    </div>
 
     <!-- تذييل الصفحة -->
     <footer>
-        <p>جميع الحقوق محفوظة © 2026 — <strong>الخزنة الرقمية</strong></p>
+        <p>جميع الحقوق محفوظة © 2026 — <strong>الخزنة الرقمية (DigiVault)</strong></p>
     </footer>
 
+    <!-- برمجة تفاعلية للنوافذ -->
+    <script>
+        function openLoginModal() {
+            document.getElementById("loginModal").style.display = "flex";
+        }
+
+        function closeLoginModal() {
+            document.getElementById("loginModal").style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            var modal = document.getElementById("loginModal");
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            var email = document.getElementById("loginEmail").value;
+            alert("تم إرسال رابط الوصول المباشر لمشترياتك إلى: " + email);
+            closeLoginModal();
+        }
+    </script>
 </body>
 </html>
