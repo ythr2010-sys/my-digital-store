@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حسابي الشخصي | الخزنة الرقمية</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        .profile-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .user-card {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 2px solid #00d2ff;
+        }
+        .user-info h2 { font-size: 1.5rem; color: #fff; margin-bottom: 4px; }
+        .user-info p { color: #a0a0c0; font-size: 0.95rem; }
+        
+        .section-box {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .section-box h3 {
+            color: #00d2ff;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        .card-input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .card-input-group input {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #2a2a4a;
+            background: #0f0f1b;
+            color: #fff;
+            flex: 1;
+        }
+        .btn-logout {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo"><a href="index.html" style="text-decoration:none; color:inherit;">الخزنة<span>الرقمية</span></a></div>
+        <nav class="nav-links">
+            <a href="index.html">الرئيسية</a>
+            <a href="profile.html" style="color:#00d2ff;">حسابي</a>
+        </nav>
+    </header>
+
+    <div class="profile-container">
+        <!-- معلومات المستخدم من Google -->
+        <div class="user-card">
+            <img id="userImg" class="user-avatar" src="" alt="صورة المستخدم">
+            <div class="user-info">
+                <h2 id="userName">جاري التحميل...</h2>
+                <p id="userEmail"></p>
+            </div>
+            <button class="btn-logout" style="margin-right: auto;" onclick="logout()">تسجيل الخروج</button>
+        </div>
+
+        <!-- قسم سلة المشتريات -->
+        <div class="section-box">
+            <h3>🛒 سلة المشتريات الخاص بك</h3>
+            <div id="cartItems">
+                <p style="color:#a0a0c0;">السلة فارغة حالياً. تصفح المنتجات في الصفحة الرئيسية وأضفها لسلتك!</p>
+            </div>
+        </div>
+
+        <!-- قسم إدارة البطاقات البنكية والوسائل -->
+        <div class="section-box">
+            <h3>💳 البطاقات البنكية ووسائل الدفع</h3>
+            <p style="color:#a0a0c0; font-size: 0.9rem;">أضف بطاقتك لتسهيل عملية الشراء السريع للخدمات الرقمية.</p>
+            <div class="card-input-group">
+                <input type="text" placeholder="رقم البطاقة (**** **** **** ****)">
+                <input type="text" placeholder="MM/YY" style="max-width: 100px;">
+                <button class="btn-primary" onclick="alert('تم حفظ البطاقة بنجاح بحسابك!')">حفظ البطاقة</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // جلب بيانات الحساب المرجعة من Google
+        const userProfile = JSON.parse(localStorage.getItem("userProfile"));
+
+        if (!userProfile || !userProfile.isLoggedIn) {
+            alert("يرجى تسجيل الدخول أولاً للوصول إلى حسابك!");
+            window.location.href = "login.html";
+        } else {
+            document.getElementById("userName").textContent = userProfile.name;
+            document.getElementById("userEmail").textContent = userProfile.email;
+            document.getElementById("userImg").src = userProfile.picture;
+        }
+
+        function logout() {
+            localStorage.removeItem("userProfile");
+            alert("تم تسجيل الخروج بنجاح.");
+            window.location.href = "index.html";
+        }
+    </script>
+</body>
+</html>
