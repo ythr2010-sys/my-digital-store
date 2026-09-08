@@ -3,15 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>متجري الرقمي</title>
+    <title>الخزنة الرقمية | DigiVault</title>
     <link rel="stylesheet" href="style.css">
+    <!-- خط تجوال من Google Fonts لتصميم احترافي -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
     <!-- الشريط العلوي -->
-    <header>
-        <div class="logo">المتجر الرقمي</div>
-        <nav>
+    <header class="navbar">
+        <div class="logo">الخزنة<span>الرقمية</span></div>
+        <nav class="nav-links">
             <a href="#products">المنتجات</a>
             <a href="#features">المميزات</a>
         </nav>
@@ -19,31 +23,76 @@
 
     <!-- الواجهة الرئيسية -->
     <section class="hero">
+        <div class="hero-tag">⚡ تحميل فوري وآلي 100%</div>
         <h1>كنوزك الرقمية بضغطة زر</h1>
-        <p>احصل على أفضل القوالب والملفات الجاهزة للتحميل الفوري</p>
-        <a href="#products" class="btn">تصفح المنتجات</a>
+        <p>احصل على أفضل القوالب، الكتب الإلكترونية، والموارد الرقمية الجاهزة للتحميل المباشر بعد الشراء.</p>
+        <a href="#products" class="btn-primary">تصفح المنتجات الآن</a>
     </section>
 
     <!-- شبكة المنتجات -->
-    <section id="products" class="products-grid">
-        <div class="product-card">
-            <h3>حزمة قوالب تصاميم</h3>
-            <p>قوالب جاهزة للتعديل والاستخدام المباشر</p>
-            <span class="price">$5.00</span>
-            <!-- ضع رابط منتجك من Payhip هنا -->
-            <a href="رابط_المنتج_من_payhip" class="buy-btn">شراء الآن</a>
+    <section id="products" class="products-section">
+        <h2 class="section-title">المنتجات المميزة</h2>
+        <div class="products-grid">
+
+            <!-- كارت المنتج 1 -->
+            <div class="product-card">
+                <div class="badge">الأكثر مبيعاً</div>
+                <div class="card-icon">🎨</div>
+                <h3>حزمة قوالب تصاميم</h3>
+                <p>مجموعة قوالب احترافية جاهزة للتعديل المباشر لتسهيل أعمالك وتوفير وقتك.</p>
+                <div class="card-footer">
+                    <span class="price">$5.00</span>
+                    <a href="ضع_رابط_Payhip_هنا" target="_blank" class="buy-btn">شراء الآن</a>
+                </div>
+            </div>
+
+            <!-- كارت المنتج 2 -->
+            <div class="product-card">
+                <div class="card-icon">📚</div>
+                <h3>دليل وكتاب إلكتروني</h3>
+                <p>دليل شامل ومفصل يحتوي على أفضل الممارسات والاستراتيجيات الجاهزة للتطبيق.</p>
+                <div class="card-footer">
+                    <span class="price">$10.00</span>
+                    <a href="ضع_رابط_Payhip_هنا" target="_blank" class="buy-btn">شراء الآن</a>
+                </div>
+            </div>
+
+            <!-- كارت المنتج 3 -->
+            <div class="product-card">
+                <div class="card-icon">⚡</div>
+                <h3>حزمة موارد وأيقونات</h3>
+                <p>ملحقات وأيقونات عالية الجودة لإضفاء لمسة جمالية على مشروعاتك.</p>
+                <div class="card-footer">
+                    <span class="price">$3.00</span>
+                    <a href="ضع_رابط_Payhip_هنا" target="_blank" class="buy-btn">شراء الآن</a>
+                </div>
+            </div>
+
         </div>
     </section>
 
-    <!-- المميزات -->
-    <section id="features" class="features">
-        <div>⚡ تحميل فوري وآلي</div>
-        <div>🛡️ جودة عالية</div>
-        <div>💳 دفع آمن</div>
+    <!-- قسم المميزات -->
+    <section id="features" class="features-section">
+        <div class="feature-item">
+            <span class="feature-icon">⚡</span>
+            <h4>تحميل فوري</h4>
+            <p>تصلك الملفات مباشرة على بريدك بعد الدفع فوراً.</p>
+        </div>
+        <div class="feature-item">
+            <span class="feature-icon">🛡️</span>
+            <h4>جودة عالية</h4>
+            <p>ملفات جاهزة ومصممة بأعلى معايير الدقة.</p>
+        </div>
+        <div class="feature-item">
+            <span class="feature-icon">💳</span>
+            <h4>دفع آمن</h4>
+            <p>معاملات مالية مشفرة ومحمية بالكامل عبر Payhip.</p>
+        </div>
     </section>
 
+    <!-- تذييل الصفحة -->
     <footer>
-        <p>جميع الحقوق محفوظة © 2026</p>
+        <p>جميع الحقوق محفوظة © 2026 — <strong>الخزنة الرقمية</strong></p>
     </footer>
 
 </body>
