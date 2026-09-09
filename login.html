@@ -150,7 +150,7 @@
 
             <div class="divider">أو عبر حساب Google</div>
 
-            <!-- زر Google الرسمى -->
+            <!-- زر Google الرسمي -->
             <div class="google-btn-wrapper">
                 <div id="g_id_onload"
                      data-client_id="870188384624-qehhips6amad0s5k5hhb543ng32hbpq5.apps.googleusercontent.com"
@@ -191,14 +191,13 @@
             users.push({ name, email, password });
             localStorage.setItem('app_users', JSON.stringify(users));
 
-            // افتراض صورة بروفايل افتراضية بالحرف الأول
             const userAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=00d2ff&color=fff`;
             
+            localStorage.setItem("isLoggedIn", "true");
             localStorage.setItem("userProfile", JSON.stringify({
                 name: name,
                 email: email,
-                picture: userAvatar,
-                isLoggedIn: true
+                picture: userAvatar
             }));
 
             alert('تم إنشاء الحساب بنجاح!');
@@ -216,11 +215,11 @@
 
             if(foundUser) {
                 const userAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(foundUser.name)}&background=00d2ff&color=fff`;
+                localStorage.setItem("isLoggedIn", "true");
                 localStorage.setItem("userProfile", JSON.stringify({
                     name: foundUser.name,
                     email: foundUser.email,
-                    picture: userAvatar,
-                    isLoggedIn: true
+                    picture: userAvatar
                 }));
                 alert('مرحباً بك مجدداً ' + foundUser.name);
                 window.location.href = "index.html";
@@ -242,11 +241,11 @@
         // الدخول عبر Google
         function handleCredentialResponse(response) {
             const payload = parseJwt(response.credential);
+            localStorage.setItem("isLoggedIn", "true");
             localStorage.setItem("userProfile", JSON.stringify({
                 name: payload.name,
                 email: payload.email,
-                picture: payload.picture,
-                isLoggedIn: true
+                picture: payload.picture
             }));
             alert("تم تسجيل الدخول بنجاح! مرحباً بك " + payload.name);
             window.location.href = "index.html";
