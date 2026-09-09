@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تواصل معنا والأسئلة الشائعة | الخزنة الرقمية</title>
+    <meta name="description" content="تواصل مع فريق دعم الخزنة الرقمية، أرسل تقييمك، أبلغ عن مشكلة، واستعرض الأسئلة الشائعة حول الخدمات.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0a0a12;
+            --bg-card: #141424;
+            --bg-sidebar: #10101c;
+            --accent-cyan: #00d2ff;
+            --accent-purple: #8a2be2;
+            --border-line: rgba(255, 255, 255, 0.08);
+            --text-main: #ffffff;
+            --text-sub: #a0a0c0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg-main); color: var(--text-main); line-height: 1.6; }
+        
+        .page-wrapper { display: flex; min-height: 100vh; }
+
+        .sidebar {
+            width: 260px;
+            background: var(--bg-sidebar);
+            border-left: 1px solid var(--border-line);
+            padding: 25px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-menu { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+        .sidebar-menu li a {
+            display: flex; align-items: center; gap: 12px; color: var(--text-sub);
+            text-decoration: none; padding: 12px 16px; border-radius: 10px; font-weight: 600; transition: 0.3s;
+        }
+        .sidebar-menu li a:hover, .sidebar-menu li a.active {
+            background: rgba(0, 210, 255, 0.1); color: var(--accent-cyan); border-right: 3px solid var(--accent-cyan);
+        }
+
+        .main-content { flex: 1; padding: 30px; max-width: 900px; }
+
+        .form-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-line);
+            border-radius: 14px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--text-sub); }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            background: #0a0a12;
+            border: 1px solid var(--border-line);
+            padding: 12px;
+            border-radius: 8px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--accent-cyan); outline: none; }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            color: #fff; border: none; padding: 12px 25px; border-radius: 8px;
+            font-weight: bold; cursor: pointer; font-family: inherit; font-size: 1rem; width: 100%;
+        }
+
+        /* FAQ Styling */
+        .faq-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-line);
+            border-radius: 10px;
+            margin-bottom: 12px;
+            padding: 16px;
+        }
+        .faq-question { font-weight: 800; color: var(--accent-cyan); margin-bottom: 6px; }
+        .faq-answer { color: var(--text-sub); font-size: 0.9rem; }
+
+        @media (max-width: 768px) {
+            .page-wrapper { flex-direction: column; }
+            .sidebar { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="logo"><a href="index.html" style="font-size:1.5rem; font-weight:900; color:#fff; text-decoration:none;">الخزنة<span style="color:var(--accent-cyan);">الرقمية</span></a></div>
+            <ul class="sidebar-menu">
+                <li><a href="index.html">🏠 الصفحة الرئيسية</a></li>
+                <li><a href="shop.html">🛍️ تسوق الآن (المنتجات)</a></li>
+                <li><a href="contact.html" class="active">📩 تواصل معنا والأسئلة</a></li>
+                <li><a href="profile.html">🛒 سلة المشتريات</a></li>
+                <li><a href="privacy.html">🔒 سياسة الخصوصية</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <h1 style="margin-bottom: 25px; font-size: 1.8rem;">الدعم الفني والتواصل 💬</h1>
+
+            <!-- نموذج تواصل ورفع مشكلة / إبداء رأي -->
+            <div class="form-section">
+                <h2 style="margin-bottom: 15px; font-size: 1.3rem;">هل تواجه مشكلة أو ترغب في إبداء رأيك؟</h2>
+                <form id="contactForm">
+                    <div class="form-group">
+                        <label>نوع الطلب</label>
+                        <select id="requestType">
+                            <label><option value="feedback">⭐ تقييم الموقع وإبداء رأي</option></label>
+                            <label><option value="issue">⚠️ الإبلاغ عن مشكلة في الشراء/التحميل</option></label>
+                            <label><option value="inquiry">❓ استفسار عام</option></label>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>الاسم الكامل</label>
+                        <input type="text" id="contactName" placeholder="أدخل اسمك" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>البريد الإلكتروني</label>
+                        <input type="email" id="contactEmail" placeholder="example@mail.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>تفاصيل الرسالة</label>
+                        <textarea id="contactMessage" rows="5" placeholder="اكتب استفسارك أو رأيك بالتفصيل..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-submit">إرسال الطلب الان 🚀</button>
+                </form>
+            </div>
+
+            <!-- قسم الأسئلة الشائعة FAQ -->
+            <h2 style="margin-bottom: 15px; font-size: 1.3rem;">الأسئلة الشائعة ❓</h2>
+            <div class="faq-item">
+                <div class="faq-question">كيف أحصل على المنتج بعد الشراء؟</div>
+                <div class="faq-answer">يتم تسليم الكتب، مجسمات 3D/2D، والدورات مباشرة عبر روابط تحميل فورية تظهر في حسابك بعد إتمام الطلب.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">ما هي طرق الدفع المتاحة؟</div>
+                <div class="faq-answer">ندعم حالياً حلول الدفع الرقمية، البطاقات البنكية، والبطاقات الرقمية المباشرة.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">ماذا أفعل إذا واجهت مشكلة في فتح الملفات؟</div>
+                <div class="faq-answer">تأكد من وجود برنامج لفك الضغط (مثل WinRAR) وقارئ PDF، أو يمكنك التواصل معنا مباشرة من خلال النموذج أعلاه وسيساعدك فريق الدعم.</div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.getElementById("contactForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            alert("شكراً لك! تم استلام رسالتك وسيتم التواصل معك أو مراجعة تقييمك في أقرب وقت.");
+            this.reset();
+        });
+    </script>
+</body>
+</html>
