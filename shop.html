@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر المنتجات الرقمية | الخزنة الرقمية</title>
+    <meta name="description" content="تصفح واشترِ أحدث الكتب الإلكترونية، مجسمات 3D/2D، الدورات التعليمية والبطاقات الرقمية بحرية أمان وتسليم فوري.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0a0a12;
+            --bg-card: #141424;
+            --bg-sidebar: #10101c;
+            --accent-cyan: #00d2ff;
+            --accent-purple: #8a2be2;
+            --border-line: rgba(255, 255, 255, 0.08);
+            --text-main: #ffffff;
+            --text-sub: #a0a0c0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg-main); color: var(--text-main); line-height: 1.6; }
+        
+        .page-wrapper { display: flex; min-height: 100vh; }
+
+        .sidebar {
+            width: 260px;
+            background: var(--bg-sidebar);
+            border-left: 1px solid var(--border-line);
+            padding: 25px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-menu { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+        .sidebar-menu li a {
+            display: flex; align-items: center; gap: 12px; color: var(--text-sub);
+            text-decoration: none; padding: 12px 16px; border-radius: 10px; font-weight: 600; transition: 0.3s;
+        }
+        .sidebar-menu li a:hover, .sidebar-menu li a.active {
+            background: rgba(0, 210, 255, 0.1); color: var(--accent-cyan); border-right: 3px solid var(--accent-cyan);
+        }
+
+        .main-content { flex: 1; padding: 30px; }
+
+        /* Filter Tabs */
+        .filter-container {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-line);
+            color: var(--text-sub);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            font-family: inherit;
+            transition: 0.3s;
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            background: var(--accent-cyan);
+            color: #000;
+            border-color: var(--accent-cyan);
+        }
+
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 25px;
+        }
+
+        .product-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-line);
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: 0.3s;
+        }
+
+        .product-card:hover {
+            border-color: var(--accent-cyan);
+            transform: translateY(-5px);
+        }
+
+        .product-badge {
+            align-self: flex-start;
+            background: rgba(138, 43, 226, 0.2);
+            color: #c084fc;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .product-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 8px; }
+        .product-desc { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 15px; }
+        
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            border-top: 1px solid var(--border-line);
+            padding-top: 12px;
+        }
+
+        .product-price { font-size: 1.2rem; font-weight: 900; color: var(--accent-cyan); }
+        .btn-add {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            color: #fff; border: none; padding: 8px 14px; border-radius: 8px;
+            cursor: pointer; font-weight: bold; font-family: inherit; transition: 0.2s;
+        }
+        .btn-add:hover { opacity: 0.9; transform: scale(1.05); }
+
+        @media (max-width: 768px) {
+            .page-wrapper { flex-direction: column; }
+            .sidebar { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="logo"><a href="index.html" style="font-size:1.5rem; font-weight:900; color:#fff; text-decoration:none;">الخزنة<span style="color:var(--accent-cyan);">الرقمية</span></a></div>
+            <ul class="sidebar-menu">
+                <li><a href="index.html">🏠 الصفحة الرئيسية</a></li>
+                <li><a href="shop.html" class="active">🛍️ تسوق الآن (المنتجات)</a></li>
+                <li><a href="contact.html">📩 تواصل معنا والأسئلة</a></li>
+                <li><a href="profile.html">🛒 سلة المشتريات</a></li>
+                <li><a href="privacy.html">🔒 سياسة الخصوصية</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <h1 style="margin-bottom: 20px; font-size: 1.8rem;">كتالوج المنتجات الرقمية 📦</h1>
+
+            <!-- شريط تصنيف المنتجات -->
+            <div class="filter-container">
+                <button class="filter-btn active" onclick="filterCategory('all')">الكل</button>
+                <button class="filter-btn" onclick="filterCategory('books')">📚 كتب وروايات</button>
+                <button class="filter-btn" onclick="filterCategory('models')">🎨 مجسمات 3D/2D</button>
+                <button class="filter-btn" onclick="filterCategory('courses')">🎓 دورات فيديو</button>
+                <button class="filter-btn" onclick="filterCategory('gaming')">🎮 ألعاب واشتراكات</button>
+            </div>
+
+            <!-- شبكة عرض المنتجات -->
+            <div class="products-grid" id="productsGrid">
+                <!-- يتم تحميل المنتجات هنا عبر JavaScript -->
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const products = [
+            { id: 1, title: "كتاب أساسيات البرمجة بلغة Python", cat: "books", badge: "كتاب PDF", desc: "دليل شامل للمبتدئين لتعلم البرمجة من الصفر.", price: "9.99 $" },
+            { id: 2, title: "رواية ظلال الخزنة الرقمية", cat: "books", badge: "رواية إلكترونية", desc: "رواية خيال علمي وتشويق تقني مشوقة جدًا.", price: "4.99 $" },
+            { id: 3, title: "حزمة مجسمات 3D أسلحة عالية الدقة", cat: "models", badge: "ملفات Blender/FBX", desc: "أصول 3D جاهزة للاستخدام في محركات الألعاب مثل Godot وUnity.", price: "19.99 $" },
+            { id: 4, title: "مجموعة أيقونات وواجهات 2D Cyberpunk", cat: "models", badge: "تصاميم PNG/SVG", desc: "تصاميم وأيقونات احترافية لتطوير الألعاب والواجهات.", price: "7.50 $" },
+            { id: 5, title: "دورة تطوير الألعاب عبر Godot Engine", cat: "courses", badge: "سلسلة فيديوهات", desc: "شرح كامل لبناء لعبة FPS ثلاثية الأبعاد خطوة بخطوة.", price: "29.99 $" },
+            { id: 6, title: "دورة الأمن السيبراني واختبار الاختراق", cat: "courses", badge: "دورة تعليمية", desc: "تعلم أساسيات الحماية والمختبرات الافتراضية.", price: "34.99 $" },
+            { id: 7, title: "بطاقة شحن رقمية 500 eFootball Coins", cat: "gaming", badge: "كود فوري", desc: "كود شحن فوري وآمن لحسابك.", price: "5.00 $" },
+            { id: 8, title: "اشتراك شحن العاب وتفعيل سيرفرات", cat: "gaming", badge: "بطاقة رقمية", desc: "بطاقة تفعيل اشتراكات وخدمات رقمية متنوعة.", price: "12.00 $" }
+        ];
+
+        function renderProducts(items) {
+            const grid = document.getElementById("productsGrid");
+            grid.innerHTML = items.map(p => `
+                <div class="product-card">
+                    <div>
+                        <span class="product-badge">${p.badge}</span>
+                        <h3 class="product-title">${p.title}</h3>
+                        <p class="product-desc">${p.desc}</p>
+                    </div>
+                    <div class="product-footer">
+                        <span class="product-price">${p.price}</span>
+                        <button class="btn-add" onclick="addToCart('${p.title}', '${p.price}')">إضافة للسلة 🛒</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterCategory(cat) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (cat === 'all') {
+                renderProducts(products);
+            } else {
+                renderProducts(products.filter(p => p.cat === cat));
+            }
+        }
+
+        function addToCart(name, price) {
+            let cart = JSON.parse(localStorage.getItem("cart")) || [];
+            cart.push({ name, price });
+            localStorage.setItem("cart", JSON.stringify(cart));
+            alert(`تمت إضافة "${name}" إلى سلة المشتريات بنجاح!`);
+        }
+
+        // Check URL parameters for direct category navigation
+        const urlParams = new URLSearchParams(window.location.search);
+        const categoryParam = urlParams.get('cat');
+        if (categoryParam) {
+            filterCategory(categoryParam);
+        } else {
+            renderProducts(products);
+        }
+    </script>
+</body>
+</html>
