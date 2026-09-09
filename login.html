@@ -3,46 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول | الخزنة الرقمية</title>
+    <title>تسجيل الدخول وإجراء حساب | الخزنة الرقمية</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <!-- مكتبة Google Identity Services الرسمية -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         .auth-container {
-            min-height: 80vh;
+            min-height: 85vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
         }
         .auth-card {
-            background-color: var(--card-bg, #1a1a2e);
-            border: 1px solid var(--border-color, #2a2a4a);
+            background-color: #1a1a2e;
+            border: 1px solid #2a2a4a;
             border-radius: 12px;
-            padding: 40px;
+            padding: 35px;
             width: 100%;
             max-width: 420px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
             text-align: center;
         }
-        .auth-header h2 {
-            font-size: 1.8rem;
-            margin-bottom: 8px;
-            color: #ffffff;
+        .auth-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #2a2a4a;
+            padding-bottom: 10px;
         }
-        .auth-header p {
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
             color: #a0a0c0;
-            font-size: 0.95rem;
-            margin-bottom: 30px;
+            padding: 10px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: 0.3s;
+        }
+        .tab-btn.active {
+            background: #00d2ff;
+            color: #000;
+            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            text-align: right;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #2a2a4a;
+            background: #0f0f1b;
+            color: #fff;
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background: #00d2ff;
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            margin-top: 10px;
+        }
+        .divider {
+            margin: 20px 0;
+            color: #a0a0c0;
+            font-size: 0.85rem;
+            position: relative;
         }
         .google-btn-wrapper {
             display: flex;
             justify-content: center;
-            margin-bottom: 20px;
         }
+        .form-box { display: none; }
+        .form-box.active { display: block; }
     </style>
 </head>
 <body>
@@ -56,33 +108,129 @@
 
     <div class="auth-container">
         <div class="auth-card">
-            <div class="auth-header">
-                <h2>مرحباً بك 👋</h2>
-                <p>سجل دخولك بنقرة واحدة باستخدام حساب Google الخاص بك</p>
+            <!-- التبديل بين الدخول وإنشاء حساب -->
+            <div class="auth-tabs">
+                <button class="tab-btn active" onclick="switchTab('login')">تسجيل الدخول</button>
+                <button class="tab-btn" onclick="switchTab('register')">إنشاء حساب</button>
             </div>
 
-            <!-- زر Google المباشر والرسمي -->
+            <!-- نموذج تسجيل الدخول -->
+            <div id="loginForm" class="form-box active">
+                <form onsubmit="handleEmailLogin(event)">
+                    <div class="form-group">
+                        <label>البريد الإلكتروني</label>
+                        <input type="email" id="loginEmail" required placeholder="example@mail.com">
+                    </div>
+                    <div class="form-group">
+                        <label>كلمة المرور</label>
+                        <input type="password" id="loginPass" required placeholder="******">
+                    </div>
+                    <button type="submit" class="btn-submit">دخول</button>
+                </form>
+            </div>
+
+            <!-- نموذج إنشاء حساب جديد -->
+            <div id="registerForm" class="form-box">
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label>الاسم الكامل</label>
+                        <input type="text" id="regName" required placeholder="اسمك الكامل">
+                    </div>
+                    <div class="form-group">
+                        <label>البريد الإلكتروني</label>
+                        <input type="email" id="regEmail" required placeholder="example@mail.com">
+                    </div>
+                    <div class="form-group">
+                        <label>كلمة المرور</label>
+                        <input type="password" id="regPass" required placeholder="******">
+                    </div>
+                    <button type="submit" class="btn-submit">إنشاء الحساب</button>
+                </form>
+            </div>
+
+            <div class="divider">أو عبر حساب Google</div>
+
+            <!-- زر Google الرسمى -->
             <div class="google-btn-wrapper">
                 <div id="g_id_onload"
                      data-client_id="870188384624-qehhips6amad0s5k5hhb543ng32hbpq5.apps.googleusercontent.com"
                      data-callback="handleCredentialResponse"
                      data-auto_prompt="false">
                 </div>
-                <div class="g_id_signin"
-                     data-type="standard"
-                     data-size="large"
-                     data-theme="outline"
-                     data-text="sign_in_with"
-                     data-shape="rectangular"
-                     data-logo_alignment="left">
-                </div>
+                <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-shape="rectangular"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // دالة فك شفرة JWT الخاصة بجوجل للحصول على الصورة والاسم
-        function parseJwt (token) {
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.form-box').forEach(box => box.classList.remove('active'));
+            if(tab === 'login') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('loginForm').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('registerForm').classList.add('active');
+            }
+        }
+
+        // إنشاء حساب عادي وحفظه في localStorage
+        function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPass').value;
+
+            let users = JSON.parse(localStorage.getItem('app_users')) || [];
+            if(users.some(u => u.email === email)) {
+                alert('هذا البريد مسجل بالفعل!');
+                return;
+            }
+
+            users.push({ name, email, password });
+            localStorage.setItem('app_users', JSON.stringify(users));
+
+            // افتراض صورة بروفايل افتراضية بالحرف الأول
+            const userAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=00d2ff&color=fff`;
+            
+            localStorage.setItem("userProfile", JSON.stringify({
+                name: name,
+                email: email,
+                picture: userAvatar,
+                isLoggedIn: true
+            }));
+
+            alert('تم إنشاء الحساب بنجاح!');
+            window.location.href = "index.html";
+        }
+
+        // تسجيل الدخول بالحساب العادي
+        function handleEmailLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPass').value;
+
+            let users = JSON.parse(localStorage.getItem('app_users')) || [];
+            const foundUser = users.find(u => u.email === email && u.password === password);
+
+            if(foundUser) {
+                const userAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(foundUser.name)}&background=00d2ff&color=fff`;
+                localStorage.setItem("userProfile", JSON.stringify({
+                    name: foundUser.name,
+                    email: foundUser.email,
+                    picture: userAvatar,
+                    isLoggedIn: true
+                }));
+                alert('مرحباً بك مجدداً ' + foundUser.name);
+                window.location.href = "index.html";
+            } else {
+                alert('البريد الإلكتروني أو كلمة المرور غير صحيحة!');
+            }
+        }
+
+        // فك شفرة Google JWT
+        function parseJwt(token) {
             var base64Url = token.split('.')[1];
             var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
             var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
@@ -91,21 +239,17 @@
             return JSON.parse(jsonPayload);
         }
 
-        // الاستجابة عند نجاح التسجيل بـ Google
+        // الدخول عبر Google
         function handleCredentialResponse(response) {
-            const responsePayload = parseJwt(response.credential);
-            
-            // حفظ بيانات المستخدم في المتصفح
-            const userData = {
-                name: responsePayload.name,
-                email: responsePayload.email,
-                picture: responsePayload.picture,
+            const payload = parseJwt(response.credential);
+            localStorage.setItem("userProfile", JSON.stringify({
+                name: payload.name,
+                email: payload.email,
+                picture: payload.picture,
                 isLoggedIn: true
-            };
-            
-            localStorage.setItem("userProfile", JSON.stringify(userData));
-            alert("تم تسجيل الدخول بنجاح! مرحباً بك " + responsePayload.name);
-            window.location.href = "profile.html";
+            }));
+            alert("تم تسجيل الدخول بنجاح! مرحباً بك " + payload.name);
+            window.location.href = "index.html";
         }
     </script>
 </body>
