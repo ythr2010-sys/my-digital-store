@@ -26,6 +26,7 @@
             --border-line: rgba(255, 255, 255, 0.08);
             --text-main: #ffffff;
             --text-sub: #a0a0c0;
+            --danger-red: #ff4757;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -46,7 +47,7 @@
             flex: 1;
         }
 
-        /* Sidebar Side Menu (الجانب) */
+        /* Sidebar Side Menu */
         .sidebar {
             width: 260px;
             background: var(--bg-sidebar);
@@ -67,7 +68,7 @@
             gap: 10px;
         }
 
-        .sidebar-menu li a {
+        .sidebar-menu li a, .sidebar-menu li button {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -77,12 +78,27 @@
             border-radius: 10px;
             font-weight: 600;
             transition: all 0.3s ease;
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 1rem;
+            cursor: pointer;
         }
 
         .sidebar-menu li a:hover, .sidebar-menu li a.active {
             background: rgba(0, 210, 255, 0.1);
             color: var(--accent-cyan);
             border-right: 3px solid var(--accent-cyan);
+        }
+
+        .btn-logout-sidebar {
+            color: var(--danger-red) !important;
+        }
+
+        .btn-logout-sidebar:hover {
+            background: rgba(255, 71, 87, 0.1) !important;
+            border-right: 3px solid var(--danger-red) !important;
         }
 
         /* Main Content Area */
@@ -233,11 +249,14 @@
                 <li><a href="contact.html">📩 تواصل معنا والأسئلة</a></li>
                 <li><a href="profile.html">🛒 سلة المشتريات</a></li>
                 <li><a href="privacy.html">🔒 سياسة الخصوصية</a></li>
-                <!-- زر تسجيل الدخول وزر تسجيل الخروج -->
-<li id="auth-buttons">
-    <button id="loginBtn" onclick="loginUser()">تسجيل الدخول</button>
-    <button id="logoutBtn" onclick="logoutUser()" style="display: none;">تسجيل الخروج</button>
-</li>
+                
+                <!-- التحكم بحالة الحساب وتسجيل الخروج -->
+                <li id="loginMenuLi">
+                    <a href="login.html">🔑 تسجيل الدخول</a>
+                </li>
+                <li id="logoutMenuLi" style="display: none;">
+                    <button onclick="logoutUser()" class="btn-logout-sidebar">🚪 تسجيل الخروج</button>
+                </li>
             </ul>
         </aside>
 
@@ -295,19 +314,46 @@
     </footer>
 
     <script>
-        // تحديث شريط الحساب
+        // تحديث حالة الحساب وإظهار/إخفاء الأزرار
         function updateNav() {
             const userProfile = JSON.parse(localStorage.getItem("userProfile"));
+            const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+            
             const userNav = document.getElementById("userNav");
-            if (userProfile && userProfile.isLoggedIn) {
+            const loginMenuLi = document.getElementById("loginMenuLi");
+            const logoutMenuLi = document.getElementById("logoutMenuLi");
+
+            if (isLoggedIn || userProfile) {
+                // اسم المستخدم أو الافتراضي
+                const name = (userProfile && userProfile.name) ? userProfile.name.split(' ')[0] : "حسابي";
+                const picture = (userProfile && userProfile.picture) ? userProfile.picture : "https://via.placeholder.com/32";
+
                 userNav.innerHTML = `
                     <a href="profile.html" style="display:flex; align-items:center; gap:8px; text-decoration:none; color:#fff;">
-                        <img src="${userProfile.picture}" style="width:32px; height:32px; border-radius:50%;">
-                        <span>${userProfile.name.split(' ')[0]}</span>
+                        <img src="${picture}" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
+                        <span>${name}</span>
                     </a>
                 `;
+
+                if(loginMenuLi) loginMenuLi.style.display = "none";
+                if(logoutMenuLi) logoutMenuLi.style.display = "block";
+            } else {
+                if(loginMenuLi) loginMenuLi.style.display = "block";
+                if(logoutMenuLi) logoutMenuLi.style.display = "none";
             }
         }
+
+        // دالة تسجيل الخروج الشاملة
+        function logoutUser() {
+            localStorage.removeItem("isLoggedIn");
+            localStorage.removeItem("userProfile");
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            alert("تم تسجيل الخروج بنجاح!");
+            window.location.reload();
+        }
+
         document.addEventListener("DOMContentLoaded", updateNav);
     </script>
 </body>
