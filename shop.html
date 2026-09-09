@@ -18,6 +18,7 @@
             --border-line: rgba(255, 255, 255, 0.08);
             --text-main: #ffffff;
             --text-sub: #a0a0c0;
+            --danger-red: #ff4757;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -33,15 +34,25 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
         }
 
         .sidebar-menu { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-        .sidebar-menu li a {
+        .sidebar-menu li a, .sidebar-menu li button {
             display: flex; align-items: center; gap: 12px; color: var(--text-sub);
             text-decoration: none; padding: 12px 16px; border-radius: 10px; font-weight: 600; transition: 0.3s;
+            width: 100%; border: none; background: transparent; font-family: inherit; font-size: 1rem; cursor: pointer;
         }
         .sidebar-menu li a:hover, .sidebar-menu li a.active {
             background: rgba(0, 210, 255, 0.1); color: var(--accent-cyan); border-right: 3px solid var(--accent-cyan);
+        }
+
+        .btn-logout-sidebar { color: var(--danger-red) !important; }
+        .btn-logout-sidebar:hover {
+            background: rgba(255, 71, 87, 0.1) !important;
+            border-right: 3px solid var(--danger-red) !important;
         }
 
         .main-content { flex: 1; padding: 30px; }
@@ -128,7 +139,7 @@
 
         @media (max-width: 768px) {
             .page-wrapper { flex-direction: column; }
-            .sidebar { width: 100%; }
+            .sidebar { width: 100%; height: auto; position: static; }
         }
     </style>
 </head>
@@ -141,8 +152,15 @@
                 <li><a href="index.html">🏠 الصفحة الرئيسية</a></li>
                 <li><a href="shop.html" class="active">🛍️ تسوق الآن (المنتجات)</a></li>
                 <li><a href="contact.html">📩 تواصل معنا والأسئلة</a></li>
-                <li><a href="profile.html">🛒 سلة المشتريات</a></li>
+                <li><a href="profile.html">🛒 سلة المشتريات والحساب</a></li>
                 <li><a href="privacy.html">🔒 سياسة الخصوصية</a></li>
+                
+                <li id="loginMenuLi">
+                    <a href="login.html">🔑 تسجيل الدخول</a>
+                </li>
+                <li id="logoutMenuLi" style="display: none;">
+                    <button onclick="logoutUser()" class="btn-logout-sidebar">🚪 تسجيل الخروج</button>
+                </li>
             </ul>
         </aside>
 
@@ -151,11 +169,11 @@
 
             <!-- شريط تصنيف المنتجات -->
             <div class="filter-container">
-                <button class="filter-btn active" onclick="filterCategory('all')">الكل</button>
-                <button class="filter-btn" onclick="filterCategory('books')">📚 كتب وروايات</button>
-                <button class="filter-btn" onclick="filterCategory('models')">🎨 مجسمات 3D/2D</button>
-                <button class="filter-btn" onclick="filterCategory('courses')">🎓 دورات فيديو</button>
-                <button class="filter-btn" onclick="filterCategory('gaming')">🎮 ألعاب واشتراكات</button>
+                <button class="filter-btn active" data-cat="all" onclick="filterCategory('all', event)">الكل</button>
+                <button class="filter-btn" data-cat="books" onclick="filterCategory('books', event)">📚 كتب وروايات</button>
+                <button class="filter-btn" data-cat="models" onclick="filterCategory('models', event)">🎨 مجسمات 3D/2D</button>
+                <button class="filter-btn" data-cat="courses" onclick="filterCategory('courses', event)">🎓 دورات فيديو</button>
+                <button class="filter-btn" data-cat="gaming" onclick="filterCategory('gaming', event)">🎮 ألعاب وااشتراكات</button>
             </div>
 
             <!-- شبكة عرض المنتجات -->
@@ -179,6 +197,10 @@
 
         function renderProducts(items) {
             const grid = document.getElementById("productsGrid");
+            if (items.length === 0) {
+                grid.innerHTML = `<p style="color:var(--text-sub); grid-column: 1/-1; text-align:center; padding: 40px;">لا توجد منتجات مجهزة حالياً في هذه الفئة.</p>`;
+                return;
+            }
             grid.innerHTML = items.map(p => `
                 <div class="product-card">
                     <div>
@@ -194,9 +216,15 @@
             `).join('');
         }
 
-        function filterCategory(cat) {
+        function filterCategory(cat, evt) {
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            
+            if (evt && evt.target) {
+                evt.target.classList.add('active');
+            } else {
+                const targetBtn = document.querySelector(`.filter-btn[data-cat="${cat}"]`);
+                if (targetBtn) targetBtn.classList.add('active');
+            }
             
             if (cat === 'all') {
                 renderProducts(products);
@@ -212,14 +240,41 @@
             alert(`تمت إضافة "${name}" إلى سلة المشتريات بنجاح!`);
         }
 
-        // Check URL parameters for direct category navigation
-        const urlParams = new URLSearchParams(window.location.search);
-        const categoryParam = urlParams.get('cat');
-        if (categoryParam) {
-            filterCategory(categoryParam);
-        } else {
-            renderProducts(products);
+        function checkAuthStatus() {
+            const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+            const loginLi = document.getElementById("loginMenuLi");
+            const logoutLi = document.getElementById("logoutMenuLi");
+
+            if (isLoggedIn) {
+                if (loginLi) loginLi.style.display = "none";
+                if (logoutLi) logoutLi.style.display = "block";
+            } else {
+                if (loginLi) loginLi.style.display = "block";
+                if (logoutLi) logoutLi.style.display = "none";
+            }
         }
+
+        function logoutUser() {
+            localStorage.removeItem("isLoggedIn");
+            localStorage.removeItem("userProfile");
+            localStorage.clear();
+            sessionStorage.clear();
+
+            alert("تم تسجيل الخروج بنجاح!");
+            window.location.href = "index.html";
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            checkAuthStatus();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const categoryParam = urlParams.get('cat');
+            if (categoryParam) {
+                filterCategory(categoryParam);
+            } else {
+                renderProducts(products);
+            }
+        });
     </script>
 </body>
 </html>
