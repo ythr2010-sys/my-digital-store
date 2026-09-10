@@ -115,10 +115,15 @@
             border-radius: 6px;
             cursor: pointer;
             font-family: inherit;
+            transition: 0.2s;
+        }
+        .btn-remove:hover {
+            background: #ff4d4d;
+            color: #fff;
         }
 
         .btn-checkout {
-            display: inline-block;
+            display: block;
             width: 100%;
             text-align: center;
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
@@ -128,6 +133,10 @@
             font-weight: 800;
             text-decoration: none;
             margin-top: 15px;
+            transition: opacity 0.3s;
+        }
+        .btn-checkout:hover {
+            opacity: 0.9;
         }
 
         @media (max-width: 768px) {
@@ -175,7 +184,7 @@
 
             <!-- تنبيه زائر غير مسجل -->
             <div id="guestNoticeCard" class="user-card" style="display: block; text-align: center;">
-                <p style="color: var(--text-sub);">أنت تتصفح حالياً كزائر. قم بتسجيل الدخول لحفظ المشتريات ومتابعة طلباتك.</p>
+                <p style="color: var(--text-sub); margin-bottom: 10px;">أنت تتصفح حالياً كزائر. قم بتسجيل الدخول لحفظ المشتريات ومتابعة طلباتك.</p>
                 <a href="login.html" style="background:var(--accent-cyan); color:#000; padding:8px 20px; border-radius:8px; font-weight:bold; text-decoration:none;">تسجيل الدخول</a>
             </div>
 
@@ -185,7 +194,8 @@
                 <div id="cartList">
                     <!-- المشتريات تظهر هنا -->
                 </div>
-               <a href="checkout.html" class="btn">الانتقال إلى صفحة الدفع 💳</a>
+                <!-- إضافة id="checkoutBtn" وتصحيح الكلاس إلى btn-checkout -->
+                <a href="checkout.html" id="checkoutBtn" class="btn-checkout">الانتقال إلى صفحة الدفع 💳</a>
             </div>
         </main>
     </div>
@@ -204,7 +214,7 @@
             if (isLoggedIn && userProfile) {
                 document.getElementById("userName").textContent = userProfile.name || "مستخدم الخزنة الرقمية";
                 document.getElementById("userEmail").textContent = userProfile.email || "";
-                document.getElementById("userAvatar").src = userProfile.picture || "https://via.placeholder.com/60";
+                document.getElementById("userAvatar").src = userProfile.picture || "https://ui-avatars.com/api/?name=" + encodeURIComponent(userProfile.name || "User");
 
                 userProfileCard.style.display = "flex";
                 guestNoticeCard.style.display = "none";
@@ -228,11 +238,11 @@
 
             if (cart.length === 0) {
                 container.innerHTML = "<p style='color:var(--text-sub); text-align:center; padding:20px;'>سلة المشتريات فارغة حالياً.</p>";
-                btn.style.display = "none";
+                if (btn) btn.style.display = "none";
                 return;
             }
 
-            btn.style.display = "block";
+            if (btn) btn.style.display = "block";
             container.innerHTML = cart.map((item, index) => `
                 <div class="cart-item">
                     <div>
@@ -251,11 +261,11 @@
             renderCart();
         }
 
-        // دالة تسجيل الخروج الشاملة
+        // دالة تسجيل الخروج المنظمة
         function logoutUser() {
+            // حذف جلسة الدخول فقط بدلاً من localStorage.clear() لتجنب حذف الحسابات المسجلة
             localStorage.removeItem("isLoggedIn");
             localStorage.removeItem("userProfile");
-            localStorage.clear();
             sessionStorage.clear();
 
             alert("تم تسجيل الخروج بنجاح!");
