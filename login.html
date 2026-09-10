@@ -95,6 +95,107 @@
         }
         .form-box { display: none; }
         .form-box.active { display: block; }
+    </style<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول وإجراء حساب | الخزنة الرقمية</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        .auth-container {
+            min-height: 85vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .auth-card {
+            background-color: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 12px;
+            padding: 35px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        .auth-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #2a2a4a;
+            padding-bottom: 10px;
+        }
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: #a0a0c0;
+            padding: 10px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: 0.3s;
+        }
+        .tab-btn.active {
+            background: #00d2ff;
+            color: #000;
+            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            text-align: right;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #2a2a4a;
+            background: #0f0f1b;
+            color: #fff;
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background: #00d2ff;
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+        .btn-submit:hover {
+            background: #00b8e6;
+        }
+        .divider {
+            margin: 20px 0;
+            color: #a0a0c0;
+            font-size: 0.85rem;
+            position: relative;
+        }
+        .google-btn-wrapper {
+            display: flex;
+            justify-content: center;
+        }
+        .form-box { display: none; }
+        .form-box.active { display: block; }
     </style>
 </head>
 <body>
@@ -110,19 +211,19 @@
         <div class="auth-card">
             <!-- التبديل بين الدخول وإنشاء حساب -->
             <div class="auth-tabs">
-                <button class="tab-btn active" onclick="switchTab('login')">تسجيل الدخول</button>
-                <button class="tab-btn" onclick="switchTab('register')">إنشاء حساب</button>
+                <button id="btnLoginTab" class="tab-btn active" onclick="switchTab('login')">تسجيل الدخول</button>
+                <button id="btnRegTab" class="tab-btn" onclick="switchTab('register')">إنشاء حساب</button>
             </div>
 
             <!-- نموذج تسجيل الدخول -->
             <div id="loginForm" class="form-box active">
                 <form onsubmit="handleEmailLogin(event)">
                     <div class="form-group">
-                        <label>البريد الإلكتروني</label>
+                        <label for="loginEmail">البريد الإلكتروني</label>
                         <input type="email" id="loginEmail" required placeholder="example@mail.com">
                     </div>
                     <div class="form-group">
-                        <label>كلمة المرور</label>
+                        <label for="loginPass">كلمة المرور</label>
                         <input type="password" id="loginPass" required placeholder="******">
                     </div>
                     <button type="submit" class="btn-submit">دخول</button>
@@ -133,15 +234,15 @@
             <div id="registerForm" class="form-box">
                 <form onsubmit="handleRegister(event)">
                     <div class="form-group">
-                        <label>الاسم الكامل</label>
+                        <label for="regName">الاسم الكامل</label>
                         <input type="text" id="regName" required placeholder="اسمك الكامل">
                     </div>
                     <div class="form-group">
-                        <label>البريد الإلكتروني</label>
+                        <label for="regEmail">البريد الإلكتروني</label>
                         <input type="email" id="regEmail" required placeholder="example@mail.com">
                     </div>
                     <div class="form-group">
-                        <label>كلمة المرور</label>
+                        <label for="regPass">كلمة المرور</label>
                         <input type="password" id="regPass" required placeholder="******">
                     </div>
                     <button type="submit" class="btn-submit">إنشاء الحساب</button>
@@ -163,27 +264,35 @@
     </div>
 
     <script>
+        // التبديل الدقيق بين التبويبات
         function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.form-box').forEach(box => box.classList.remove('active'));
-            if(tab === 'login') {
-                document.querySelectorAll('.tab-btn')[0].classList.add('active');
-                document.getElementById('loginForm').classList.add('active');
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const btnLogin = document.getElementById('btnLoginTab');
+            const btnReg = document.getElementById('btnRegTab');
+
+            if (tab === 'login') {
+                loginForm.classList.add('active');
+                registerForm.classList.remove('active');
+                btnLogin.classList.add('active');
+                btnReg.classList.remove('active');
             } else {
-                document.querySelectorAll('.tab-btn')[1].classList.add('active');
-                document.getElementById('registerForm').classList.add('active');
+                registerForm.classList.add('active');
+                loginForm.classList.remove('active');
+                btnReg.classList.add('active');
+                btnLogin.classList.remove('active');
             }
         }
 
         // إنشاء حساب عادي وحفظه في localStorage
         function handleRegister(e) {
             e.preventDefault();
-            const name = document.getElementById('regName').value;
-            const email = document.getElementById('regEmail').value;
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim().toLowerCase();
             const password = document.getElementById('regPass').value;
 
             let users = JSON.parse(localStorage.getItem('app_users')) || [];
-            if(users.some(u => u.email === email)) {
+            if (users.some(u => u.email === email)) {
                 alert('هذا البريد مسجل بالفعل!');
                 return;
             }
@@ -207,13 +316,13 @@
         // تسجيل الدخول بالحساب العادي
         function handleEmailLogin(e) {
             e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
+            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
             const password = document.getElementById('loginPass').value;
 
             let users = JSON.parse(localStorage.getItem('app_users')) || [];
             const foundUser = users.find(u => u.email === email && u.password === password);
 
-            if(foundUser) {
+            if (foundUser) {
                 const userAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(foundUser.name)}&background=00d2ff&color=fff`;
                 localStorage.setItem("isLoggedIn", "true");
                 localStorage.setItem("userProfile", JSON.stringify({
@@ -228,25 +337,36 @@
             }
         }
 
-        // فك شفرة Google JWT
+        // فك شفرة Google JWT بأمان يدعم جميع المحارف
         function parseJwt(token) {
-            var base64Url = token.split('.')[1];
-            var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-            return JSON.parse(jsonPayload);
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (error) {
+                console.error("فشل فك شفرة التوكن:", error);
+                return null;
+            }
         }
 
         // الدخول عبر Google
         function handleCredentialResponse(response) {
             const payload = parseJwt(response.credential);
+            if (!payload) {
+                alert("حدث خطأ أثناء تسجيل الدخول عبر Google");
+                return;
+            }
+
             localStorage.setItem("isLoggedIn", "true");
             localStorage.setItem("userProfile", JSON.stringify({
                 name: payload.name,
                 email: payload.email,
                 picture: payload.picture
             }));
+
             alert("تم تسجيل الدخول بنجاح! مرحباً بك " + payload.name);
             window.location.href = "index.html";
         }
