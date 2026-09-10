@@ -7,6 +7,43 @@
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ضمان ظهور القائمة بشكل واضح ومرتب فوق الخلفية */
+        .add-product-wrapper {
+            max-width: 650px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: var(--card-bg, #1e293b);
+            border-radius: 12px;
+            border: 1px solid var(--border-color, #334155);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        .form-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .form-group label {
+            font-weight: bold;
+            color: var(--text-color, #f8fafc);
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            background-color: #0f172a;
+            color: #fff;
+            font-family: 'Tajawal', sans-serif;
+            box-sizing: border-box;
+        }
+        .form-group input[type="file"] {
+            padding: 8px;
+            background-color: #1e293b;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <header class="navbar">
@@ -17,14 +54,14 @@
         </div>
     </header>
 
-    <main class="auth-container">
-        <div class="auth-card" style="max-width: 600px;">
-            <div class="auth-header">
-                <h2>إضافة منتج رقمي للبيع</h2>
-                <p>قم بعرض منتجك للبيع واكسب 90% من كل عملية بيع</p>
+    <main class="container">
+        <div class="add-product-wrapper">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <h2 style="font-size: 1.8rem; color: #fff;">إضافة منتج رقمي للبيع</h2>
+                <p style="color: #94a3b8; font-size: 0.95rem;">قم بعرض منتجك للبيع واكسب 90% من كل عملية بيع</p>
             </div>
 
-            <form id="addProductForm" class="contact-form">
+            <form id="addProductForm">
                 <div class="form-group">
                     <label for="productTitle">عنوان المنتج</label>
                     <input type="text" id="productTitle" placeholder="مثال: حساب لعبة / كود تفعيل / كتاب" required>
@@ -33,7 +70,7 @@
                 <div class="form-group">
                     <label for="productPrice">السعر ($)</label>
                     <input type="number" id="productPrice" placeholder="10.00" step="0.01" min="1" required>
-                    <small id="commissionNotice" style="color: var(--accent-color); font-size: 0.85rem; margin-top: 5px; display: block;">
+                    <small id="commissionNotice" style="color: #38bdf8; font-size: 0.85rem;">
                         * عمولة المنصة (10%): $0.00 | صافي ربحك: $0.00
                     </small>
                 </div>
@@ -58,8 +95,8 @@
                     <input type="text" id="payoutDetails" placeholder="أدخل رقم الحساب أو البريد الإلكتروني" required>
                 </div>
 
-                <button type="submit" id="submitBtn" class="btn-primary full-width" style="margin-top: 15px;">نشر المنتج للبيع</button>
-                <p id="statusMessage" style="text-align: center; margin-top: 10px; font-size: 0.9rem;"></p>
+                <button type="submit" id="submitBtn" class="btn-primary" style="width: 100%; padding: 14px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px;">نشر المنتج للبيع</button>
+                <p id="statusMessage" style="text-align: center; margin-top: 15px; font-size: 0.95rem; font-weight: 500;"></p>
             </form>
         </div>
     </main>
@@ -69,7 +106,6 @@
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
-        // مفاتيح مشروعك الخاصة بـ DigiVault
         const firebaseConfig = {
             apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
             authDomain: "digivault-4c3a3.firebaseapp.com",
@@ -95,7 +131,7 @@
             commissionNotice.innerText = `* عمولة المنصة (10%): $${fee} | صافي ربحك: $${profit}`;
         });
 
-        // رفع البيانات للـ Firebase
+        // معالجة نموذج الإرسال
         const addProductForm = document.getElementById('addProductForm');
         const submitBtn = document.getElementById('submitBtn');
         const statusMessage = document.getElementById('statusMessage');
@@ -103,10 +139,19 @@
         addProductForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            const imageFileInput = document.getElementById('productImage');
+            const digitalFileInput = document.getElementById('productFile');
+
+            if (!imageFileInput.files[0] || !digitalFileInput.files[0]) {
+                statusMessage.style.color = "#ef4444";
+                statusMessage.innerText = "يرجى اختيار صورة الغلاف والملف الرقمي أولاً.";
+                return;
+            }
+
             submitBtn.disabled = true;
             submitBtn.innerText = "جاري رفع الملفات ونشر المنتج...";
-            statusMessage.style.color = "var(--accent-color)";
-            statusMessage.innerText = "يرجى الانتظار، يتم تحميل الصور والملفات...";
+            statusMessage.style.color = "#38bdf8";
+            statusMessage.innerText = "يرجى الانتظار، يتم رفع الملفات إلى الخادم...";
 
             try {
                 const title = document.getElementById('productTitle').value;
@@ -114,20 +159,20 @@
                 const desc = document.getElementById('productDesc').value;
                 const payout = document.getElementById('payoutDetails').value;
                 
-                const imageFile = document.getElementById('productImage').files[0];
-                const digitalFile = document.getElementById('productFile').files[0];
+                const imageFile = imageFileInput.files[0];
+                const digitalFile = digitalFileInput.files[0];
 
-                // 1. رفع صورة المنتج
+                // 1. رفع الصورة
                 const imageRef = ref(storage, `images/${Date.now()}_${imageFile.name}`);
                 await uploadBytes(imageRef, imageFile);
                 const imageUrl = await getDownloadURL(imageRef);
 
-                // 2. رفع ملف المنتج الرقمي
+                // 2. رفع الملف الرقمي
                 const fileRef = ref(storage, `products/${Date.now()}_${digitalFile.name}`);
                 await uploadBytes(fileRef, digitalFile);
                 const fileUrl = await getDownloadURL(fileRef);
 
-                // 3. حفظ بيانات المنتج في Firestore
+                // 3. التخزين في Firestore
                 await addDoc(collection(db, "products"), {
                     title: title,
                     price: price,
@@ -156,7 +201,7 @@
         });
     </script>
 
-    <footer>
+    <footer style="text-align: center; padding: 20px; color: #64748b; margin-top: 40px;">
         <p>جميع الحقوق محفوظة © 2026 الخزنة الرقمية (DigiVault)</p>
     </footer>
 </body>
