@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إضافة منتج جديد | الخزنة الرقمية</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo"><a href="index.html">الخزنة<span>الرقمية</span></a></div>
+        <div class="nav-links">
+            <a href="index.html">الرئيسية</a>
+            <a href="terms.html">الشروط</a>
+        </div>
+    </header>
+
+    <main class="auth-container">
+        <div class="auth-card" style="max-width: 600px;">
+            <div class="auth-header">
+                <h2>إضافة منتج رقمي للبيع</h2>
+                <p>قم بعرض منتجك للبيع واكسب 90% من كل عملية بيع</p>
+            </div>
+
+            <form id="addProductForm" class="contact-form">
+                <!-- اسم المنتج -->
+                <div class="form-group">
+                    <label for="productTitle">عنوان المنتج</label>
+                    <input type="text" id="productTitle" placeholder="مثال: كتاب إلكتروني / كود لعبة / قالب جاهز" required>
+                </div>
+
+                <!-- سعر المنتج وحساب العمولة -->
+                <div class="form-group">
+                    <label for="productPrice">السعر ($)</label>
+                    <input type="number" id="productPrice" placeholder="10.00" step="0.01" min="1" required>
+                    <small id="commissionNotice" style="color: var(--accent-color); font-size: 0.85rem; margin-top: 5px; display: block;">
+                        * عمولة المنصة (10%): $0.00 | صافي ربحك: $0.00
+                    </small>
+                </div>
+
+                <!-- وصف المنتج -->
+                <div class="form-group">
+                    <label for="productDesc">وصف المنتج</label>
+                    <textarea id="productDesc" rows="4" placeholder="اكتب تفاصيل ومميزات المنتجات المرفقة..." required></textarea>
+                </div>
+
+                <!-- صورة المنتج -->
+                <div class="form-group">
+                    <label for="productImage">صورة الغلاف (PNG / JPG)</label>
+                    <input type="file" id="productImage" accept="image/*" required>
+                </div>
+
+                <!-- ملف المنتج الرقمي -->
+                <div class="form-group">
+                    <label for="productFile">ملف المنتج الرقمي (سيرفق برابط تحميل للزبون بعد الشراء)</label>
+                    <input type="file" id="productFile" accept=".zip,.pdf,.rar,.txt" required>
+                </div>
+
+                <!-- بيانات سحب الأرباح -->
+                <div class="form-group">
+                    <label for="payoutDetails">بيانات استقبال أرباحك (PayPal / رقم الحساب البنكي / Wise)</label>
+                    <input type="text" id="payoutDetails" placeholder="أدخل بريدك في PayPal أو بيانات حسابك" required>
+                </div>
+
+                <button type="submit" class="btn-primary full-width" style="margin-top: 15px;">نشر المنتج للبيع</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        // كود بسيط يحيي شاشة حساب العمولة 10% فور كتابة السعر
+        const priceInput = document.getElementById('productPrice');
+        const commissionNotice = document.getElementById('commissionNotice');
+
+        priceInput.addEventListener('input', () => {
+            const price = parseFloat(priceInput.value) || 0;
+            const fee = (price * 0.10).toFixed(2);
+            const profit = (price - fee).toFixed(2);
+            commissionNotice.innerText = `* عمولة المنصة (10%): $${fee} | صافي ربحك: $${profit}`;
+        });
+    </script>
+
+    <footer>
+        <p>جميع الحقوق محفوظة © 2026 الخزنة الرقمية (DigiVault)</p>
+    </footer>
+</body>
+</html>
