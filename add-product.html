@@ -25,13 +25,11 @@
             </div>
 
             <form id="addProductForm" class="contact-form">
-                <!-- اسم المنتج -->
                 <div class="form-group">
                     <label for="productTitle">عنوان المنتج</label>
-                    <input type="text" id="productTitle" placeholder="مثال: كتاب إلكتروني / كود لعبة / قالب جاهز" required>
+                    <input type="text" id="productTitle" placeholder="مثال: حساب لعبة / كود تفعيل / كتاب" required>
                 </div>
 
-                <!-- سعر المنتج وحساب العمولة -->
                 <div class="form-group">
                     <label for="productPrice">السعر ($)</label>
                     <input type="number" id="productPrice" placeholder="10.00" step="0.01" min="1" required>
@@ -40,37 +38,53 @@
                     </small>
                 </div>
 
-                <!-- وصف المنتج -->
                 <div class="form-group">
                     <label for="productDesc">وصف المنتج</label>
-                    <textarea id="productDesc" rows="4" placeholder="اكتب تفاصيل ومميزات المنتجات المرفقة..." required></textarea>
+                    <textarea id="productDesc" rows="4" placeholder="اكتب تفاصيل ومميزات المنتج..." required></textarea>
                 </div>
 
-                <!-- صورة المنتج -->
                 <div class="form-group">
                     <label for="productImage">صورة الغلاف (PNG / JPG)</label>
                     <input type="file" id="productImage" accept="image/*" required>
                 </div>
 
-                <!-- ملف المنتج الرقمي -->
                 <div class="form-group">
-                    <label for="productFile">ملف المنتج الرقمي (سيرفق برابط تحميل للزبون بعد الشراء)</label>
+                    <label for="productFile">ملف المنتج الرقمي (Zip / PDF)</label>
                     <input type="file" id="productFile" accept=".zip,.pdf,.rar,.txt" required>
                 </div>
 
-                <!-- بيانات سحب الأرباح -->
                 <div class="form-group">
-                    <label for="payoutDetails">بيانات استقبال أرباحك (PayPal / رقم الحساب البنكي / Wise)</label>
-                    <input type="text" id="payoutDetails" placeholder="أدخل بريدك في PayPal أو بيانات حسابك" required>
+                    <label for="payoutDetails">بيانات حسابك لاستلام الأرباح (PayPal / CCP / Wise)</label>
+                    <input type="text" id="payoutDetails" placeholder="أدخل رقم الحساب أو البريد الإلكتروني" required>
                 </div>
 
-                <button type="submit" class="btn-primary full-width" style="margin-top: 15px;">نشر المنتج للبيع</button>
+                <button type="submit" id="submitBtn" class="btn-primary full-width" style="margin-top: 15px;">نشر المنتج للبيع</button>
+                <p id="statusMessage" style="text-align: center; margin-top: 10px; font-size: 0.9rem;"></p>
             </form>
         </div>
     </main>
 
-    <script>
-        // كود بسيط يحيي شاشة حساب العمولة 10% فور كتابة السعر
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+        // مفاتيح مشروعك الخاصة بـ DigiVault
+        const firebaseConfig = {
+            apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
+            authDomain: "digivault-4c3a3.firebaseapp.com",
+            projectId: "digivault-4c3a3",
+            storageBucket: "digivault-4c3a3.firebasestorage.app",
+            messagingSenderId: "578335534171",
+            appId: "1:578335534171:web:1b108a849c0543f998a37e",
+            measurementId: "G-SZCB59ZZDN"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        // حاسبة العمولة
         const priceInput = document.getElementById('productPrice');
         const commissionNotice = document.getElementById('commissionNotice');
 
@@ -79,6 +93,66 @@
             const fee = (price * 0.10).toFixed(2);
             const profit = (price - fee).toFixed(2);
             commissionNotice.innerText = `* عمولة المنصة (10%): $${fee} | صافي ربحك: $${profit}`;
+        });
+
+        // رفع البيانات للـ Firebase
+        const addProductForm = document.getElementById('addProductForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusMessage = document.getElementById('statusMessage');
+
+        addProductForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            submitBtn.disabled = true;
+            submitBtn.innerText = "جاري رفع الملفات ونشر المنتج...";
+            statusMessage.style.color = "var(--accent-color)";
+            statusMessage.innerText = "يرجى الانتظار، يتم تحميل الصور والملفات...";
+
+            try {
+                const title = document.getElementById('productTitle').value;
+                const price = parseFloat(document.getElementById('productPrice').value);
+                const desc = document.getElementById('productDesc').value;
+                const payout = document.getElementById('payoutDetails').value;
+                
+                const imageFile = document.getElementById('productImage').files[0];
+                const digitalFile = document.getElementById('productFile').files[0];
+
+                // 1. رفع صورة المنتج
+                const imageRef = ref(storage, `images/${Date.now()}_${imageFile.name}`);
+                await uploadBytes(imageRef, imageFile);
+                const imageUrl = await getDownloadURL(imageRef);
+
+                // 2. رفع ملف المنتج الرقمي
+                const fileRef = ref(storage, `products/${Date.now()}_${digitalFile.name}`);
+                await uploadBytes(fileRef, digitalFile);
+                const fileUrl = await getDownloadURL(fileRef);
+
+                // 3. حفظ بيانات المنتج في Firestore
+                await addDoc(collection(db, "products"), {
+                    title: title,
+                    price: price,
+                    platformFee: price * 0.10,
+                    sellerProfit: price * 0.90,
+                    description: desc,
+                    imageUrl: imageUrl,
+                    downloadUrl: fileUrl,
+                    payoutDetails: payout,
+                    createdAt: serverTimestamp()
+                });
+
+                statusMessage.style.color = "#10b981";
+                statusMessage.innerText = "تم نشر منتجك بنجاح! سيظهر الآن في المتجر.";
+                addProductForm.reset();
+                commissionNotice.innerText = "* عمولة المنصة (10%): $0.00 | صافي ربحك: $0.00";
+
+            } catch (error) {
+                console.error("Error adding product: ", error);
+                statusMessage.style.color = "#ef4444";
+                statusMessage.innerText = "حدث خطأ أثناء الرفع: " + error.message;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "نشر المنتج للبيع";
+            }
         });
     </script>
 
