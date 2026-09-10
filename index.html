@@ -6,7 +6,7 @@
     
     <!-- تهيئة الموقع لمحركات البحث Google SEO -->
     <title>الخزنة الرقمية | DigiVault - متجر الكتب، المجسمات، والدورات الرقمية</title>
-    <meta name="description" content="متجر الخزنة الرقمية للخدمات والمنتجات الرقمية: كتب، روايات، مجسمات 3D/2D، دورات تعليمية، واشتراكات ألعاب بأفضل الأسعار.">
+    <meta name="description" content="متجر الخزنة الرقمية للخدمات والمنتجات الرقمية: كتب، روايات، مجسمات 3D/2D، دورات تعليمية، وااشتراكات ألعاب بأفضل الأسعار.">
     <meta name="keywords" content="متجر رقمي, كتب رقمية, مجسمات 3D, دورات تعليمية, اشتراكات, ألعاب, DigiVault">
     <meta property="og:title" content="الخزنة الرقمية | DigiVault">
     <meta property="og:description" content="منصتك الأولى لإقتناء أفضل المنتجات الرقمية التعليمية والترفيهية.">
@@ -113,6 +113,17 @@
             border-right: 3px solid var(--accent-cyan);
         }
 
+        .btn-add-product {
+            background: linear-gradient(135deg, rgba(0, 210, 255, 0.15), rgba(138, 43, 226, 0.2)) !important;
+            color: var(--accent-cyan) !important;
+            border: 1px solid var(--accent-cyan) !important;
+        }
+
+        .btn-add-product:hover {
+            background: var(--accent-cyan) !important;
+            color: #000 !important;
+        }
+
         .btn-logout-sidebar {
             color: var(--danger-red) !important;
         }
@@ -206,13 +217,83 @@
             box-shadow: 0 8px 20px rgba(0, 210, 255, 0.3);
         }
 
-        /* Feature Sections */
+        /* Feature Sections & Products Display */
         .section-title {
             font-size: 1.5rem;
             font-weight: 800;
             margin-bottom: 20px;
             border-right: 4px solid var(--accent-cyan);
             padding-right: 12px;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .product-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-line);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: 0.3s ease;
+        }
+
+        .product-card:hover {
+            border-color: var(--accent-cyan);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .product-card h3 {
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .product-card p {
+            color: var(--text-sub);
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+            height: 40px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-line);
+        }
+
+        .card-footer .price {
+            font-weight: 800;
+            color: #10b981;
+            font-size: 1.2rem;
+        }
+
+        .buy-btn {
+            background: var(--accent-cyan);
+            color: #000;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: 0.2s ease;
+        }
+
+        .buy-btn:hover {
+            opacity: 0.9;
         }
 
         .quick-categories {
@@ -284,6 +365,7 @@
             <nav>
                 <ul class="sidebar-menu">
                     <li><a href="index.html" class="active">🏠 الصفحة الرئيسية</a></li>
+                    <li><a href="add-product.html" class="btn-add-product">➕ أضف منتجك للبيع</a></li>
                     <li><a href="shop.html">🛍️ تسوق الآن (المنتجات)</a></li>
                     <li><a href="contact.html">📩 تواصل معنا والأسئلة</a></li>
                     <li><a href="profile.html">🛒 سلة المشتريات</a></li>
@@ -318,6 +400,14 @@
                 <a href="shop.html" class="btn-cta">تصفح المتجر الكامل الآن 🚀</a>
             </section>
 
+            <!-- قسم عرض أحدث المنتجات من Firebase -->
+            <section>
+                <h2 class="section-title">أحدث المنتجات المعروضة</h2>
+                <div class="products-grid" id="productsGrid">
+                    <p style="color: var(--text-sub); grid-column: 1/-1; text-align: center; padding: 20px;">جاري تحميل المنتجات المعروضة...</p>
+                </div>
+            </section>
+
             <!-- أقسام المنتجات السريعة -->
             <section>
                 <h2 class="section-title">تصفح حسب الفئة</h2>
@@ -343,7 +433,7 @@
                     <a href="shop.html?cat=gaming" class="cat-box">
                         <div class="cat-icon">🎮</div>
                         <h3>ألعاب وااشتراكات</h3>
-                        <p style="color:var(--text-sub); font-size:0.85rem;">بطاقات شحن واشتراكات فورية</p>
+                        <p style="color:var(--text-sub); font-size:0.85rem;">بطاقات شحن وااشتراكات فورية</p>
                     </a>
                 </div>
             </section>
@@ -388,7 +478,7 @@
             }
         }
 
-        // دالة تسجيل الخروج المنظمة (حذف بيانات الجلسة فقط والحفاظ على سلة التسوق)
+        // دالة تسجيل الخروج المنظمة
         function logoutUser() {
             localStorage.removeItem("isLoggedIn");
             localStorage.removeItem("userProfile");
@@ -400,61 +490,69 @@
 
         document.addEventListener("DOMContentLoaded", updateNav);
     </script>
+
+    <!-- سكريبت جلب المنتجات ديناميكياً من قواعد بيانات Firebase -->
     <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
-        authDomain: "digivault-4c3a3.firebaseapp.com",
-        projectId: "digivault-4c3a3",
-        storageBucket: "digivault-4c3a3.firebasestorage.app",
-        messagingSenderId: "578335534171",
-        appId: "1:578335534171:web:1b108a849c0543f998a37e",
-        measurementId: "G-SZCB59ZZDN"
-    };
+        const firebaseConfig = {
+            apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
+            authDomain: "digivault-4c3a3.firebaseapp.com",
+            projectId: "digivault-4c3a3",
+            storageBucket: "digivault-4c3a3.firebasestorage.app",
+            messagingSenderId: "578335534171",
+            appId: "1:578335534171:web:1b108a849c0543f998a37e",
+            measurementId: "G-SZCB59ZZDN"
+        };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-    async function loadProducts() {
-        const productsGrid = document.querySelector('.products-grid');
-        if (!productsGrid) return;
+        async function loadProducts() {
+            const productsGrid = document.getElementById('productsGrid');
+            if (!productsGrid) return;
 
-        try {
-            const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
-            const querySnapshot = await getDocs(q);
-            
-            productsGrid.innerHTML = '';
-
-            querySnapshot.forEach((doc) => {
-                const product = doc.data();
+            try {
+                const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
                 
-                const card = document.createElement('div');
-                card.className = 'product-card';
-                card.innerHTML = `
-                    <div style="width: 100%; height: 160px; overflow: hidden; border-radius: 8px; margin-bottom: 15px;">
-                        <img src="${product.imageUrl}" alt="${product.title}" style="width: 100%; height: 100%; object-fit: cover;">
-                    </div>
-                    <h3>${product.title}</h3>
-                    <p>${product.description}</p>
-                    <div class="card-footer">
-                        <span class="price">$${product.price}</span>
-                        <a href="#" onclick="buyProduct('${doc.id}', '${product.downloadUrl}')" class="buy-btn">شراء الآن</a>
-                    </div>
-                `;
-                productsGrid.appendChild(card);
-            });
-        } catch (error) {
-            console.error("خطأ في جلب المنتجات: ", error);
+                if (querySnapshot.empty) {
+                    productsGrid.innerHTML = '<p style="color: var(--text-sub); grid-column: 1/-1; text-align: center;">لا توجد منتجات معروضة حالياً. كن أول من يضيف منتجاً!</p>';
+                    return;
+                }
+
+                productsGrid.innerHTML = '';
+
+                querySnapshot.forEach((doc) => {
+                    const product = doc.data();
+                    
+                    const card = document.createElement('div');
+                    card.className = 'product-card';
+                    card.innerHTML = `
+                        <div style="width: 100%; height: 160px; overflow: hidden; border-radius: 8px; margin-bottom: 15px;">
+                            <img src="${product.imageUrl}" alt="${product.title}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <h3>${product.title}</h3>
+                        <p>${product.description}</p>
+                        <div class="card-footer">
+                            <span class="price">$${product.price}</span>
+                            <a href="#" onclick="buyProduct('${doc.id}', '${product.downloadUrl}')" class="buy-btn">شراء الآن</a>
+                        </div>
+                    `;
+                    productsGrid.appendChild(card);
+                });
+            } catch (error) {
+                console.error("خطأ في جلب المنتجات: ", error);
+                productsGrid.innerHTML = '<p style="color: var(--danger-red); grid-column: 1/-1; text-align: center;">تعذر تحميل المنتجات، يرجى التأكد من الاتصال بقواعد البيانات.</p>';
+            }
         }
-    }
 
-    window.buyProduct = function(productId, downloadUrl) {
-        alert("سيتم تحويلك لبوابة الدفع لحساب الـ 10% والـ 90%، وبعد الدفع سينفتح رابط التحميل التالي تلقائياً:\n" + downloadUrl);
-    };
+        window.buyProduct = function(productId, downloadUrl) {
+            alert("سيتم تحويلك لبوابة الدفع لحساب الـ 10% والـ 90%، وبعد الدفع سينفتح رابط التحميل التالي تلقائياً:\n" + downloadUrl);
+        };
 
-    loadProducts();
-</script>
+        loadProducts();
+    </script>
 </body>
 </html>
