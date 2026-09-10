@@ -368,5 +368,59 @@
             }
         });
     </script>
+    <!-- ربط مكتبات Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { 
+    getAuth, 
+    GoogleAuthProvider, 
+    signInWithPopup, 
+    createUserWithEmailAndPassword,
+    updateProfile 
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+  // إعدادات مشروع Firebase الخاص بك
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  // 1. التسجيل باستخدام Google
+  document.getElementById('btnGoogleSignUp').addEventListener('click', async () => {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      console.log("تم التسجيل بنجاح:", result.user);
+      window.location.href = "index.html"; // توجيه للرئيسية
+    } catch (error) {
+      alert("حدث خطأ أثناء التسجيل بجوجل: " + error.message);
+    }
+  });
+
+  // 2. التسجيل عبر البريد الإلكتروني وكلمة المرور
+  document.getElementById('signupForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('fullName').value;
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // تحديث اسم المستخدم
+      await updateProfile(userCredential.user, { displayName: name });
+      alert("تم إنشاء الحساب بنجاح!");
+      window.location.href = "index.html";
+    } catch (error) {
+      alert("خطأ في إنشاء الحساب: " + error.message);
+    }
+  });
+</script>
 </body>
 </html>
