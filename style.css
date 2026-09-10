@@ -120,3 +120,19 @@ body {
     width: 20px;
     height: 20px;
 }
+/* تجاوب الموقع مع الهواتف الذكية */
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px 5%;
+    }
+    
+    .hero h1 {
+        font-size: 2rem;
+    }
+    
+    .products-grid {
+        grid-template-columns: 1fr;
+    }
+}
