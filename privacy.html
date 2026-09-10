@@ -8,45 +8,134 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Tajawal', sans-serif; background: #0a0a12; color: #fff; line-height: 1.8; margin: 0; }
-        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 16px 8%; background: #141424; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .logo a { font-size: 1.5rem; font-weight: 800; color: #fff; text-decoration: none; }
-        .logo a span { color: #00d2ff; }
-        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
-        h1 { color: #00d2ff; margin-bottom: 20px; font-size: 2rem; }
-        h2 { color: #fff; margin-top: 25px; font-size: 1.3rem; border-right: 4px solid #00d2ff; padding-right: 10px; }
-        p { color: #a0a0c0; font-size: 0.95rem; }
-        footer { text-align: center; padding: 30px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 50px; color: #a0a0c0; }
+        body { 
+            font-family: 'Tajawal', sans-serif; 
+            background: #0a0a12; 
+            color: #fff; 
+            line-height: 1.8; 
+            margin: 0; 
+        }
+        .navbar { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 16px 8%; 
+            background: #141424; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+        }
+        .logo a { 
+            font-size: 1.5rem; 
+            font-weight: 800; 
+            color: #fff; 
+            text-decoration: none; 
+        }
+        .logo a span { 
+            color: #00d2ff; 
+        }
+        .container { 
+            max-width: 900px; 
+            margin: 40px auto; 
+            padding: 30px 20px; 
+            background: #141424;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        h1 { 
+            color: #00d2ff; 
+            margin-bottom: 20px; 
+            font-size: 2.2rem; 
+            border-bottom: 2px solid rgba(0, 210, 255, 0.2);
+            padding-bottom: 10px;
+        }
+        h2 { 
+            color: #fff; 
+            margin-top: 30px; 
+            font-size: 1.3rem; 
+            border-right: 4px solid #00d2ff; 
+            padding-right: 12px; 
+        }
+        p, li { 
+            color: #a0a0c0; 
+            font-size: 0.98rem; 
+        }
+        ul {
+            padding-right: 20px;
+            margin-top: 10px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        a.legal-link {
+            color: #00d2ff;
+            text-decoration: none;
+        }
+        a.legal-link:hover {
+            text-decoration: underline;
+        }
+        footer { 
+            text-align: center; 
+            padding: 30px; 
+            border-top: 1px solid rgba(255,255,255,0.1); 
+            margin-top: 50px; 
+            color: #a0a0c0; 
+        }
     </style>
 </head>
 <body>
+
     <header class="navbar">
         <div class="logo"><a href="index.html">الخزنة<span>الرقمية</span></a></div>
-        <a href="index.html" style="color:#00d2ff; text-decoration:none;">الرئيسية</a>
+        <a href="index.html" style="color:#00d2ff; text-decoration:none; font-weight: 500;">الرئيسية</a>
     </header>
 
-    <div class="container">
+    <main class="container">
         <h1>سياسة الخصوصية</h1>
-        <p>مرحباً بكم في متجر الخزنة الرقمية (DigiVault). نحن نحترم خصوصيتك ونلتزم بحماية بياناتك الشخصية وفق أعلى المعايير القانونية والتقنية.</p>
+        <p>تاريخ آخر تحديث: 2026</p>
+        <p>مرحباً بكم في متجر <strong>الخزنة الرقمية (DigiVault)</strong>. نحن نولي خصوصية بياناتك اهتماماً بالغاً ونلتزم بحماية معلوماتك الشخصية وفقاً لأعلى المعايير والممارسات الرقمية.</p>
 
         <h2>1. المعلومات التي نجمعها</h2>
-        <p>عند استخدامك لموقعنا أو التسجيل عبر بريدك الإلكتروني أو حساب Google، قد نجمع بيانات محددة مثل: الاسم، البريد الإلكتروني، والصورة الشخصية لأغراض إنشاء الحساب وتخصيص تجربتك.</p>
+        <p>عند استخدامك لموقعنا أو التسجيل عبر بريدك الإلكتروني أو خدمات الدخول السريع (مثل Google Sign-In)، نجمع البيانات التالية لتقديم وتطوير خدماتنا:</p>
+        <ul>
+            <li><strong>المعلومات الشخصية الأساسية:</strong> الاسم الكامل، البريد الإلكتروني، وصورة Profil الشخصية.</li>
+            <li><strong>بيانات الاستخدام الفنية:</strong> عنوان الـ IP، نوع المتصفح، نوع الجهاز، وصفحات الموقع التي قمت بزيارتها.</li>
+        </ul>
 
-        <h2>2. استخدام خدمات Google Identity و Google AdSense</h2>
-        <p>يستخدم موقعنا خدمات Google Identity Services لتأمين عمليات تسجيل الدخول المباشر. كما نستخدم برنامج Google AdSense لعرض الإعلانات. قد تستخدم Google كوكيز (Cookies) لتقديم إعلانات مخصصة بناءً على زياراتك لموقعنا والمواقع الأخرى على شبكة الإنترنت.</p>
+        <h2>2. استخدام خدمات Google (Identity & AdSense)</h2>
+        <p>نحن نستخدم خدمات مجتمعية وتقنية مخصصة من شركة Google لتأمين وتطوير الموقع:</p>
+        <ul>
+            <li><strong>Google Identity Services:</strong> لتوفير ميزة تسجيل الدخول السريع والآمن دون الحاجة لإنشاء كلمات مرور جديدة.</li>
+            <li><strong>Google AdSense:</strong> بصفتنا نستخدم برنامج جوجل الإعلاني لعرض الإعلانات، تستخدم جوجل ملفات تعريف الارتباط (Cookies) لخدمة الإعلانات بناءً على زياراتك السابقة لموقعنا أو للمواقع الأخرى على شبكة الإنترنت.</li>
+            <li>يمكن للمستخدمين إلغاء الاشتراك في الإعلانات المخصصة عن طريق الانتقال إلى <a href="https://www.google.com/settings/ads" target="_blank" class="legal-link">إعدادات الإعلانات في Google</a>.</li>
+        </ul>
 
-        <h2>3. ملفات تعريف الارتباط (Cookies)</h2>
-        <p>نستخدم ملفات تعريف الارتباط والتقنيات المماثلة مثل LocalStorage لتذكر تفضيلاتك وجلسة تسجيل دخولك، مما يوفر لك تجربة سلسة أثناء التصفح والشراء.</p>
+        <h2>3. ملفات تعريف الارتباط (Cookies) والتخزين المحلي</h2>
+        <p>نستخدم ملفات تعريف الارتباط (Cookies) وتقنيات التخزين المحلي (LocalStorage):</p>
+        <ul>
+            <li>لحفظ حالة تسجيل الدخول الخاصة بك وتسهيل الوصول لحسابك.</li>
+            <li>لتذكر المنتجات وتفضيلات التصفح الخاصة بك داخل متجر الخزنة الرقمية.</li>
+            <li>لتحليل حركة المرور وتحسين أداء الموقع وتجربة المستخدم.</li>
+        </ul>
 
-        <h2>4. حماية البيانات</h2>
-        <p>تتم حماية جميع البيانات والمُعاملات داخل موقعنا بتقنيات التشفير، ولن يتم بيع أو مشاركة بياناتك الشخصية مع أي طرف ثالث غير مصرح له.</p>
+        <h2>4. حماية البيانات ومشاركتها</h2>
+        <p>نحن نطبق إجراءات أمان تقنية وتنظيمية مناسبة لحماية بياناتك من الوصول غير المصرح به أو التعديل أو الإفصاح. نؤكد لك أننا <strong>لا نبيع أو نؤجر بياناتك الشخصية لأي أطراف خارجية</strong> لأغراض التسويق.</p>
 
-        <h2>5. الاتصال بنا</h2>
-        <p>إذا كان لديك أي استفسارات حول سياسة الخصوصية، يمكنك التواصل معنا عبر البريد الإلكتروني الخاص بالمتجر.</p>
-    </div>
+        <h2>5. حقوقك بشأن بياناتك</h2>
+        <p>يحق لك في أي وقت:</p>
+        <ul>
+            <li>الوصول إلى بياناتك الشخصية المخزنة لدينا.</li>
+            <li>طلب تصحيح أو تحديث أي معلومات غير دقيقة.</li>
+            <li>طلب حذف حسابك وبياناتك المسجلة لدينا بشكل نهائي.</li>
+        </ul>
+
+        <h2>6. الاتصال بنا</h2>
+        <p>إذا كان لديك أي استفسارات أو أسئلة تتعلق بسياسة الخصوصية أو كيفية التعامل مع بياناتك، يمكنك التواصل معنا عبر البريد الإلكتروني:</p>
+        <p><a href="mailto:support@digivault.com" class="legal-link">support@digivault.com</a></p>
+    </main>
 
     <footer>
         <p>جميع الحقوق محفوظة © 2026 الخزنة الرقمية (DigiVault)</p>
     </footer>
+
 </body>
 </html>
