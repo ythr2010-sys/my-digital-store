@@ -3,15 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- تهيئة الموقع لمحركات البحث Google SEO -->
-    <title>الخزنة الرقمية | DigiVault - متجر الكتب، المجسمات، والدورات الرقمية</title>
-    <meta name="description" content="متجر الخزنة الرقمية للخدمات والمنتجات الرقمية: كتب، روايات، مجسمات 3D/2D، دورات تعليمية، واشتراكات ألعاب بأفضل الأسعار.">
-    <meta name="keywords" content="متجر رقمي, كتب رقمية, مجسمات 3D, دورات تعليمية, اشتراكات, ألعاب, DigiVault">
-    <meta property="og:title" content="الخزنة الرقمية | DigiVault">
-    <meta property="og:description" content="منصتك الأولى لإقتناء أفضل المنتجات الرقمية التعليمية والترفيهية.">
-    
-    <link rel="stylesheet" href="style.css">
+    <title>الخزنة الرقمية | DigiVault - متجر وشاشة التاجر المتقدمة</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
@@ -27,6 +19,8 @@
             --text-main: #ffffff;
             --text-sub: #a0a0c0;
             --danger-red: #ff4757;
+            --success-green: #2ed573;
+            --gold-star: #ffa500;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -38,16 +32,11 @@
             line-height: 1.6;
             display: flex;
             min-height: 100vh;
-            flex-direction: column;
         }
 
-        /* Layout with Sidebar */
-        .page-wrapper {
-            display: flex;
-            flex: 1;
-        }
-
-        /* Sidebar Side Menu */
+        /* Layout & Sidebar */
+        .page-wrapper { display: flex; width: 100%; }
+        
         .sidebar {
             width: 260px;
             background: var(--bg-sidebar);
@@ -61,300 +50,555 @@
             height: 100vh;
         }
 
-        .sidebar-menu {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .logo a {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #fff;
+            text-decoration: none;
         }
+        .logo a span { color: var(--accent-cyan); }
 
+        .sidebar-menu { list-style: none; display: flex; flex-direction: column; gap: 10px; }
         .sidebar-menu li a, .sidebar-menu li button {
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: space-between;
             color: var(--text-sub);
             text-decoration: none;
             padding: 12px 16px;
             border-radius: 10px;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: 0.3s;
             width: 100%;
             border: none;
             background: transparent;
-            font-family: inherit;
-            font-size: 1rem;
             cursor: pointer;
+            font-family: inherit;
         }
-
         .sidebar-menu li a:hover, .sidebar-menu li a.active {
             background: rgba(0, 210, 255, 0.1);
             color: var(--accent-cyan);
             border-right: 3px solid var(--accent-cyan);
         }
 
-        .btn-logout-sidebar {
-            color: var(--danger-red) !important;
-        }
+        .main-content { flex: 1; padding: 25px; overflow-x: hidden; }
 
-        .btn-logout-sidebar:hover {
-            background: rgba(255, 71, 87, 0.1) !important;
-            border-right: 3px solid var(--danger-red) !important;
-        }
-
-        /* Main Content Area */
-        .main-content {
-            flex: 1;
-            padding: 20px;
-            overflow-x: hidden;
-        }
-
-        /* Header Navbar */
-        .navbar {
+        /* Titles & Section Boxes */
+        .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 30px;
-            background: rgba(20, 20, 36, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 12px;
-            border: 1px solid var(--border-line);
-            margin-bottom: 30px;
-        }
-
-        .logo a {
-            font-size: 1.6rem;
-            font-weight: 900;
-            color: #fff;
-            text-decoration: none;
-        }
-
-        .logo a span {
-            color: var(--accent-cyan);
-        }
-
-        .user-nav {
-            display: flex;
-            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
             gap: 15px;
         }
-
-        /* Hero Banner */
-        .hero-banner {
-            background: linear-gradient(135deg, rgba(138, 43, 226, 0.2), rgba(0, 210, 255, 0.15)), var(--bg-card);
-            border: 1px solid var(--border-line);
-            border-radius: 16px;
-            padding: 50px 30px;
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .hero-banner h1 {
-            font-size: 2.5rem;
-            font-weight: 900;
-            margin-bottom: 15px;
-        }
-
-        .hero-banner h1 span {
-            color: var(--accent-cyan);
-        }
-
-        .hero-banner p {
-            color: var(--text-sub);
-            font-size: 1.1rem;
-            max-width: 700px;
-            margin: 0 auto 25px;
-        }
-
-        .btn-cta {
-            display: inline-block;
-            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-            color: #fff;
-            padding: 12px 30px;
-            border-radius: 10px;
-            font-weight: 800;
-            text-decoration: none;
-            transition: 0.3s;
-        }
-
-        .btn-cta:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 210, 255, 0.3);
-        }
-
-        /* Feature Sections */
         .section-title {
             font-size: 1.5rem;
             font-weight: 800;
-            margin-bottom: 20px;
             border-right: 4px solid var(--accent-cyan);
             padding-right: 12px;
         }
 
-        .quick-categories {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
+        /* Panel Boxes */
+        .panel-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-line);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 30px;
         }
 
-        .cat-box {
+        /* Add Product Form (Merchant Panel) */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .input-group { display: flex; flex-direction: column; gap: 6px; }
+        .input-group label { font-size: 0.9rem; color: var(--text-sub); }
+        .input-group input, .input-group select, .input-group textarea {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-line);
+            border-radius: 8px;
+            padding: 10px;
+            color: #fff;
+            font-family: inherit;
+            outline: none;
+        }
+        .input-group input:focus { border-color: var(--accent-cyan); }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: 0.3s;
+        }
+        .btn-submit:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        /* Filter & Search Controls */
+        .controls-bar {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            background: var(--bg-card);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border-line);
+        }
+        .search-input { flex: 1; min-width: 200px; }
+
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .product-card {
             background: var(--bg-card);
             border: 1px solid var(--border-line);
             border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            text-decoration: none;
-            color: #fff;
-            transition: 0.3s;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
         }
-
-        .cat-box:hover {
-            border-color: var(--accent-cyan);
-            transform: translateY(-5px);
-        }
-
-        .cat-icon {
-            font-size: 2.5rem;
+        .product-card img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 8px;
             margin-bottom: 10px;
         }
+        .product-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 5px; }
+        .product-desc { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 10px; height: 40px; overflow: hidden; }
+        .stars-row { color: var(--gold-star); font-size: 0.9rem; margin-bottom: 10px; }
+        .product-price { color: var(--accent-cyan); font-weight: 800; font-size: 1.2rem; margin-bottom: 12px; }
+        
+        .card-actions { display: flex; gap: 8px; }
+        .btn-buy {
+            flex: 1;
+            background: var(--accent-cyan);
+            color: #000;
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-delete-prod {
+            background: rgba(255, 71, 87, 0.2);
+            color: var(--danger-red);
+            border: 1px solid var(--danger-red);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
 
-        footer {
+        /* AI Chatbot Widget */
+        .chatbot-toggler {
+            position: fixed;
+            bottom: 25px;
+            left: 25px;
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(0,210,255,0.4);
+            z-index: 1000;
+        }
+        .chat-box {
+            position: fixed;
+            bottom: 90px;
+            left: 25px;
+            width: 330px;
+            height: 430px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-line);
+            border-radius: 14px;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .chat-header {
+            background: var(--bg-sidebar);
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-line);
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-messages { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; font-size: 0.88rem; }
+        .msg { padding: 8px 12px; border-radius: 10px; max-width: 85%; }
+        .msg.bot { background: rgba(0,210,255,0.15); color: #fff; align-self: flex-start; border-right: 3px solid var(--accent-cyan); }
+        .msg.user { background: var(--accent-purple); color: #fff; align-self: flex-end; }
+        .chat-input-area { display: flex; padding: 10px; border-top: 1px solid var(--border-line); }
+        .chat-input-area input { flex: 1; background: transparent; border: none; color: #fff; outline: none; padding: 5px; font-family: inherit; }
+        .chat-input-area button { background: var(--accent-cyan); border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+
+        /* Modal Payment System */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-line);
+            padding: 25px;
+            border-radius: 14px;
+            width: 90%;
+            max-width: 420px;
+        }
+        .payment-methods { display: flex; gap: 10px; margin: 15px 0; }
+        .pay-opt {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-line);
+            border-radius: 8px;
             text-align: center;
-            padding: 20px;
-            border-top: 1px solid var(--border-line);
-            color: var(--text-sub);
+            cursor: pointer;
             font-size: 0.85rem;
-            margin-top: auto;
         }
-
-        @media (max-width: 768px) {
-            .page-wrapper { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; position: static; }
-        }
+        .pay-opt.active { border-color: var(--accent-cyan); background: rgba(0,210,255,0.1); }
     </style>
 </head>
 <body>
 
     <div class="page-wrapper">
-        
-        <!-- القائمة الجانبية Left/Right Sidebar -->
+        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="logo">
-                <a href="index.html">الخزنة<span>الرقمية</span></a>
+                <a href="#">الخزنة<span>الرقمية</span></a>
             </div>
-            
             <ul class="sidebar-menu">
-                <li><a href="index.html" class="active">🏠 الصفحة الرئيسية</a></li>
-                <li><a href="shop.html">🛍️ تسوق الآن (المنتجات)</a></li>
-                <li><a href="contact.html">📩 تواصل معنا والأسئلة</a></li>
-                <li><a href="profile.html">🛒 سلة المشتريات</a></li>
-                <li><a href="privacy.html">🔒 سياسة الخصوصية</a></li>
-                
-                <!-- التحكم بحالة الحساب وتسجيل الخروج -->
-                <li id="loginMenuLi">
-                    <a href="login.html">🔑 تسجيل الدخول</a>
-                </li>
-                <li id="logoutMenuLi" style="display: none;">
-                    <button onclick="logoutUser()" class="btn-logout-sidebar">🚪 تسجيل الخروج</button>
-                </li>
+                <li><a href="#" class="active"><span>🏠 المتجر الرئيسي</span></a></li>
+                <li><a href="#merchantPanel"><span>➕ لوحة إضافة منتج</span></a></li>
+                <li><a href="#" onclick="toggleChat()"><span>🤖 مساعد AI</span></a></li>
             </ul>
         </aside>
 
-        <!-- المحتوى الرئيسي -->
+        <!-- Main Area -->
         <main class="main-content">
             
-            <!-- الشريط العلوي للحساب -->
-            <header class="navbar">
-                <div style="color: var(--text-sub); font-size: 0.9rem;">أهلاً بك في متجر الخزنة الرقمية 👋</div>
-                <div class="user-nav" id="userNav">
-                    <a href="login.html" style="background:var(--accent-cyan); color:#000; padding:7px 18px; border-radius:8px; font-weight:bold; text-decoration:none;">تسجيل الدخول</a>
-                </div>
-            </header>
-
-            <!-- البانر الرئيسي -->
-            <section class="hero-banner">
-                <h1>عالمك المفضل للمنتجات <span>الرقمية الشاملة</span></h1>
-                <p>كتب وروايات، دورات وفيديوهات تعليمية، مجسمات وملفات 3D/2D، واشتراكات الألعاب - كل ذلك في مكان واحد وبتحميل فوري.</p>
-                <a href="shop.html" class="btn-cta">تصفح المتجر الكامل الان 🚀</a>
+            <!-- 1. Merchant Panel: Add Product System -->
+            <section class="panel-box" id="merchantPanel">
+                <h2 class="section-title">لوحة التاجر | إضافة منتج جديد 🛒</h2>
+                <form id="addProductForm" onsubmit="handleAddNewProduct(event)">
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label>اسم المنتج:</label>
+                            <input type="text" id="pName" required placeholder="مثال: دورة تطوير الألعاب">
+                        </div>
+                        <div class="input-group">
+                            <label>السعر (د.ج):</label>
+                            <input type="number" id="pPrice" required placeholder="مثال: 1500">
+                        </div>
+                        <div class="input-group">
+                            <label>رابط الصورة (URL):</label>
+                            <input type="url" id="pImg" required placeholder="https://via.placeholder.com/250">
+                        </div>
+                        <div class="input-group">
+                            <label>التقييم بالنجوم (⭐):</label>
+                            <select id="pRating">
+                                <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
+                                <option value="4">⭐⭐⭐⭐ (4/5)</option>
+                                <option value="3">⭐⭐⭐ (3/5)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="input-group" style="margin-top: 10px;">
+                        <label>وصف المنتج:</label>
+                        <textarea id="pDesc" rows="2" placeholder="وصف قصير للمنتج الرقمي..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit">حفظ وإضافة المنتج للمتجر فوراً 🚀</button>
+                </form>
             </section>
 
-            <!-- أقسام المنتجات السريعة -->
-            <h2 class="section-title">تصفح حسب الفئة</h2>
-            <div class="quick-categories">
-                <a href="shop.html?cat=books" class="cat-box">
-                    <div class="cat-icon">📚</div>
-                    <h3>كتب وروايات</h3>
-                    <p style="color:var(--text-sub); font-size:0.85rem;">كتب إلكترونية وروايات متخصصة</p>
-                </a>
-
-                <a href="shop.html?cat=models" class="cat-box">
-                    <div class="cat-icon">🎨</div>
-                    <h3>مجسمات 3D & 2D</h3>
-                    <p style="color:var(--text-sub); font-size:0.85rem;">ملفات Blender، تصميمات وطباعة</p>
-                </a>
-
-                <a href="shop.html?cat=courses" class="cat-box">
-                    <div class="cat-icon">🎓</div>
-                    <h3>دورات تعليمية</h3>
-                    <p style="color:var(--text-sub); font-size:0.85rem;">فيديوهات وشروحات متخصصة</p>
-                </a>
-
-                <a href="shop.html?cat=gaming" class="cat-box">
-                    <div class="cat-icon">🎮</div>
-                    <h3>ألعاب واشتراكات</h3>
-                    <p style="color:var(--text-sub); font-size:0.85rem;">بطاقات شحن واشتراكات فورية</p>
-                </a>
+            <!-- 2. Search & Filtering Controls -->
+            <div class="section-header">
+                <h2 class="section-title">المنتجات المتاحة</h2>
+            </div>
+            <div class="controls-bar">
+                <input type="text" id="searchInput" class="input-group search-input" placeholder="🔍 ابحث باسم المنتج..." oninput="filterProducts()">
+                <select id="starFilter" onchange="filterProducts()" style="background: rgba(255,255,255,0.05); color:#fff; border:1px solid var(--border-line); border-radius:8px; padding:8px;">
+                    <option value="all">جميع التقييمات</option>
+                    <option value="5">5 نجوم فقط ⭐</option>
+                    <option value="4">4 نجوم وأكثر ⭐</option>
+                </select>
             </div>
 
+            <!-- Products Display Grid -->
+            <div class="products-grid" id="productsContainer">
+                <!-- Products dynamically generated via JS -->
+            </div>
         </main>
     </div>
 
-    <footer>
-        جميع الحقوق محفوظة © 2026 الخزنة الرقمية (DigiVault)
-    </footer>
+    <!-- 3. AI Chatbot Widget -->
+    <div class="chatbot-toggler" onclick="toggleChat()">🤖</div>
+    <div class="chat-box" id="chatBox">
+        <div class="chat-header">
+            <span>مساعد DigiBot الذكي ⚡</span>
+            <span style="cursor:pointer" onclick="toggleChat()">✕</span>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="msg bot">مرحباً بك! أنا مساعد الخزنة الرقمية. كيف يمكنني مساعدتك اليوم؟ (جرب سؤال عن: الطرق المتاحة للدفع، الأكثر مبيعاً، أو كيفية الشراء).</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" placeholder="اكتب سؤالك هنا..." onkeypress="if(event.key === 'Enter') sendChatMessage()">
+            <button onclick="sendChatMessage()">إرسال</button>
+        </div>
+    </div>
+
+    <!-- 4. Payment Modal System -->
+    <div class="modal" id="payModal">
+        <div class="modal-content">
+            <h3>إتمام الشراء والدفع 💳</h3>
+            <p id="modalProdTitle" style="color:var(--accent-cyan); margin-top:5px; font-weight:bold;"></p>
+            
+            <div class="payment-methods">
+                <div class="pay-opt active" onclick="selectPayMethod(this, 'edahabia')">الذهبية 💳</div>
+                <div class="pay-opt" onclick="selectPayMethod(this, 'visa')">Visa/Master</div>
+                <div class="pay-opt" onclick="selectPayMethod(this, 'ccp')">CCP / البريد</div>
+            </div>
+
+            <div id="paymentFormArea">
+                <div class="input-group" style="margin-bottom:10px;">
+                    <label id="payLabel1">رقم البطاقة الذهبية:</label>
+                    <input type="text" placeholder="6280 0000 0000 0000">
+                </div>
+                <div class="input-group" style="margin-bottom:15px;">
+                    <label>الاسم الكامل:</label>
+                    <input type="text" placeholder="محمد ياسر">
+                </div>
+            </div>
+
+            <button class="btn-submit" style="width:100%" onclick="confirmPayment()">تأكيد الدفع والاستلام الفوري ✅</button>
+            <button class="btn-submit" style="width:100%; background:transparent; border:1px solid var(--border-line); margin-top:8px;" onclick="closePayModal()">إلغاء</button>
+        </div>
+    </div>
 
     <script>
-        // تحديث حالة الحساب وإظهار/إخفاء الأزرار
-        function updateNav() {
-            const userProfile = JSON.parse(localStorage.getItem("userProfile"));
-            const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-            
-            const userNav = document.getElementById("userNav");
-            const loginMenuLi = document.getElementById("loginMenuLi");
-            const logoutMenuLi = document.getElementById("logoutMenuLi");
+        // Initial Default Products Data
+        const initialProducts = [
+            {
+                id: 1,
+                name: "حزمة مجسمات 3D أسلحة عالية الدقة",
+                price: 1500,
+                rating: 5,
+                img: "https://via.placeholder.com/250x160/141424/00d2ff?text=3D+Weapon+Pack",
+                desc: "ملفات Blender و FBX جاهزة للتطوير والطباعة."
+            },
+            {
+                id: 2,
+                name: "دورة تطوير ألعاب Godot Engine",
+                price: 2500,
+                rating: 5,
+                img: "https://via.placeholder.com/250x160/141424/8a2be2?text=Godot+Engine+Course",
+                desc: "دورة متكاملة باللغة العربية لبناء ألعاب FPS."
+            },
+            {
+                id: 3,
+                name: "كتاب أساسيات الذكاء الاصطناعي بـ Python",
+                price: 1200,
+                rating: 4,
+                img: "https://via.placeholder.com/250x160/141424/00d2ff?text=Python+AI+Guide",
+                desc: "دليل شامل لخوارزميات التعلم الآلي والشبكات."
+            }
+        ];
 
-            if (isLoggedIn || userProfile) {
-                // اسم المستخدم أو الافتراضي
-                const name = (userProfile && userProfile.name) ? userProfile.name.split(' ')[0] : "حسابي";
-                const picture = (userProfile && userProfile.picture) ? userProfile.picture : "https://via.placeholder.com/32";
+        // Fetch products from localStorage or set defaults
+        function getProducts() {
+            const stored = localStorage.getItem('digiProducts');
+            if (!stored) {
+                localStorage.setItem('digiProducts', JSON.stringify(initialProducts));
+                return initialProducts;
+            }
+            return JSON.parse(stored);
+        }
 
-                userNav.innerHTML = `
-                    <a href="profile.html" style="display:flex; align-items:center; gap:8px; text-decoration:none; color:#fff;">
-                        <img src="${picture}" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
-                        <span>${name}</span>
-                    </a>
+        // Render products into HTML grid
+        function renderProducts(productsToRender) {
+            const container = document.getElementById('productsContainer');
+            container.innerHTML = '';
+
+            if(productsToRender.length === 0) {
+                container.innerHTML = '<p style="color:var(--text-sub);">لا توجد منتجات مطابقة للبحث.</p>';
+                return;
+            }
+
+            productsToRender.forEach(prod => {
+                const stars = '⭐'.repeat(prod.rating);
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <div>
+                        <img src="${prod.img}" alt="${prod.name}">
+                        <div class="product-title">${prod.name}</div>
+                        <div class="stars-row">${stars} (${prod.rating}/5)</div>
+                        <div class="product-desc">${prod.desc}</div>
+                    </div>
+                    <div>
+                        <div class="product-price">${prod.price} د.ج</div>
+                        <div class="card-actions">
+                            <button class="btn-buy" onclick="openPayModal('${prod.name}', ${prod.price})">شراء الآن 🛒</button>
+                            <button class="btn-delete-prod" onclick="deleteProduct(${prod.id})">🗑️</button>
+                        </div>
+                    </div>
                 `;
+                container.appendChild(card);
+            });
+        }
 
-                if(loginMenuLi) loginMenuLi.style.display = "none";
-                if(logoutMenuLi) logoutMenuLi.style.display = "block";
-            } else {
-                if(loginMenuLi) loginMenuLi.style.display = "block";
-                if(logoutMenuLi) logoutMenuLi.style.display = "none";
+        // Add new product via Merchant Form
+        function handleAddNewProduct(e) {
+            e.preventDefault();
+            const name = document.getElementById('pName').value;
+            const price = Number(document.getElementById('pPrice').value);
+            const img = document.getElementById('pImg').value;
+            const rating = Number(document.getElementById('pRating').value);
+            const desc = document.getElementById('pDesc').value;
+
+            const currentProducts = getProducts();
+            const newProd = {
+                id: Date.now(),
+                name,
+                price,
+                rating,
+                img,
+                desc: desc || "منتج رقمي ممتاز متوفر للتحميل المباشر."
+            };
+
+            currentProducts.unshift(newProd);
+            localStorage.setItem('digiProducts', JSON.stringify(currentProducts));
+            
+            document.getElementById('addProductForm').reset();
+            filterProducts();
+            alert('✅ تم إضافة المنتج بنجاح إلى المتجر!');
+        }
+
+        // Delete product
+        function deleteProduct(id) {
+            if(confirm('هل أنت تأكد من حذف هذا المنتج؟')) {
+                let products = getProducts();
+                products = products.filter(p => p.id !== id);
+                localStorage.setItem('digiProducts', JSON.stringify(products));
+                filterProducts();
             }
         }
 
-        // دالة تسجيل الخروج الشاملة
-        function logoutUser() {
-            localStorage.removeItem("isLoggedIn");
-            localStorage.removeItem("userProfile");
-            localStorage.clear();
-            sessionStorage.clear();
-            
-            alert("تم تسجيل الخروج بنجاح!");
-            window.location.reload();
+        // Filter and Search System
+        function filterProducts() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const starValue = document.getElementById('starFilter').value;
+            const products = getProducts();
+
+            const filtered = products.filter(p => {
+                const matchesSearch = p.name.toLowerCase().includes(query) || p.desc.toLowerCase().includes(query);
+                let matchesStar = true;
+                if(starValue === '5') matchesStar = p.rating === 5;
+                if(starValue === '4') matchesStar = p.rating >= 4;
+                
+                return matchesSearch && matchesStar;
+            });
+
+            renderProducts(filtered);
         }
 
-        document.addEventListener("DOMContentLoaded", updateNav);
+        /* AI Chatbot Logic */
+        function toggleChat() {
+            const chatBox = document.getElementById('chatBox');
+            chatBox.style.display = (chatBox.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if(!text) return;
+
+            const messages = document.getElementById('chatMessages');
+            
+            // Add user message
+            const userMsg = document.createElement('div');
+            userMsg.className = 'msg user';
+            userMsg.textContent = text;
+            messages.appendChild(userMsg);
+
+            input.value = '';
+
+            // Generate Automated AI Response
+            setTimeout(() => {
+                const botMsg = document.createElement('div');
+                botMsg.className = 'msg bot';
+                
+                const lower = text.toLowerCase();
+                if(lower.includes('دفع') || lower.includes('طريقة') || lower.includes('ذهبية') || lower.includes('فيزا')) {
+                    botMsg.textContent = "نوفر خيارات دفع متعددة ومباشرة: البطاقة الذهبية (Edahabia)، الفيزا/ماستركارد، أو عبر تحويل CCP البريدي.";
+                } else if(lower.includes('أكثر') || lower.includes('مبيعا') || lower.includes('افضل')) {
+                    botMsg.textContent = "الأكثر مبيعاً هذا الأسبوع هي: دورة تطوير ألعاب Godot وحزمة المجسمات 3D للأسلحة!";
+                } else if(lower.includes('شراء') || lower.includes('كيف')) {
+                    botMsg.textContent = "اضغط على زر 'شراء الآن' الموجود تحت أي منتج، واختر طريقة الدفع المناسبة لإكمال الطلب واستلام رابط التحميل.";
+                } else {
+                    botMsg.textContent = "شكراً لتواصلك معنا! يمكنني مساعدتك في الإجابة عن خيارات الدفع، الأكثر مبيعاً، وتفاصيل الشراء.";
+                }
+                
+                messages.appendChild(botMsg);
+                messages.scrollTop = messages.scrollHeight;
+            }, 500);
+        }
+
+        /* Payment Modal Logic */
+        let selectedProduct = null;
+
+        function openPayModal(name, price) {
+            selectedProduct = { name, price };
+            document.getElementById('modalProdTitle').textContent = `المنتج: ${name} (${price} د.ج)`;
+            document.getElementById('payModal').style.display = 'flex';
+        }
+
+        function closePayModal() {
+            document.getElementById('payModal').style.display = 'none';
+        }
+
+        function selectPayMethod(element, type) {
+            document.querySelectorAll('.pay-opt').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+            
+            const label1 = document.getElementById('payLabel1');
+            if(type === 'edahabia') label1.textContent = 'رقم البطاقة الذهبية:';
+            else if(type === 'visa') label1.textContent = 'رقم بطاقة Visa / Mastercard:';
+            else if(type === 'ccp') label1.textContent = 'رقم الحوالة البريدية (CCP Transaction ID):';
+        }
+
+        function confirmPayment() {
+            alert(`✅ تم إتمام عملية الشراء بنجاح لـ: "${selectedProduct.name}"! رابط التحميل جاهز الآن.`);
+            closePayModal();
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderProducts(getProducts());
+        });
     </script>
 </body>
 </html>
