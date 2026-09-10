@@ -113,15 +113,18 @@
             border-right: 3px solid var(--accent-cyan);
         }
 
-        .btn-add-product {
-            background: linear-gradient(135deg, rgba(0, 210, 255, 0.15), rgba(138, 43, 226, 0.2)) !important;
-            color: var(--accent-cyan) !important;
-            border: 1px solid var(--accent-cyan) !important;
+        /* تمييز زر إضافة المنتج */
+        .btn-add-product-highlight {
+            background: linear-gradient(135deg, #00d2ff, #8a2be2) !important;
+            color: #ffffff !important;
+            font-weight: 800 !important;
+            box-shadow: 0 4px 12px rgba(0, 210, 255, 0.3);
+            margin: 5px 0;
         }
 
-        .btn-add-product:hover {
-            background: var(--accent-cyan) !important;
-            color: #000 !important;
+        .btn-add-product-highlight:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 18px rgba(0, 210, 255, 0.5);
         }
 
         .btn-logout-sidebar {
@@ -365,7 +368,10 @@
             <nav>
                 <ul class="sidebar-menu">
                     <li><a href="index.html" class="active">🏠 الصفحة الرئيسية</a></li>
-                    <li><a href="add-product.html" class="btn-add-product">➕ أضف منتجك للبيع</a></li>
+                    
+                    <!-- زر أضف منتجك يظهر دائماً الآن وبشكل الب الب البارز -->
+                    <li><a href="add-product.html" class="btn-add-product-highlight">➕ أضف منتجك للبيع</a></li>
+                    
                     <li><a href="shop.html">🛍️ تسوق الآن (المنتجات)</a></li>
                     <li><a href="contact.html">📩 تواصل معنا والأسئلة</a></li>
                     <li><a href="profile.html">🛒 سلة المشتريات</a></li>
@@ -389,6 +395,7 @@
             <header class="navbar">
                 <div style="color: var(--text-sub); font-size: 0.9rem;">أهلاً بك في متجر الخزنة الرقمية 👋</div>
                 <div class="user-nav" id="userNav">
+                    <a href="add-product.html" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold; margin-left: 15px;">+ أضف منتجك</a>
                     <a href="login.html" class="btn-login-nav">تسجيل الدخول</a>
                 </div>
             </header>
@@ -461,6 +468,7 @@
                     const picture = (userProfile && userProfile.picture) ? userProfile.picture : "https://via.placeholder.com/32";
 
                     userNav.innerHTML = `
+                        <a href="add-product.html" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold; margin-left: 15px;">+ أضف منتجك</a>
                         <a href="profile.html" style="display:flex; align-items:center; gap:8px; text-decoration:none; color:#fff;">
                             <img src="${picture}" alt="${name}" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
                             <span>${name}</span>
