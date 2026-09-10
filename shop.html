@@ -137,6 +137,27 @@
         }
         .btn-add:hover { opacity: 0.9; transform: scale(1.05); }
 
+        /* اشعار صغير سريع عند الإضافة للسلة */
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--accent-cyan);
+            color: #000;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         @media (max-width: 768px) {
             .page-wrapper { flex-direction: column; }
             .sidebar { width: 100%; height: auto; position: static; }
@@ -173,7 +194,7 @@
                 <button class="filter-btn" data-cat="books" onclick="filterCategory('books', event)">📚 كتب وروايات</button>
                 <button class="filter-btn" data-cat="models" onclick="filterCategory('models', event)">🎨 مجسمات 3D/2D</button>
                 <button class="filter-btn" data-cat="courses" onclick="filterCategory('courses', event)">🎓 دورات فيديو</button>
-                <button class="filter-btn" data-cat="gaming" onclick="filterCategory('gaming', event)">🎮 ألعاب وااشتراكات</button>
+                <button class="filter-btn" data-cat="gaming" onclick="filterCategory('gaming', event)">🎮 ألعاب واشتراكات</button>
             </div>
 
             <!-- شبكة عرض المنتجات -->
@@ -182,6 +203,9 @@
             </div>
         </main>
     </div>
+
+    <!-- عنصر التنبيه السريع عند الإضافة -->
+    <div id="toast" class="toast-notification"></div>
 
     <script>
         const products = [
@@ -233,11 +257,20 @@
             }
         }
 
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            toast.textContent = message;
+            toast.style.display = "block";
+            setTimeout(() => {
+                toast.style.display = "none";
+            }, 2500);
+        }
+
         function addToCart(name, price) {
             let cart = JSON.parse(localStorage.getItem("cart")) || [];
             cart.push({ name, price });
             localStorage.setItem("cart", JSON.stringify(cart));
-            alert(`تمت إضافة "${name}" إلى سلة المشتريات بنجاح!`);
+            showToast(`تمت إضافة "${name}" إلى السلة 🛒`);
         }
 
         function checkAuthStatus() {
@@ -254,10 +287,10 @@
             }
         }
 
+        // تم إصلاح الدالة بحيث لا تمسح سلة المشتريات والحسابات المسجلة
         function logoutUser() {
             localStorage.removeItem("isLoggedIn");
             localStorage.removeItem("userProfile");
-            localStorage.clear();
             sessionStorage.clear();
 
             alert("تم تسجيل الخروج بنجاح!");
