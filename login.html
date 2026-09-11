@@ -3,11 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول | الخزنة الرقمية</title>
+    <title>تسجيل الدخول وإجراء حساب | الخزنة الرقمية</title>
+    
+    <!-- خط Tajawal -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     
+    <!-- الملفات الخارجية -->
+    <link rel="stylesheet" href="style.css">
+
     <style>
         :root {
             --bg-main: #0a0a12;
@@ -18,48 +23,62 @@
             --text-main: #ffffff;
             --text-sub: #a0a0c0;
             --danger-red: #ff4757;
+            --success-green: #10b981;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+        }
 
         body {
             font-family: 'Tajawal', sans-serif;
             background-color: var(--bg-main);
             color: var(--text-main);
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             padding: 20px;
         }
 
+        /* Container & Card */
         .auth-container {
+            width: 100%;
+            max-width: 420px;
+            margin: auto;
+        }
+
+        .auth-card {
             background: var(--bg-card);
             border: 1px solid var(--border-line);
             border-radius: 16px;
             padding: 35px 30px;
-            width: 100%;
-            max-width: 420px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             text-align: center;
         }
 
-        .auth-container h2 {
+        .auth-card h2 {
             font-size: 1.8rem;
             margin-bottom: 8px;
         }
 
-        .auth-container h2 span { color: var(--accent-cyan); }
+        .auth-card h2 span { 
+            color: var(--accent-cyan); 
+        }
 
-        .auth-container p {
+        .auth-card p.subtitle {
             color: var(--text-sub);
             font-size: 0.9rem;
             margin-bottom: 25px;
         }
 
+        /* Form Controls */
         .form-group {
-            text-align: right;
             margin-bottom: 18px;
+            text-align: right;
         }
 
         .form-group label {
@@ -79,7 +98,7 @@
             font-family: inherit;
             font-size: 0.95rem;
             outline: none;
-            transition: 0.3s ease;
+            transition: border-color 0.3s ease, background 0.3s ease;
         }
 
         .form-group input:focus {
@@ -87,6 +106,7 @@
             background: rgba(0, 210, 255, 0.02);
         }
 
+        /* Buttons */
         .btn-submit {
             width: 100%;
             padding: 12px;
@@ -97,9 +117,9 @@
             font-weight: 800;
             font-size: 1rem;
             cursor: pointer;
-            transition: 0.3s ease;
-            margin-top: 10px;
             font-family: inherit;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 10px;
         }
 
         .btn-submit:hover {
@@ -117,11 +137,10 @@
             font-weight: 700;
             font-size: 0.95rem;
             cursor: pointer;
-            transition: 0.3s ease;
-            margin-top: 15px;
+            transition: background 0.3s ease;
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             gap: 10px;
             font-family: inherit;
         }
@@ -130,6 +149,7 @@
             background: #f0f0f0;
         }
 
+        /* Divider */
         .divider {
             display: flex;
             align-items: center;
@@ -144,8 +164,11 @@
             border-bottom: 1px solid var(--border-line);
         }
 
-        .divider span { padding: 0 10px; }
+        .divider span { 
+            padding: 0 10px; 
+        }
 
+        /* Toggle Links */
         .toggle-auth {
             margin-top: 20px;
             font-size: 0.9rem;
@@ -156,14 +179,21 @@
             color: var(--accent-cyan);
             text-decoration: none;
             font-weight: bold;
+            margin-right: 5px;
         }
 
+        .toggle-auth a:hover {
+            text-decoration: underline;
+        }
+
+        /* Alerts */
         .alert-message {
-            padding: 10px;
+            padding: 10px 14px;
             border-radius: 6px;
             font-size: 0.85rem;
-            margin-bottom: 15px;
+            margin-bottom: 18px;
             display: none;
+            text-align: right;
         }
 
         .alert-error {
@@ -174,52 +204,62 @@
 
         .alert-success {
             background: rgba(16, 185, 129, 0.15);
-            border: 1px solid #10b981;
-            color: #10b981;
+            border: 1px solid var(--success-green);
+            color: var(--success-green);
         }
     </style>
 </head>
 <body>
 
     <div class="auth-container">
-        <h2>الخزنة <span>الرقمية</span></h2>
-        <p id="formSubtitle">أدخل بياناتك للدخول إلى حسابك</p>
+        <div class="auth-card">
+            <h2>الخزنة <span>الرقمية</span></h2>
+            <p id="formSubtitle" class="subtitle">أدخل بياناتك للدخول إلى حسابك</p>
 
-        <div id="alertBox" class="alert-message"></div>
+            <!-- صندوق التنبيهات -->
+            <div id="alertBox" class="alert-message"></div>
 
-        <form id="authForm">
-            <div class="form-group" id="nameGroup" style="display: none;">
-                <label for="userName">الاسم الكامل</label>
-                <input type="text" id="userName" placeholder="محمد علي">
+            <!-- نموذج الدخول والإنشاء -->
+            <form id="authForm">
+                <div class="form-group" id="nameGroup" style="display: none;">
+                    <label for="userName">الاسم الكامل</label>
+                    <input type="text" id="userName" placeholder="محمد علي">
+                </div>
+
+                <div class="form-group">
+                    <label for="userEmail">البريد الإلكتروني</label>
+                    <input type="email" id="userEmail" required placeholder="name@example.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="userPassword">كلمة المرور</label>
+                    <input type="password" id="userPassword" required placeholder="••••••••">
+                </div>
+
+                <button type="submit" id="btnSubmit" class="btn-submit">تسجيل الدخول</button>
+            </form>
+
+            <div class="divider"><span>أو</span></div>
+
+            <!-- زر Google الرسمي عبر Firebase Popup -->
+            <button id="btnGoogle" class="btn-google" type="button">
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                متابعة باستخدام Google
+            </button>
+
+            <div class="toggle-auth">
+                <span id="toggleText">ليس لديك حساب؟</span>
+                <a href="#" id="toggleBtn">إنشاء حساب جديد</a>
             </div>
-
-            <div class="form-group">
-                <label for="userEmail">البريد الإلكتروني</label>
-                <input type="email" id="userEmail" required placeholder="name@example.com">
-            </div>
-
-            <div class="form-group">
-                <label for="userPassword">كلمة المرور</label>
-                <input type="password" id="userPassword" required placeholder="••••••••">
-            </div>
-
-            <button type="submit" id="btnSubmit" class="btn-submit">تسجيل الدخول</button>
-        </form>
-
-        <div class="divider"><span>أو</span></div>
-
-        <button id="btnGoogle" class="btn-google">
-            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-            متابعة باستخدام Google
-        </button>
-
-        <div class="toggle-auth">
-            <span id="toggleText">ليس لديك حساب؟</span>
-            <a href="#" id="toggleBtn">إنشاء حساب جديد</a>
         </div>
     </div>
 
-    <!-- ربط وحدات Firebase Auth -->
+    <!-- ربط Firebase Auth JavaScript Module -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { 
@@ -231,6 +271,7 @@
             updateProfile 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
+        // تهيئة Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
             authDomain: "digivault-4c3a3.firebaseapp.com",
@@ -247,6 +288,7 @@
 
         let isSignUp = false;
 
+        // عناصر DOM
         const authForm = document.getElementById('authForm');
         const nameGroup = document.getElementById('nameGroup');
         const btnSubmit = document.getElementById('btnSubmit');
@@ -256,13 +298,26 @@
         const alertBox = document.getElementById('alertBox');
         const btnGoogle = document.getElementById('btnGoogle');
 
+        // إظهار التنبيهات
         function showAlert(msg, isError = true) {
             alertBox.textContent = msg;
             alertBox.className = `alert-message ${isError ? 'alert-error' : 'alert-success'}`;
             alertBox.style.display = 'block';
         }
 
-        // التبديل بين إنشاء حساب وتسجيل الدخول
+        // حفظ بيانات الجلسة محلية
+        function saveToLocal(user) {
+            const userProfile = {
+                uid: user.uid,
+                name: user.displayName || user.email.split('@')[0],
+                email: user.email,
+                picture: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || user.email)}&background=00d2ff&color=fff`
+            };
+            localStorage.setItem("userProfile", JSON.stringify(userProfile));
+            localStorage.setItem("isLoggedIn", "true");
+        }
+
+        // التبديل بين إنشاء الحساب وتسجيل الدخول
         toggleBtn.addEventListener('click', (e) => {
             e.preventDefault();
             isSignUp = !isSignUp;
@@ -271,7 +326,7 @@
             if (isSignUp) {
                 nameGroup.style.display = 'block';
                 btnSubmit.textContent = 'إنشاء الحساب';
-                formSubtitle.textContent = 'أنشئ حسابك لبدء بيع وشراء المنتجات';
+                formSubtitle.textContent = 'أنشئ حسابك لبدء استخدام الخزنة الرقمية';
                 toggleText.textContent = 'لديك حساب بالفعل؟';
                 toggleBtn.textContent = 'تسجيل الدخول';
             } else {
@@ -283,22 +338,21 @@
             }
         });
 
-        // التعامل مع النماذج
+        // معالجة نموذج البريد وكلمة المرور
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('userEmail').value;
+            const email = document.getElementById('userEmail').value.trim();
             const password = document.getElementById('userPassword').value;
-            const name = document.getElementById('userName').value;
+            const name = document.getElementById('userName').value.trim();
 
             try {
                 if (isSignUp) {
-                    if (!name.trim()) {
+                    if (!name) {
                         showAlert('يرجى إدخال الاسم الكامل.');
                         return;
                     }
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                     await updateProfile(userCredential.user, { displayName: name });
-                    
                     saveToLocal(userCredential.user);
                     showAlert('تم إنشاء الحساب بنجاح! جاري تحويلك...', false);
                 } else {
@@ -318,12 +372,12 @@
                 } else if (error.code === 'auth/weak-password') {
                     showAlert('كلمة المرور ضعيفة، يجب أن تكون 6 أحرف على الأقل.');
                 } else {
-                    showAlert('حدث خطأ أثناء تسجيل الدخول: ' + error.message);
+                    showAlert('حدث خطأ: ' + error.message);
                 }
             }
         });
 
-        // تسجيل الدخول عبر Google
+        // تسجيل الدخول بـ Google عبر Popup
         btnGoogle.addEventListener('click', async () => {
             try {
                 const result = await signInWithPopup(auth, provider);
@@ -335,17 +389,6 @@
                 showAlert('فشل تسجيل الدخول عبر Google.');
             }
         });
-
-        function saveToLocal(user) {
-            const userProfile = {
-                uid: user.uid,
-                name: user.displayName || user.email.split('@')[0],
-                email: user.email,
-                picture: user.photoURL || "https://via.placeholder.com/32"
-            };
-            localStorage.setItem("userProfile", JSON.stringify(userProfile));
-            localStorage.setItem("isLoggedIn", "true");
-        }
     </script>
 </body>
 </html>
