@@ -57,6 +57,29 @@
 
         .main-content { flex: 1; padding: 30px; }
 
+        /* شريط البحث والتصفية */
+        .search-container {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-line);
+            border-radius: 10px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+        }
+
         /* Filter Tabs */
         .filter-container {
             display: flex;
@@ -99,6 +122,7 @@
             flex-direction: column;
             justify-content: space-between;
             transition: 0.3s;
+            cursor: pointer;
         }
 
         .product-card:hover {
@@ -137,7 +161,43 @@
         }
         .btn-add:hover { opacity: 0.9; transform: scale(1.05); }
 
-        /* اشعار صغير سريع عند الإضافة للسلة */
+        /* نافذة التفاصيل (Modal) */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--accent-cyan);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            padding: 25px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,210,255,0.2);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px; left: 20px;
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-close:hover { color: var(--danger-red); }
+
+        /* اشعار صغير سريع */
         .toast-notification {
             position: fixed;
             bottom: 20px;
@@ -149,7 +209,7 @@
             font-weight: bold;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             display: none;
-            z-index: 1000;
+            z-index: 3000;
             animation: fadeIn 0.3s ease;
         }
 
@@ -162,65 +222,6 @@
             .page-wrapper { flex-direction: column; }
             .sidebar { width: 100%; height: auto; position: static; }
         }
-        /* تنسيقات حقول المدخلات والعناوين */
-.form-group {
-    margin-bottom: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    text-align: right;
-}
-
-.form-group label {
-    font-size: 0.9rem;
-    color: var(--text-color, #e0e0e0);
-    font-weight: 500;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 12px 16px;
-    background-color: var(--input-bg, #1e1e24);
-    border: 1px solid var(--border-color, #333);
-    border-radius: 8px;
-    color: #ffffff;
-    font-family: 'Tajawal', sans-serif;
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.3s, box-shadow 0.3s;
-    box-sizing: border-box;
-}
-
-.form-group input:focus {
-    border-color: var(--accent-color, #4f46e5);
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
-}
-
-/* تنسيق الزر الرئيسي */
-.btn-primary {
-    background-color: var(--accent-color, #4f46e5);
-    color: #ffffff;
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-    font-family: 'Tajawal', sans-serif;
-    transition: background-color 0.3s, transform 0.1s;
-}
-
-.btn-primary:hover {
-    background-color: var(--accent-hover, #4338ca);
-}
-
-.btn-primary:active {
-    transform: scale(0.98);
-}
-
-.full-width {
-    width: 100%;
-}
     </style>
 </head>
 <body>
@@ -247,6 +248,11 @@
         <main class="main-content">
             <h1 style="margin-bottom: 20px; font-size: 1.8rem;">كتالوج المنتجات الرقمية 📦</h1>
 
+            <!-- شريط البحث السريع -->
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن كتاب، مجسم 3D، أو دورة تعليمية..." oninput="handleFilterAndSearch()">
+            </div>
+
             <!-- شريط تصنيف المنتجات -->
             <div class="filter-container">
                 <button class="filter-btn active" data-cat="all" onclick="filterCategory('all', event)">الكل</button>
@@ -257,35 +263,49 @@
             </div>
 
             <!-- شبكة عرض المنتجات -->
-            <div class="products-grid" id="productsGrid">
-                <!-- يتم تحميل المنتجات هنا عبر JavaScript -->
-            </div>
+            <div class="products-grid" id="productsGrid"></div>
         </main>
+    </div>
+
+    <!-- نافذة التفاصيل (Modal) -->
+    <div id="productModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <span class="product-badge" id="modalBadge"></span>
+            <h2 id="modalTitle" style="margin-bottom: 10px;"></h2>
+            <p id="modalDesc" style="color: var(--text-sub); margin-bottom: 20px; font-size:0.95rem;"></p>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span id="modalPrice" class="product-price"></span>
+                <button id="modalAddBtn" class="btn-add">إضافة للسلة 🛒</button>
+            </div>
+        </div>
     </div>
 
     <!-- عنصر التنبيه السريع عند الإضافة -->
     <div id="toast" class="toast-notification"></div>
 
     <script>
+        let currentCategory = 'all';
+
         const products = [
-            { id: 1, title: "كتاب أساسيات البرمجة بلغة Python", cat: "books", badge: "كتاب PDF", desc: "دليل شامل للمبتدئين لتعلم البرمجة من الصفر.", price: "9.99 $" },
-            { id: 2, title: "رواية ظلال الخزنة الرقمية", cat: "books", badge: "رواية إلكترونية", desc: "رواية خيال علمي وتشويق تقني مشوقة جدًا.", price: "4.99 $" },
-            { id: 3, title: "حزمة مجسمات 3D أسلحة عالية الدقة", cat: "models", badge: "ملفات Blender/FBX", desc: "أصول 3D جاهزة للاستخدام في محركات الألعاب مثل Godot وUnity.", price: "19.99 $" },
-            { id: 4, title: "مجموعة أيقونات وواجهات 2D Cyberpunk", cat: "models", badge: "تصاميم PNG/SVG", desc: "تصاميم وأيقونات احترافية لتطوير الألعاب والواجهات.", price: "7.50 $" },
-            { id: 5, title: "دورة تطوير الألعاب عبر Godot Engine", cat: "courses", badge: "سلسلة فيديوهات", desc: "شرح كامل لبناء لعبة FPS ثلاثية الأبعاد خطوة بخطوة.", price: "29.99 $" },
-            { id: 6, title: "دورة الأمن السيبراني واختبار الاختراق", cat: "courses", badge: "دورة تعليمية", desc: "تعلم أساسيات الحماية والمختبرات الافتراضية.", price: "34.99 $" },
-            { id: 7, title: "بطاقة شحن رقمية 500 eFootball Coins", cat: "gaming", badge: "كود فوري", desc: "كود شحن فوري وآمن لحسابك.", price: "5.00 $" },
-            { id: 8, title: "اشتراك شحن العاب وتفعيل سيرفرات", cat: "gaming", badge: "بطاقة رقمية", desc: "بطاقة تفعيل اشتراكات وخدمات رقمية متنوعة.", price: "12.00 $" }
+            { id: 1, title: "كتاب أساسيات البرمجة بلغة Python", cat: "books", badge: "كتاب PDF", desc: "دليل شامل للمبتدئين لتعلم البرمجة وتطوير السكربتات من الصفر.", price: "9.99 $", fileUrl: "https://example.com/files/python.pdf" },
+            { id: 2, title: "رواية ظلال الخزنة الرقمية", cat: "books", badge: "رواية إلكترونية", desc: "رواية خيال علمي وتشويق تقني مشوقة جدًا.", price: "4.99 $", fileUrl: "https://example.com/files/novel.pdf" },
+            { id: 3, title: "حزمة مجسمات 3D أسلحة عالية الدقة", cat: "models", badge: "ملفات Blender/FBX", desc: "أصول 3D جاهزة للاستخدام في محركات الألعاب مثل Godot وUnity.", price: "19.99 $", fileUrl: "https://example.com/files/3d_weapons.zip" },
+            { id: 4, title: "مجموعة أيقونات وواجهات 2D Cyberpunk", cat: "models", badge: "تصاميم PNG/SVG", desc: "تصاميم وأيقونات احترافية لتطوير الألعاب والواجهات.", price: "7.50 $", fileUrl: "https://example.com/files/ui_pack.zip" },
+            { id: 5, title: "دورة تطوير الألعاب عبر Godot Engine", cat: "courses", badge: "سلسلة فيديوهات", desc: "شرح كامل لبناء لعبة FPS ثلاثية الأبعاد خطوة بخطوة.", price: "29.99 $", fileUrl: "https://example.com/files/godot_course.txt" },
+            { id: 6, title: "دورة الأمن السيبراني واختبار الاختراق", cat: "courses", badge: "دورة تعليمية", desc: "تعلم أساسيات الحماية والمختبرات الافتراضية Kali Linux.", price: "34.99 $", fileUrl: "https://example.com/files/cyber_course.txt" },
+            { id: 7, title: "بطاقة شحن رقمية 500 eFootball Coins", cat: "gaming", badge: "كود فوري", desc: "كود شحن فوري وآمن لحسابك.", price: "5.00 $", fileUrl: "https://example.com/files/code_500.txt" },
+            { id: 8, title: "اشتراك شحن العاب وتفعيل سيرفرات", cat: "gaming", badge: "بطاقة رقمية", desc: "بطاقة تفعيل اشتراكات وخدمات رقمية متنوعة.", price: "12.00 $", fileUrl: "https://example.com/files/sub_card.txt" }
         ];
 
         function renderProducts(items) {
             const grid = document.getElementById("productsGrid");
             if (items.length === 0) {
-                grid.innerHTML = `<p style="color:var(--text-sub); grid-column: 1/-1; text-align:center; padding: 40px;">لا توجد منتجات مجهزة حالياً في هذه الفئة.</p>`;
+                grid.innerHTML = `<p style="color:var(--text-sub); grid-column: 1/-1; text-align:center; padding: 40px;">لا توجد منتجات مطابقة لعملية البحث.</p>`;
                 return;
             }
             grid.innerHTML = items.map(p => `
-                <div class="product-card">
+                <div class="product-card" onclick="openModal(${p.id})">
                     <div>
                         <span class="product-badge">${p.badge}</span>
                         <h3 class="product-title">${p.title}</h3>
@@ -293,13 +313,26 @@
                     </div>
                     <div class="product-footer">
                         <span class="product-price">${p.price}</span>
-                        <button class="btn-add" onclick="addToCart('${p.title}', '${p.price}')">إضافة للسلة 🛒</button>
+                        <button class="btn-add" onclick="event.stopPropagation(); addToCart('${p.title}', '${p.price}', '${p.fileUrl}')">إضافة للسلة 🛒</button>
                     </div>
                 </div>
             `).join('');
         }
 
+        function handleFilterAndSearch() {
+            const query = document.getElementById("searchInput").value.toLowerCase().trim();
+            
+            const filtered = products.filter(p => {
+                const matchesCat = (currentCategory === 'all' || p.cat === currentCategory);
+                const matchesSearch = p.title.toLowerCase().includes(query) || p.desc.toLowerCase().includes(query);
+                return matchesCat && matchesSearch;
+            });
+
+            renderProducts(filtered);
+        }
+
         function filterCategory(cat, evt) {
+            currentCategory = cat;
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             
             if (evt && evt.target) {
@@ -308,12 +341,30 @@
                 const targetBtn = document.querySelector(`.filter-btn[data-cat="${cat}"]`);
                 if (targetBtn) targetBtn.classList.add('active');
             }
+
+            handleFilterAndSearch();
+        }
+
+        function openModal(id) {
+            const item = products.find(p => p.id === id);
+            if (!item) return;
+
+            document.getElementById("modalBadge").textContent = item.badge;
+            document.getElementById("modalTitle").textContent = item.title;
+            document.getElementById("modalDesc").textContent = item.desc;
+            document.getElementById("modalPrice").textContent = item.price;
             
-            if (cat === 'all') {
-                renderProducts(products);
-            } else {
-                renderProducts(products.filter(p => p.cat === cat));
-            }
+            const modalAddBtn = document.getElementById("modalAddBtn");
+            modalAddBtn.onclick = () => {
+                addToCart(item.title, item.price, item.fileUrl);
+                closeModal();
+            };
+
+            document.getElementById("productModal").style.display = "flex";
+        }
+
+        function closeModal() {
+            document.getElementById("productModal").style.display = "none";
         }
 
         function showToast(message) {
@@ -325,9 +376,9 @@
             }, 2500);
         }
 
-        function addToCart(name, price) {
+        function addToCart(name, price, fileUrl) {
             let cart = JSON.parse(localStorage.getItem("cart")) || [];
-            cart.push({ name, price });
+            cart.push({ name, price, fileUrl });
             localStorage.setItem("cart", JSON.stringify(cart));
             showToast(`تمت إضافة "${name}" إلى السلة 🛒`);
         }
@@ -346,7 +397,6 @@
             }
         }
 
-        // تم إصلاح الدالة بحيث لا تمسح سلة المشتريات والحسابات المسجلة
         function logoutUser() {
             localStorage.removeItem("isLoggedIn");
             localStorage.removeItem("userProfile");
@@ -368,59 +418,5 @@
             }
         });
     </script>
-    <!-- ربط مكتبات Firebase -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { 
-    getAuth, 
-    GoogleAuthProvider, 
-    signInWithPopup, 
-    createUserWithEmailAndPassword,
-    updateProfile 
-  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-  // إعدادات مشروع Firebase الخاص بك
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
-
-  // 1. التسجيل باستخدام Google
-  document.getElementById('btnGoogleSignUp').addEventListener('click', async () => {
-    try {
-      const result = await signInWithPopup(auth, provider);
-      console.log("تم التسجيل بنجاح:", result.user);
-      window.location.href = "index.html"; // توجيه للرئيسية
-    } catch (error) {
-      alert("حدث خطأ أثناء التسجيل بجوجل: " + error.message);
-    }
-  });
-
-  // 2. التسجيل عبر البريد الإلكتروني وكلمة المرور
-  document.getElementById('signupForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = document.getElementById('fullName').value;
-    const email = document.getElementById('signupEmail').value;
-    const password = document.getElementById('signupPassword').value;
-
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      // تحديث اسم المستخدم
-      await updateProfile(userCredential.user, { displayName: name });
-      alert("تم إنشاء الحساب بنجاح!");
-      window.location.href = "index.html";
-    } catch (error) {
-      alert("خطأ في إنشاء الحساب: " + error.message);
-    }
-  });
-</script>
 </body>
 </html>
