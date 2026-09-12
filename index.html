@@ -28,6 +28,7 @@
             --text-main: #ffffff;
             --text-sub: #a0a0c0;
             --danger-red: #ff4757;
+            --warning-yellow: #ffa502;
         }
 
         * { 
@@ -113,7 +114,7 @@
             border-right: 3px solid var(--accent-cyan);
         }
 
-        /* تمييز زر إضافة المنتج */
+        /* تمييز زر أضف منتجك */
         .btn-add-product-highlight {
             background: linear-gradient(135deg, #00d2ff, #8a2be2) !important;
             color: #ffffff !important;
@@ -125,6 +126,19 @@
         .btn-add-product-highlight:hover {
             transform: scale(1.02);
             box-shadow: 0 6px 18px rgba(0, 210, 255, 0.5);
+        }
+
+        /* تمييز زر لوحة التحكم للإدارة */
+        .btn-admin-highlight {
+            background: rgba(138, 43, 226, 0.2) !important;
+            color: #c084fc !important;
+            border: 1px solid var(--accent-purple) !important;
+            font-weight: 800 !important;
+        }
+
+        .btn-admin-highlight:hover {
+            background: var(--accent-purple) !important;
+            color: #ffffff !important;
         }
 
         .btn-logout-sidebar {
@@ -369,6 +383,11 @@
                 <ul class="sidebar-menu">
                     <li><a href="index.html" class="active">🏠 الصفحة الرئيسية</a></li>
                     
+                    <!-- زر لوحة التحكم المخفي (يظهر للأدمن فقط) -->
+                    <li id="adminSidebarLi" style="display: none;">
+                        <a href="admin.html" class="btn-admin-highlight">⚙️ لوحة التحكم الإدارية</a>
+                    </li>
+
                     <!-- زر أضف منتجك يظهر دائماً وبشكل بارز -->
                     <li><a href="add-product.html" class="btn-add-product-highlight">➕ أضف منتجك للبيع</a></li>
                     
@@ -452,56 +471,10 @@
         جميع الحقوق محفوظة © 2026 الخزنة الرقمية (DigiVault)
     </footer>
 
-    <script>
-        // تحديث حالة الحساب وإظهار/إخفاء الأزرار
-        function updateNav() {
-            try {
-                const userProfile = JSON.parse(localStorage.getItem("userProfile"));
-                const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-                
-                const userNav = document.getElementById("userNav");
-                const loginMenuLi = document.getElementById("loginMenuLi");
-                const logoutMenuLi = document.getElementById("logoutMenuLi");
-
-                if (isLoggedIn || userProfile) {
-                    const name = (userProfile && userProfile.name) ? userProfile.name.split(' ')[0] : "حسابي";
-                    const picture = (userProfile && userProfile.picture) ? userProfile.picture : "https://via.placeholder.com/32";
-
-                    userNav.innerHTML = `
-                        <a href="add-product.html" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold; margin-left: 15px;">+ أضف منتجك</a>
-                        <a href="profile.html" style="display:flex; align-items:center; gap:8px; text-decoration:none; color:#fff;">
-                            <img src="${picture}" alt="${name}" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
-                            <span>${name}</span>
-                        </a>
-                    `;
-
-                    if(loginMenuLi) loginMenuLi.style.display = "none";
-                    if(logoutMenuLi) logoutMenuLi.style.display = "block";
-                } else {
-                    if(loginMenuLi) loginMenuLi.style.display = "block";
-                    if(logoutMenuLi) logoutMenuLi.style.display = "none";
-                }
-            } catch (e) {
-                console.error("خطأ في قراءة بيانات الجلسة:", e);
-            }
-        }
-
-        // دالة تسجيل الخروج المنظمة
-        function logoutUser() {
-            localStorage.removeItem("isLoggedIn");
-            localStorage.removeItem("userProfile");
-            sessionStorage.clear();
-            
-            alert("تم تسجيل الخروج بنجاح!");
-            window.location.reload();
-        }
-
-        document.addEventListener("DOMContentLoaded", updateNav);
-    </script>
-
-    <!-- سكريبت جلب المنتجات ديناميكياً من قواعد بيانات Firebase -->
+    <!-- سكريبت Firebase Auth و Firestore وإدارة الجلسات متصل بملف Admin -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -515,49 +488,142 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getFirestore(app);
 
+        const SUPER_ADMIN_EMAIL = "ythr2010@gmail.com";
+
+        // التحقق من حالة تسجيل الدخول وصلاحيات الإدارة
+        onAuthStateChanged(auth, (user) => {
+            const userNav = document.getElementById("userNav");
+            const loginMenuLi = document.getElementById("loginMenuLi");
+            const logoutMenuLi = document.getElementById("logoutMenuLi");
+            const adminSidebarLi = document.getElementById("adminSidebarLi");
+
+            const helperAdmins = JSON.parse(localStorage.getItem("helperAdmins")) || [];
+
+            if (user) {
+                const email = user.email ? user.email.toLowerCase() : "";
+                const isSuperAdmin = (email === SUPER_ADMIN_EMAIL.toLowerCase());
+                const isHelper = helperAdmins.includes(email);
+
+                const displayName = user.displayName || email.split('@')[0];
+                const photoURL = user.photoURL || "https://via.placeholder.com/32";
+
+                let adminBtnHeader = "";
+                if (isSuperAdmin || isHelper) {
+                    if (adminSidebarLi) adminSidebarLi.style.display = "block";
+                    adminBtnHeader = `<a href="admin.html" style="color: #c084fc; text-decoration: none; font-weight: bold; margin-left: 10px; border: 1px solid var(--accent-purple); padding: 4px 10px; border-radius: 6px; background: rgba(138, 43, 226, 0.2);">⚙️ لوحة التحكم</a>`;
+                } else {
+                    if (adminSidebarLi) adminSidebarLi.style.display = "none";
+                }
+
+                userNav.innerHTML = `
+                    ${adminBtnHeader}
+                    <a href="add-product.html" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold; margin-left: 10px;">+ أضف منتجك</a>
+                    <a href="profile.html" style="display:flex; align-items:center; gap:8px; text-decoration:none; color:#fff;">
+                        <img src="${photoURL}" alt="${displayName}" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
+                        <span>${displayName}</span>
+                    </a>
+                `;
+
+                if (loginMenuLi) loginMenuLi.style.display = "none";
+                if (logoutMenuLi) logoutMenuLi.style.display = "block";
+            } else {
+                if (adminSidebarLi) adminSidebarLi.style.display = "none";
+                if (loginMenuLi) loginMenuLi.style.display = "block";
+                if (logoutMenuLi) logoutMenuLi.style.display = "none";
+
+                userNav.innerHTML = `
+                    <a href="add-product.html" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold; margin-left: 15px;">+ أضف منتجك</a>
+                    <a href="login.html" class="btn-login-nav">تسجيل الدخول</a>
+                `;
+            }
+        });
+
+        // دالة تسجيل الخروج للجميع
+        window.logoutUser = function() {
+            signOut(auth).then(() => {
+                localStorage.removeItem("isLoggedIn");
+                localStorage.removeItem("userProfile");
+                sessionStorage.clear();
+                alert("تم تسجيل الخروج بنجاح!");
+                window.location.reload();
+            }).catch((err) => {
+                console.error("خطأ في تسجيل الخروج:", err);
+            });
+        };
+
+        // دالة جلب المنتجات وعرضها
         async function loadProducts() {
             const productsGrid = document.getElementById('productsGrid');
             if (!productsGrid) return;
 
+            let productsList = [];
+
             try {
+                // 1. قراءة المنتجات من قواعد بيانات Firestore
                 const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
                 const querySnapshot = await getDocs(q);
                 
-                if (querySnapshot.empty) {
-                    productsGrid.innerHTML = '<p style="color: var(--text-sub); grid-column: 1/-1; text-align: center;">لا توجد منتجات معروضة حالياً. كن أول من يضيف منتجاً!</p>';
-                    return;
-                }
-
-                productsGrid.innerHTML = '';
-
                 querySnapshot.forEach((doc) => {
-                    const product = doc.data();
-                    
-                    const card = document.createElement('div');
-                    card.className = 'product-card';
-                    card.innerHTML = `
-                        <div style="width: 100%; height: 160px; overflow: hidden; border-radius: 8px; margin-bottom: 15px;">
-                            <img src="${product.imageUrl}" alt="${product.title}" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                        <h3>${product.title}</h3>
-                        <p>${product.description}</p>
-                        <div class="card-footer">
-                            <span class="price">$${product.price}</span>
-                            <a href="#" onclick="buyProduct('${doc.id}', '${product.downloadUrl}')" class="buy-btn">شراء الآن</a>
-                        </div>
-                    `;
-                    productsGrid.appendChild(card);
+                    const data = doc.data();
+                    productsList.push({
+                        id: doc.id,
+                        title: data.title || "منتج بدون عنوان",
+                        description: data.description || "لا يوجد وصف متاح.",
+                        price: data.price || "0",
+                        imageUrl: data.imageUrl || data.imgUrl || "https://via.placeholder.com/300x160?text=DigiVault",
+                        downloadUrl: data.downloadUrl || data.fileUrl || "#"
+                    });
                 });
             } catch (error) {
-                console.error("خطأ في جلب المنتجات: ", error);
-                productsGrid.innerHTML = '<p style="color: var(--danger-red); grid-column: 1/-1; text-align: center;">تعذر تحميل المنتجات، يرجى التأكد من الاتصال بقواعد البيانات.</p>';
+                console.warn("تنبيه: تعذر الجلب من Firestore، يتم التحقق من التخزين المحلي:", error);
             }
+
+            // 2. قراءة المنتجات الإضافية المسجلة من لوحة تحكم admin.html المحلية
+            const customProducts = JSON.parse(localStorage.getItem("customProducts")) || [];
+            customProducts.forEach(p => {
+                productsList.push({
+                    id: p.id,
+                    title: p.title,
+                    description: p.desc || p.description,
+                    price: p.price,
+                    imageUrl: p.imgUrl || p.imageUrl || "https://via.placeholder.com/300x160?text=DigiVault",
+                    downloadUrl: p.fileUrl || p.downloadUrl || "#"
+                });
+            });
+
+            if (productsList.length === 0) {
+                productsGrid.innerHTML = '<p style="color: var(--text-sub); grid-column: 1/-1; text-align: center;">لا توجد منتجات معروضة حالياً. كن أول من يضيف منتجاً!</p>';
+                return;
+            }
+
+            productsGrid.innerHTML = '';
+
+            productsList.forEach((product) => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <div style="width: 100%; height: 160px; overflow: hidden; border-radius: 8px; margin-bottom: 15px; background: #1e1e24;">
+                        <img src="${product.imageUrl}" 
+                             onerror="this.src='https://via.placeholder.com/300x160?text=DigiVault'" 
+                             alt="${product.title}" 
+                             style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <h3>${product.title}</h3>
+                    <p>${product.description}</p>
+                    <div class="card-footer">
+                        <span class="price">${product.price.toString().includes('$') ? product.price : '$' + product.price}</span>
+                        <a href="#" onclick="buyProduct('${product.id}', '${product.downloadUrl}')" class="buy-btn">شراء الآن</a>
+                    </div>
+                `;
+                productsGrid.appendChild(card);
+            });
         }
 
         window.buyProduct = function(productId, downloadUrl) {
-            alert("سيتم تحويلك لبوابة الدفع لحساب الـ 10% والـ 90%، وبعد الدفع سينفتح رابط التحميل التالي تلقائياً:\n" + downloadUrl);
+            alert("سيتم تحويلك لبوابة الدفع، وبعد إتمام عملية الدفع سينفتح رابط التحميل تلقائياً:\n" + downloadUrl);
         };
 
         loadProducts();
