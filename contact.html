@@ -66,15 +66,16 @@
             font-family: inherit;
             font-size: 0.95rem;
         }
-        .form-group input:focus, .form-group textarea:focus { border-color: var(--accent-cyan); outline: none; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--accent-cyan); outline: none; }
 
         .btn-submit {
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
             color: #fff; border: none; padding: 12px 25px; border-radius: 8px;
             font-weight: bold; cursor: pointer; font-family: inherit; font-size: 1rem; width: 100%;
+            transition: 0.2s;
         }
+        .btn-submit:hover { opacity: 0.9; }
 
-        /* FAQ Styling */
         .faq-item {
             background: var(--bg-card);
             border: 1px solid var(--border-line);
@@ -108,16 +109,15 @@
         <main class="main-content">
             <h1 style="margin-bottom: 25px; font-size: 1.8rem;">الدعم الفني والتواصل 💬</h1>
 
-            <!-- نموذج تواصل ورفع مشكلة / إبداء رأي -->
             <div class="form-section">
                 <h2 style="margin-bottom: 15px; font-size: 1.3rem;">هل تواجه مشكلة أو ترغب في إبداء رأيك؟</h2>
                 <form id="contactForm">
                     <div class="form-group">
                         <label>نوع الطلب</label>
                         <select id="requestType">
-                            <label><option value="feedback">⭐ تقييم الموقع وإبداء رأي</option></label>
-                            <label><option value="issue">⚠️ الإبلاغ عن مشكلة في الشراء/التحميل</option></label>
-                            <label><option value="inquiry">❓ استفسار عام</option></label>
+                            <option value="feedback">⭐ تقييم الموقع وإبداء رأي</option>
+                            <option value="issue">⚠️ الإبلاغ عن مشكلة في الشراء/التحميل</option>
+                            <option value="inquiry">❓ استفسار عام</option>
                         </select>
                     </div>
 
@@ -140,7 +140,6 @@
                 </form>
             </div>
 
-            <!-- قسم الأسئلة الشائعة FAQ -->
             <h2 style="margin-bottom: 15px; font-size: 1.3rem;">الأسئلة الشائعة ❓</h2>
             <div class="faq-item">
                 <div class="faq-question">كيف أحصل على المنتج بعد الشراء؟</div>
@@ -159,59 +158,53 @@
         </main>
     </div>
 
-    <script>
-        document.getElementById("contactForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            alert("شكراً لك! تم استلام رسالتك وسيتم التواصل معك أو مراجعة تقييمك في أقرب وقت.");
-            this.reset();
-        });
-    </script>
-    <!-- أضف هذا السكريبت في ملف contact.html بدلاً من السكريبت القديم -->
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <!-- كود فايربيس الصحيح والموحد لإرسال البيانات -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_AUTH_DOMAIN",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_STORAGE_BUCKET",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    document.getElementById("contactForm").addEventListener("submit", async function(e) {
-        e.preventDefault();
-
-        const submitBtn = this.querySelector('.btn-submit');
-        submitBtn.disabled = true;
-        submitBtn.innerText = "جاري الإرسال...";
-
-        const formData = {
-            requestType: document.getElementById('requestType').value,
-            name: document.getElementById('contactName').value,
-            email: document.getElementById('contactEmail').value,
-            message: document.getElementById('contactMessage').value,
-            status: 'pending', // pending = غير مقروء/تحت الإجراء
-            adminReply: '',
-            createdAt: serverTimestamp()
+        // استبدل هذه القيم ببيانات مشروعك الحقيقية
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "digivault-4c3a3.firebaseapp.com",
+            projectId: "digivault-4c3a3",
+            storageBucket: "digivault-4c3a3.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
-        try {
-            await addDoc(collection(db, "contact_messages"), formData);
-            alert("شكراً لك! تم استلام رسالتك بنجاح وسيتم الرد عليك قريباً.");
-            this.reset();
-        } catch (error) {
-            console.error("خطأ في إرسال الرسالة:", error);
-            alert("حدث خطأ أثناء الإرسال، يرجى المحاولة لاحقاً.");
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerText = "إرسال الطلب الان 🚀";
-        }
-    });
-</script>
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        document.getElementById("contactForm").addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            const submitBtn = this.querySelector('.btn-submit');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "جاري الإرسال...";
+
+            const formData = {
+                requestType: document.getElementById('requestType').value,
+                name: document.getElementById('contactName').value,
+                email: document.getElementById('contactEmail').value,
+                message: document.getElementById('contactMessage').value,
+                status: 'pending',
+                adminReply: '',
+                createdAt: serverTimestamp()
+            };
+
+            try {
+                await addDoc(collection(db, "contact_messages"), formData);
+                alert("شكراً لك! تم استلام رسالتك بنجاح وسيتم الرد عليك في لوحة التحكم قريباً.");
+                this.reset();
+            } catch (error) {
+                console.error("خطأ في إرسال الرسالة:", error);
+                alert("حدث خطأ أثناء الإرسال، يرجى المحاولة لاحقاً. (تأكد من إعدادات الاتصال وقواعد Firestore)");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "إرسال الطلب الان 🚀";
+            }
+        });
+    </script>
 </body>
 </html>
