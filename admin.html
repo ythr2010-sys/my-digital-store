@@ -296,7 +296,8 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const SUPER_ADMIN_EMAIL = "ythr2010@gmail.com"; 
+        // تعيين الـ UID الخاص بك كمدير رئيسي
+        const SUPER_ADMIN_UID = "kkfUSkke8ZfKpiXFrVfpbCjfYdx1"; 
 
         let customProducts = [];
         let helperAdmins = [];
@@ -399,7 +400,6 @@
             const email = emailInput.value.trim().toLowerCase();
             if (email) {
                 try {
-                    // نستخدم البريد كمستند لمنع التكرار
                     await setDoc(doc(db, "helpers", email), { email: email, createdAt: new Date() });
                     emailInput.value = "";
                     await fetchHelpers();
@@ -423,7 +423,7 @@
             }
         };
 
-        function renderHelpersList() {
+        function helpersListMarkup() {
             const list = document.getElementById("helpersList");
             if (helperAdmins.length === 0) {
                 list.innerHTML = `<li style="color:var(--text-sub); font-size:0.85rem;">لا يوجد مشرفون مساعدون حالياً.</li>`;
@@ -436,6 +436,9 @@
                 </li>
             `).join('');
         }
+        
+        // ربط دالة تحديث قائمة المساعدين
+        window.renderHelpersList = helpersListMarkup;
 
         // 9. تقديم نموذج إضافة / تعديل منتج
         document.getElementById("addProductForm").addEventListener("submit", async function(e) {
@@ -473,7 +476,7 @@
         document.getElementById("cancelEditBtn").addEventListener("click", window.resetForm);
         document.getElementById("addHelperBtn").addEventListener("click", window.addHelperAdmin);
 
-        // 10. التحقق من الصلاحيات والمستخدم في Firebase Auth
+        // 10. التحقق من الصلاحيات والمستخدم في Firebase Auth باستخدام الـ UID
         onAuthStateChanged(auth, async (user) => {
             const accessGate = document.getElementById("accessGate");
             const adminPanel = document.getElementById("adminPanel");
@@ -482,16 +485,18 @@
             const gateBtn = document.getElementById("gateBtn");
 
             if (user) {
-                const userEmail = user.email.toLowerCase();
-                const isSuperAdmin = (userEmail === SUPER_ADMIN_EMAIL.toLowerCase());
+                const userEmail = user.email ? user.email.toLowerCase() : "";
+                const isSuperAdmin = (user.uid === SUPER_ADMIN_UID);
 
-                // التحقق مما إذا كان المستخدم مساعداً عبر Firestore
+                // التحقق مما إذا كان المستخدم مساعداً عبر Firestore باستخدام بريده الإلكتروني
                 let isHelper = false;
-                try {
-                    const helperDoc = await getDoc(doc(db, "helpers", userEmail));
-                    isHelper = helperDoc.exists();
-                } catch (e) {
-                    console.error("خطأ أثناء التحقق من صلاحية المساعد:", e);
+                if (userEmail) {
+                    try {
+                        const helperDoc = await getDoc(doc(db, "helpers", userEmail));
+                        isHelper = helperDoc.exists();
+                    } catch (e) {
+                        console.error("خطأ أثناء التحقق من صلاحية المساعد:", e);
+                    }
                 }
 
                 if (isSuperAdmin || isHelper) {
