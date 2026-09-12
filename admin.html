@@ -30,33 +30,19 @@
             padding: 20px;
         }
 
-        /* نافذة حماية لوحة التحكم */
-        .login-gate {
+        /* رسالة رفض الوصول */
+        .access-denied {
             background: var(--bg-card);
-            border: 1px solid var(--accent-cyan);
+            border: 1px solid var(--danger-red);
             border-radius: 16px;
             padding: 40px;
             max-width: 450px;
             margin: 100px auto;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 210, 255, 0.15);
-        }
-
-        .login-gate input {
-            width: 100%;
-            padding: 12px 16px;
-            margin: 20px 0;
-            background: #1e1e24;
-            border: 1px solid var(--border-line);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 1rem;
-            outline: none;
-            text-align: center;
         }
 
         .admin-panel {
-            display: none; /* تظهر فقط بعد إدخال كود الأدمن Correctly */
+            display: none; /* تظهر فقط بعد التحقق من Firebase */
         }
 
         .header-admin {
@@ -89,10 +75,7 @@
             gap: 6px;
         }
 
-        .form-group label {
-            font-size: 0.85rem;
-            color: var(--text-sub);
-        }
+        .form-group label { font-size: 0.85rem; color: var(--text-sub); }
 
         .form-group input, .form-group select, .form-group textarea {
             padding: 10px 14px;
@@ -123,7 +106,6 @@
 
         .btn-submit:hover { opacity: 0.9; }
 
-        /* جدول المنتجات */
         .products-table {
             width: 100%;
             border-collapse: collapse;
@@ -161,19 +143,32 @@
 </head>
 <body>
 
-    <!-- بوابة التحقق لكلمة مرور الأدمن -->
-    <div class="login-gate" id="loginGate">
-        <h2>🔒 لوحة تحكم المدير</h2>
-        <p style="color: var(--text-sub); font-size: 0.9rem; margin-top: 8px;">أدخل كلمة المرور للوصول إلى خيارات الإدارة</p>
-        <input type="password" id="adminPassInput" placeholder="أدخل رمز المرور">
-        <button class="btn-submit" onclick="verifyAdmin()">دخول اللوحة 🚀</button>
+    <!-- الشاشة الافتراضية عند الفحص أو عدم امتلاك صلاحية -->
+    <div class="access-denied" id="accessGate">
+        <h2 id="gateTitle" style="color: var(--accent-cyan);">⏳ جاري التحقق من الصلاحيات...</h2>
+        <p id="gateMessage" style="color: var(--text-sub); margin-top: 10px;"></p>
+        <a href="shop.html" id="gateBtn" style="display:none; margin-top:20px; color: var(--accent-cyan); text-decoration: none; font-weight: bold;">← العودة للمتجر</a>
     </div>
 
-    <!-- لوحة التحكم الرئيسية -->
+    <!-- لوحة التحكم الإدارية -->
     <div class="admin-container admin-panel" id="adminPanel">
         <div class="header-admin">
-            <h1>👑 لوحة إدارة الخزنة الرقمية</h1>
+            <div>
+                <h1>👑 لوحة إدارة الخزنة الرقمية</h1>
+                <span id="userRoleBadge" style="background: rgba(0,210,255,0.2); color: var(--accent-cyan); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;"></span>
+            </div>
             <a href="shop.html" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">← العودة للمتجر</a>
+        </div>
+
+        <!-- قسم إدارة المشرفين (يظهر فقط لك كمدير رئيسي) -->
+        <div class="card" id="superAdminSection" style="display: none; border-color: var(--accent-purple);">
+            <h3 style="margin-bottom: 15px; color: #c084fc;">🛡️ إدارة المشرفين المساعدين (صلاحية المدير الرئيسي فقط)</h3>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <input type="email" id="helperEmailInput" placeholder="أدخل البريد الإلكتروني للمساعد الجديد" style="flex:1; padding: 10px; background:#1e1e24; border:1px solid var(--border-line); border-radius:8px; color:#fff;">
+                <button onclick="addHelperAdmin()" class="btn-submit" style="width: auto;">إضافة كمساعد ➕</button>
+            </div>
+            <h4>قائمة المساعدين الحاليين:</h4>
+            <ul id="helpersList" style="list-style: none; margin-top: 10px; display: flex; flex-direction: column; gap: 8px;"></ul>
         </div>
 
         <!-- بطاقة إضافة منتج جديد -->
@@ -191,7 +186,7 @@
                             <option value="books">📚 كتب وروايات</option>
                             <option value="models">🎨 مجسمات 3D/2D</option>
                             <option value="courses">🎓 دورات فيديو</option>
-                            <option value="gaming">🎮 ألعاب وااشتراكات</option>
+                            <option value="gaming">🎮 ألعاب واشتراكات</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -232,36 +227,79 @@
                             <th>إجراءات</th>
                         </tr>
                     </thead>
-                    <tbody id="adminProductsTable">
-                        <!-- تُحمل المنتجات هنا عبر JS -->
-                    </tbody>
+                    <tbody id="adminProductsTable"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <script>
-        // كلمة مرور الأدمن الافتراضية (يمكنك تغييرها إلى أي رمز تحبه)
-        const ADMIN_PASS = "admin123";
+    <!-- Firebase Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // الروابط والمنتجات الافتراضية
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // 🟢 ضع بريدك الإلكتروني الخاص بك هنا ليصبح المدير الرئيسي الوحيد
+        const SUPER_ADMIN_EMAIL = "your_email@gmail.com"; 
+
+        // قائمة بريد المساعدين (يتم حفظهم في LocalStorage)
+        let helperAdmins = JSON.parse(localStorage.getItem("helperAdmins")) || [];
+
         let customProducts = JSON.parse(localStorage.getItem("customProducts")) || [
-            { id: 1, title: "كتاب أساسيات البرمجة بلغة Python", cat: "books", badge: "كتاب PDF", desc: "دليل شامل للمبتدئين.", price: "9.99 $", fileUrl: "https://example.com/files/python.pdf" },
-            { id: 2, title: "حزمة مجسمات 3D أسلحة", cat: "models", badge: "ملفات FBX", desc: "أصول 3D جاهزة.", price: "19.99 $", fileUrl: "https://example.com/files/weapons.zip" }
+            { id: 1, title: "كتاب أساسيات البرمجة بلغة Python", cat: "books", badge: "كتاب PDF", desc: "دليل شامل للمبتدئين.", price: "9.99 $", fileUrl: "https://example.com/files/python.pdf" }
         ];
 
-        function verifyAdmin() {
-            const input = document.getElementById("adminPassInput").value;
-            if (input === ADMIN_PASS) {
-                document.getElementById("loginGate").style.display = "none";
-                document.getElementById("adminPanel").style.display = "block";
-                renderAdminTable();
-            } else {
-                alert("كلمة المرور غير صحيحة!");
-            }
-        }
+        onAuthStateChanged(auth, (user) => {
+            const accessGate = document.getElementById("accessGate");
+            const adminPanel = document.getElementById("adminPanel");
+            const gateTitle = document.getElementById("gateTitle");
+            const gateMessage = document.getElementById("gateMessage");
+            const gateBtn = document.getElementById("gateBtn");
 
-        function renderAdminTable() {
+            if (user) {
+                const userEmail = user.email.toLowerCase();
+                const isSuperAdmin = (userEmail === SUPER_ADMIN_EMAIL.toLowerCase());
+                const isHelper = helperAdmins.includes(userEmail);
+
+                if (isSuperAdmin || isHelper) {
+                    accessGate.style.display = "none";
+                    adminPanel.style.display = "block";
+                    
+                    if (isSuperAdmin) {
+                        document.getElementById("userRoleBadge").textContent = "المدير الرئيسي (Super Admin)";
+                        document.getElementById("superAdminSection").style.display = "block";
+                        renderHelpersList();
+                    } else {
+                        document.getElementById("userRoleBadge").textContent = "مشرف مساعد (Helper Admin)";
+                        document.getElementById("superAdminSection").style.display = "none";
+                    }
+
+                    renderAdminTable();
+                } else {
+                    gateTitle.textContent = "❌ عذراً، لا تملك صلاحية الدخول";
+                    gateTitle.style.color = "var(--danger-red)";
+                    gateMessage.textContent = "هذه الصفحة مخصصة لمدير الموقع والمشرفين المعتمدين فقط.";
+                    gateBtn.style.display = "inline-block";
+                }
+            } else {
+                gateTitle.textContent = "🔒 يجب تسجيل الدخول أولاً";
+                gateMessage.textContent = "قم بتسجيل الدخول بحساب المدير للوصول للوحة التحكم.";
+                gateBtn.style.display = "inline-block";
+            }
+        });
+
+        window.renderAdminTable = function() {
             const tbody = document.getElementById("adminProductsTable");
             tbody.innerHTML = customProducts.map((p, index) => `
                 <tr>
@@ -272,9 +310,9 @@
                     <td><button class="btn-delete" onclick="deleteProduct(${index})">حذف 🗑️</button></td>
                 </tr>
             `).join('');
-        }
+        };
 
-        function handleAddProduct(e) {
+        window.handleAddProduct = function(e) {
             e.preventDefault();
             const newProduct = {
                 id: Date.now(),
@@ -288,17 +326,52 @@
 
             customProducts.push(newProduct);
             localStorage.setItem("customProducts", JSON.stringify(customProducts));
-            renderAdminTable();
+            window.renderAdminTable();
             document.getElementById("addProductForm").reset();
-            alert("تم إضافة المنتج بنجاح إلى المتجر!");
-        }
+            alert("تمت إضافة المنتج بنجاح!");
+        };
 
-        function deleteProduct(index) {
+        window.deleteProduct = function(index) {
             if (confirm("هل أنت تأكد من رغبتك في حذف هذا المنتج؟")) {
                 customProducts.splice(index, 1);
                 localStorage.setItem("customProducts", JSON.stringify(customProducts));
-                renderAdminTable();
+                window.renderAdminTable();
             }
+        };
+
+        // وظائف المدير الرئيسي فقط: إضافة وتجريد المساعدين
+        window.addHelperAdmin = function() {
+            const emailInput = document.getElementById("helperEmailInput");
+            const email = emailInput.value.trim().toLowerCase();
+            if (email && !helperAdmins.includes(email) && email !== SUPER_ADMIN_EMAIL.toLowerCase()) {
+                helperAdmins.push(email);
+                localStorage.setItem("helperAdmins", JSON.stringify(helperAdmins));
+                emailInput.value = "";
+                renderHelpersList();
+                alert(`تمت إضافة ${email} كمشرف مساعد بنجاح!`);
+            }
+        };
+
+        window.removeHelperAdmin = function(email) {
+            if (confirm(`هل أنت تأكد من تجريد ${email} من صلاحيات الإشراف؟`)) {
+                helperAdmins = helperAdmins.filter(e => e !== email);
+                localStorage.setItem("helperAdmins", JSON.stringify(helperAdmins));
+                renderHelpersList();
+            }
+        };
+
+        function renderHelpersList() {
+            const list = document.getElementById("helpersList");
+            if (helperAdmins.length === 0) {
+                list.innerHTML = `<li style="color:var(--text-sub); font-size:0.85rem;">لا يوجد مشرفون مساعدون حالياً.</li>`;
+                return;
+            }
+            list.innerHTML = helperAdmins.map(email => `
+                <li style="display:flex; justify-content:space-between; align-items:center; background:#1e1e24; padding:8px 12px; border-radius:6px;">
+                    <span>📧 ${email}</span>
+                    <button onclick="removeHelperAdmin('${email}')" class="btn-delete" style="padding:4px 8px;">عزل / حذف ❌</button>
+                </li>
+            `).join('');
         }
     </script>
 </body>
