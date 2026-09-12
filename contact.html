@@ -166,5 +166,52 @@
             this.reset();
         });
     </script>
+    <!-- أضف هذا السكريبت في ملف contact.html بدلاً من السكريبت القديم -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    document.getElementById("contactForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const submitBtn = this.querySelector('.btn-submit');
+        submitBtn.disabled = true;
+        submitBtn.innerText = "جاري الإرسال...";
+
+        const formData = {
+            requestType: document.getElementById('requestType').value,
+            name: document.getElementById('contactName').value,
+            email: document.getElementById('contactEmail').value,
+            message: document.getElementById('contactMessage').value,
+            status: 'pending', // pending = غير مقروء/تحت الإجراء
+            adminReply: '',
+            createdAt: serverTimestamp()
+        };
+
+        try {
+            await addDoc(collection(db, "contact_messages"), formData);
+            alert("شكراً لك! تم استلام رسالتك بنجاح وسيتم الرد عليك قريباً.");
+            this.reset();
+        } catch (error) {
+            console.error("خطأ في إرسال الرسالة:", error);
+            alert("حدث خطأ أثناء الإرسال، يرجى المحاولة لاحقاً.");
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "إرسال الطلب الان 🚀";
+        }
+    });
+</script>
 </body>
 </html>
