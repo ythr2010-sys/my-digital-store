@@ -239,11 +239,11 @@
                 <li id="loginMenuLi">
                     <a href="login.html">🔑 تسجيل الدخول</a>
                 </li>
+                <li id="adminMenuLi" style="display: none;">
+                    <a href="admin.html" style="color: var(--accent-cyan); font-weight: bold;">👑 لوحة التحكم (Admin)</a>
+                </li>
                 <li id="logoutMenuLi" style="display: none;">
                     <button onclick="logoutUser()" class="btn-logout-sidebar">🚪 تسجيل الخروج</button>
-                </li>
-                <li id="adminMenuLi" style="display: none;">
-                    <a href="admin.html" style="color: var(--accent-purple);">👑 لوحة التحكم (Admin)</a>
                 </li>
             </ul>
         </aside>
@@ -262,7 +262,7 @@
                 <button class="filter-btn" data-cat="books" onclick="filterCategory('books', event)">📚 كتب وروايات</button>
                 <button class="filter-btn" data-cat="models" onclick="filterCategory('models', event)">🎨 مجسمات 3D/2D</button>
                 <button class="filter-btn" data-cat="courses" onclick="filterCategory('courses', event)">🎓 دورات فيديو</button>
-                <button class="filter-btn" data-cat="gaming" onclick="filterCategory('gaming', event)">🎮 ألعاب وااشتراكات</button>
+                <button class="filter-btn" data-cat="gaming" onclick="filterCategory('gaming', event)">🎮 ألعاب واشتراكات</button>
             </div>
 
             <!-- شبكة عرض المنتجات -->
@@ -388,10 +388,26 @@
             }, 2500);
         }
 
+        // إضافة المنتج للسلة وتسجيل طلب جديد في لوحة التحكم
         function addToCart(name, price, fileUrl) {
             let cart = JSON.parse(localStorage.getItem("cart")) || [];
             cart.push({ name, price, fileUrl });
             localStorage.setItem("cart", JSON.stringify(cart));
+
+            // تسجيل الطلب ليتعرف عليه الأدمن في لوحة التحكم
+            const userProfile = JSON.parse(localStorage.getItem("userProfile")) || {};
+            let orders = JSON.parse(localStorage.getItem("siteOrders")) || [];
+            
+            orders.push({
+                id: Date.now(),
+                customerEmail: userProfile.email || 'زائر جديد',
+                productTitle: name,
+                price: price,
+                status: 'قيد المعالجة',
+                date: new Date().toLocaleDateString('ar-EG')
+            });
+            localStorage.setItem("siteOrders", JSON.stringify(orders));
+
             showToast(`تمت إضافة "${name}" إلى السلة 🛒`);
         }
 
@@ -407,7 +423,7 @@
                 if (loginLi) loginLi.style.display = "none";
                 if (logoutLi) logoutLi.style.display = "block";
                 
-                // إظهار رابط لوحة التحكم في حال كان المستخدم آدمن
+                // إظهار رابط لوحة التحكم فوراً في حال كان المستخدم أدمن
                 if (userProfile.role === "admin" && adminLi) {
                     adminLi.style.display = "block";
                 }
