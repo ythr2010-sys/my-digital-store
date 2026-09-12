@@ -217,11 +217,11 @@
                         <form onsubmit="processOrder(event, 'الذهبية / BaridiMob')">
                             <div class="form-group">
                                 <label>رقم المعاملة (N° Transaction من تطبيق بريدي موب):</label>
-                                <input type="text" placeholder="أدخل رقم المعاملة (مثال: 987654)" required>
+                                <input type="text" id="baridiTx" placeholder="أدخل رقم المعاملة (مثال: 987654)" required>
                             </div>
                             <div class="form-group">
                                 <label>اسم الحساب المحول منه (الاسم واللقب):</label>
-                                <input type="text" placeholder="اسمك الكامل كما هو في التطبيق" required>
+                                <input type="text" id="baridiName" placeholder="اسمك الكامل كما هو في التطبيق" required>
                             </div>
                             <button type="submit" class="btn-submit">تأكيد عملية الدفع واستلام المنتجات 🚀</button>
                         </form>
@@ -244,7 +244,7 @@
                         <form onsubmit="processOrder(event, 'CCP البريدي')">
                             <div class="form-group">
                                 <label>رقم وصل التحويل البريدي (Reçu):</label>
-                                <input type="text" placeholder="أدخل رقم الوصل البريدي" required>
+                                <input type="text" id="ccpRec" placeholder="أدخل رقم الوصل البريدي" required>
                             </div>
                             <button type="submit" class="btn-submit">تأكيد الدفع عبر CCP 🚀</button>
                         </form>
@@ -290,20 +290,35 @@
         </main>
     </div>
 
-    <script>
-        function switchTab(e, tab) {
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
+            authDomain: "digivault-4c3a3.firebaseapp.com",
+            projectId: "digivault-4c3a3",
+            storageBucket: "digivault-4c3a3.firebasestorage.app",
+            messagingSenderId: "578335534171",
+            appId: "1:578335534171:web:1b108a849c0543f998a37e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.switchTab = function(e, tab) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.pay-panel').forEach(panel => panel.classList.remove('active'));
 
             e.currentTarget.classList.add('active');
             document.getElementById(tab + '-panel').classList.add('active');
-        }
+        };
 
-        function copyText(elementId) {
+        window.copyText = function(elementId) {
             const text = document.getElementById(elementId).innerText;
             navigator.clipboard.writeText(text);
             alert("تم نسخ الرقم بنجاح!");
-        }
+        };
 
         function loadSummary() {
             const cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -317,12 +332,12 @@
             }
 
             container.innerHTML = cart.map(item => {
-                const priceNum = parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0;
+                const priceNum = parseFloat(String(item.price).replace(/[^0-9.]/g, '')) || 0;
                 total += priceNum;
                 return `
                     <div class="summary-item">
-                        <span>${item.name}</span>
-                        <span style="color:var(--accent-cyan); font-weight:bold;">${item.price}</span>
+                        <span>${item.name || item.title}</span>
+                        <span style="color:var(--accent-cyan); font-weight:bold;">${item.price}$</span>
                     </div>
                 `;
             }).join('');
@@ -330,12 +345,34 @@
             document.getElementById("orderTotal").innerText = total.toFixed(2) + " $";
         }
 
-        function processOrder(e, method) {
+        window.processOrder = async function(e, method) {
             e.preventDefault();
-            alert(`🎉 تم استلام عملية الدفع بنجاح باستعمال [${method}].\nسيتم التأكيد وتوجيهك لصفحة الاستلام.`);
-            localStorage.removeItem("cart");
-            window.location.href = "index.html";
-        }
+            const cart = JSON.parse(localStorage.getItem("cart")) || [];
+            const userProfile = JSON.parse(localStorage.getItem("userProfile")) || { email: "guest@user.com" };
+
+            if (cart.length === 0) {
+                alert("السلة فارغة!");
+                return;
+            }
+
+            try {
+                // حفظ الطلب في Firebase
+                await addDoc(collection(db, "purchases"), {
+                    buyerEmail: userProfile.email,
+                    items: cart,
+                    paymentMethod: method,
+                    status: method.includes("Visa") ? "completed" : "pending",
+                    createdAt: serverTimestamp()
+                });
+
+                alert(`🎉 تم إرسال طلبك بنجاح باستخدام [${method}]!\nجاري توجيهك لصفحة حسابك للوصول إلى المنتجات.`);
+                localStorage.removeItem("cart"); // تفريغ السلة
+                window.location.href = "profile.html"; // التوجيه لصفحة الملف الشخصي/المشتريات
+            } catch (err) {
+                console.error(err);
+                alert("حدث خطأ أثناء حفظ الطلب: " + err.message);
+            }
+        };
 
         document.addEventListener("DOMContentLoaded", loadSummary);
     </script>
