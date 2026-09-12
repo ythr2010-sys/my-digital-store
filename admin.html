@@ -296,13 +296,11 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // تعيين الـ UID الخاص بك كمدير رئيسي
         const SUPER_ADMIN_UID = "kkfUSkke8ZfKpiXFrVfpbCjfYdx1"; 
 
         let customProducts = [];
         let helperAdmins = [];
 
-        // 1. جلب المنتجات من Firestore
         async function fetchProducts() {
             try {
                 const querySnapshot = await getDocs(collection(db, "products"));
@@ -316,7 +314,6 @@
             }
         }
 
-        // 2. جلب قائمة المشرفين من Firestore
         async function fetchHelpers() {
             try {
                 const querySnapshot = await getDocs(collection(db, "helpers"));
@@ -330,7 +327,6 @@
             }
         }
 
-        // 3. عرض جدول المنتجات
         window.renderAdminTable = function() {
             const tbody = document.getElementById("adminProductsTable");
             if (customProducts.length === 0) {
@@ -352,7 +348,6 @@
             `).join('');
         };
 
-        // 4. تعبئة نموذج التعديل
         window.editProduct = function(docId) {
             const p = customProducts.find(item => item.id === docId);
             if (!p) return;
@@ -372,7 +367,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
-        // 5. إعادة ضبط النموذج
         window.resetForm = function() {
             document.getElementById("addProductForm").reset();
             document.getElementById("editProductId").value = "";
@@ -381,7 +375,6 @@
             document.getElementById("cancelEditBtn").style.display = "none";
         };
 
-        // 6. حذف منتج من Firestore
         window.deleteProduct = async function(docId) {
             if (confirm("هل أنت متأكد من رغبتك في حذف هذا المنتج نهائياً من المتجر؟")) {
                 try {
@@ -394,7 +387,6 @@
             }
         };
 
-        // 7. إضافة مشرف مساعد إلى Firestore
         window.addHelperAdmin = async function() {
             const emailInput = document.getElementById("helperEmailInput");
             const email = emailInput.value.trim().toLowerCase();
@@ -410,7 +402,6 @@
             }
         };
 
-        // 8. حذف مشرف مساعد
         window.removeHelperAdmin = async function(docId) {
             if (confirm(`هل أنت متأكد من تجريد هذا الحساب من صلاحيات الإشراف؟`)) {
                 try {
@@ -437,10 +428,8 @@
             `).join('');
         }
         
-        // ربط دالة تحديث قائمة المساعدين
         window.renderHelpersList = helpersListMarkup;
 
-        // 9. تقديم نموذج إضافة / تعديل منتج
         document.getElementById("addProductForm").addEventListener("submit", async function(e) {
             e.preventDefault();
             const editId = document.getElementById("editProductId").value;
@@ -476,7 +465,6 @@
         document.getElementById("cancelEditBtn").addEventListener("click", window.resetForm);
         document.getElementById("addHelperBtn").addEventListener("click", window.addHelperAdmin);
 
-        // 10. التحقق من الصلاحيات والمستخدم في Firebase Auth باستخدام الـ UID
         onAuthStateChanged(auth, async (user) => {
             const accessGate = document.getElementById("accessGate");
             const adminPanel = document.getElementById("adminPanel");
@@ -488,7 +476,6 @@
                 const userEmail = user.email ? user.email.toLowerCase() : "";
                 const isSuperAdmin = (user.uid === SUPER_ADMIN_UID);
 
-                // التحقق مما إذا كان المستخدم مساعداً عبر Firestore باستخدام بريده الإلكتروني
                 let isHelper = false;
                 if (userEmail) {
                     try {
@@ -516,7 +503,7 @@
                 } else {
                     gateTitle.textContent = "❌ عذراً، لا تملك صلاحية الدخول";
                     gateTitle.style.color = "var(--danger-red)";
-                    gateMessage.textContent = "هذه الصفحة مخصصة لمدير الموقع والمشرفين المعتمدين فقط.";
+                    gateMessage.textContent = `هذه الصفحة مخصصة لمدير الموقع فقط. حسابك الحالي (${userEmail || user.uid}) غير مصرح له.`;
                     gateBtn.style.display = "inline-block";
                 }
             } else {
