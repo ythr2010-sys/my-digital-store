@@ -131,9 +131,10 @@
             color: #fff;
             font-family: inherit;
             font-size: 0.95rem;
+            outline: none;
         }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent-cyan); }
 
-        /* تنسيق زر رفع الملف من الحاسوب */
         .file-upload-box {
             border: 2px dashed var(--accent-cyan);
             background: rgba(0, 210, 255, 0.03);
@@ -144,13 +145,8 @@
             transition: 0.3s ease;
         }
 
-        .file-upload-box:hover {
-            background: rgba(0, 210, 255, 0.08);
-        }
-
-        .file-upload-box input[type="file"] {
-            display: none;
-        }
+        .file-upload-box:hover { background: rgba(0, 210, 255, 0.08); }
+        .file-upload-box input[type="file"] { display: none; }
 
         .file-label-btn {
             display: inline-block;
@@ -216,7 +212,7 @@
         <main class="main-content">
             <div class="form-card">
                 <h1>إضافة منتج جديد (رفع مباشر من الكمبيوتر) 💻</h1>
-                <p>اختر الصور والملفات مباشرة من حاسوبك وسيتم رفعها ونشرها في المتجر فورا.</p>
+                <p>اختر الصور والملفات مباشرة من حاسوبك وسيتم إرسالها إلى لوحة التحكم للمراجعة والنشر الفوري.</p>
 
                 <div id="alertBox" class="alert-box"></div>
 
@@ -266,10 +262,10 @@
 
                     <div class="form-group">
                         <label for="productDescription">وصف المنتج التفصيلي *</label>
-                        <textarea id="productDescription" rows="4" placeholder="اكتب شرحاً وافياً عن المنتجات..." required></textarea>
+                        <textarea id="productDescription" rows="4" placeholder="اكتب شرحاً وافياً عن المنتج..." required></textarea>
                     </div>
 
-                    <button type="submit" id="submitBtn" class="btn-submit">رفع ورابط ونشر المنتج 🚀</button>
+                    <button type="submit" id="submitBtn" class="btn-submit">رفع وإرسال للمراجعة والنشر 🚀</button>
                 </form>
             </div>
         </main>
@@ -318,7 +314,7 @@
                     if (adminSidebarLi) adminSidebarLi.style.display = "block";
                 }
             } else {
-                showAlert("يجب عليك تسجيل الدخول أولاً لتتمكن من إضافة المنتجات.", "error");
+                currentUser = null;
             }
         });
 
@@ -330,13 +326,16 @@
             alertBox.textContent = message;
             alertBox.className = `alert-box ${type === 'success' ? 'alert-success' : 'alert-error'}`;
             alertBox.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
 
-            if (!currentUser) {
-                showAlert("عفواً، يتوجب عليك تسجيل الدخول أولاً!", "error");
+            // التحقق من تسجيل الدخول (في حال لم يتم التقاطه عبر onAuthStateChanged بعد)
+            const activeUser = auth.currentUser || currentUser;
+            if (!activeUser) {
+                showAlert("عفواً، يتوجب عليك تسجيل الدخول أولاً قبل رفع المنتجات!", "error");
                 setTimeout(() => { window.location.href = "login.html"; }, 2000);
                 return;
             }
@@ -355,7 +354,7 @@
             const description = document.getElementById("productDescription").value.trim();
 
             submitBtn.disabled = true;
-            submitBtn.textContent = "⏳ جاري رفع الملفات من الحاسوب إلى السيرفر...";
+            submitBtn.textContent = "⏳ جاري رفع الملفات إلى السيرفر...";
 
             try {
                 // 1. رفع صورة المعاينة إلى Firebase Storage
@@ -369,33 +368,34 @@
                 const dataSnapshot = await uploadBytes(dataRef, dataFile);
                 const downloadUrl = await getDownloadURL(dataSnapshot.ref);
 
-                // 3. حفظ بيانات المنتج والروابط المرفوعة في Firestore
-                submitBtn.textContent = "⏳ جاري حفظ المنتج في المتجر...";
+                // 3. حفظ بيانات المنتج في قاعدة البيانات بحالة "pending" لكي يظهر في لوحة التحكم لمراجعتك
+                submitBtn.textContent = "⏳ جاري إرسال المنتج للمراجعة...";
                 await addDoc(collection(db, "products"), {
                     title: title,
-                    price: price,
-                    category: category,
-                    imageUrl: imageUrl,
-                    downloadUrl: downloadUrl,
-                    description: description,
-                    sellerEmail: currentUser.email,
-                    sellerUid: currentUser.uid,
+                    price: price + " $",
+                    cat: category,
+                    img: imageUrl,
+                    link: downloadUrl,
+                    desc: description,
+                    status: 'pending', // حالة الانتظار حتى تقبله أنت من لوحة التحكم
+                    sellerEmail: activeUser.email,
+                    sellerName: activeUser.email === SUPER_ADMIN_EMAIL ? "المدير (أنت)" : activeUser.email,
                     createdAt: serverTimestamp()
                 });
 
-                showAlert("🎉 تم رفع الملفات بنجاح ونشر المنتج في المتجر ولوحة التحكم!", "success");
+                showAlert("🎉 تم رفع المنتج بنجاح! هو الآن بانتظار الموافقة عليه من لوحة التحكم الخاصة بك.", "success");
                 form.reset();
                 document.getElementById("imageFileName").textContent = "📁 اضغط هنا لاختيار صورة من جهازك";
                 document.getElementById("dataFileName").textContent = "📦 اضغط هنا لاختيار ملف المنتج من جهازك";
 
-                setTimeout(() => { window.location.href = "index.html"; }, 2000);
+                setTimeout(() => { window.location.href = "admin.html"; }, 2500);
 
             } catch (error) {
                 console.error("خطأ أثناء الرفع:", error);
                 showAlert("حدث خطأ أثناء الرفع: " + error.message, "error");
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.textContent = "رفع ورابط ونشر المنتج 🚀";
+                submitBtn.textContent = "رفع وإرسال للمراجعة والنشر 🚀";
             }
         });
     </script>
