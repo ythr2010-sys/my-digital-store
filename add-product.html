@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إضافة منتج جديد | الخزنة الرقمية DigiVault</title>
     
-    <!-- الخطوط الخارجية -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
@@ -24,11 +23,7 @@
             --success-green: #10b981;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Tajawal', sans-serif;
@@ -40,12 +35,8 @@
             flex-direction: column;
         }
 
-        .page-wrapper {
-            display: flex;
-            flex: 1;
-        }
+        .page-wrapper { display: flex; flex: 1; }
 
-        /* القائمة الجانبية */
         .sidebar {
             width: 260px;
             background: var(--bg-sidebar);
@@ -70,12 +61,7 @@
 
         .logo a span { color: var(--accent-cyan); }
 
-        .sidebar-menu {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        .sidebar-menu { list-style: none; display: flex; flex-direction: column; gap: 10px; }
 
         .sidebar-menu li a {
             display: flex;
@@ -95,7 +81,13 @@
             border-right: 3px solid var(--accent-cyan);
         }
 
-        /* المحتوى الرئيسي */
+        .btn-admin-highlight {
+            background: rgba(138, 43, 226, 0.2) !important;
+            color: #c084fc !important;
+            border: 1px solid var(--accent-purple) !important;
+            font-weight: 800 !important;
+        }
+
         .main-content {
             flex: 1;
             padding: 30px;
@@ -121,26 +113,14 @@
             padding-right: 10px;
         }
 
-        .form-card p {
-            color: var(--text-sub);
-            font-size: 0.95rem;
-            margin-bottom: 25px;
-        }
+        .form-card p { color: var(--text-sub); font-size: 0.95rem; margin-bottom: 25px; }
 
-        .form-group {
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+        .form-group { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
 
-        .form-group label {
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: var(--text-main);
-        }
+        .form-group label { font-weight: 700; font-size: 0.95rem; color: var(--text-main); }
 
-        .form-group input, 
+        .form-group input[type="text"], 
+        .form-group input[type="number"], 
         .form-group textarea, 
         .form-group select {
             width: 100%;
@@ -151,22 +131,39 @@
             color: #fff;
             font-family: inherit;
             font-size: 0.95rem;
+        }
+
+        /* تنسيق زر رفع الملف من الحاسوب */
+        .file-upload-box {
+            border: 2px dashed var(--accent-cyan);
+            background: rgba(0, 210, 255, 0.03);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
             transition: 0.3s ease;
         }
 
-        .form-group input:focus, 
-        .form-group textarea:focus, 
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--accent-cyan);
-            box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+        .file-upload-box:hover {
+            background: rgba(0, 210, 255, 0.08);
         }
 
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+        .file-upload-box input[type="file"] {
+            display: none;
         }
+
+        .file-label-btn {
+            display: inline-block;
+            background: var(--accent-cyan);
+            color: #000;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
         .btn-submit {
             width: 100%;
@@ -182,36 +179,12 @@
             margin-top: 10px;
         }
 
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 210, 255, 0.4);
-        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 210, 255, 0.4); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        .btn-submit:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .alert-box {
-            padding: 12px 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-weight: bold;
-            display: none;
-        }
-
-        .alert-success {
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid var(--success-green);
-            color: var(--success-green);
-        }
-
-        .alert-error {
-            background: rgba(255, 71, 87, 0.15);
-            border: 1px solid var(--danger-red);
-            color: var(--danger-red);
-        }
+        .alert-box { padding: 12px 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; display: none; }
+        .alert-success { background: rgba(16, 185, 129, 0.15); border: 1px solid var(--success-green); color: var(--success-green); }
+        .alert-error { background: rgba(255, 71, 87, 0.15); border: 1px solid var(--danger-red); color: var(--danger-red); }
 
         @media (max-width: 768px) {
             .page-wrapper { flex-direction: column; }
@@ -224,8 +197,6 @@
 <body>
 
     <div class="page-wrapper">
-        
-        <!-- القائمة الجانبية -->
         <aside class="sidebar">
             <div class="logo">
                 <a href="index.html">الخزنة<span>الرقمية</span></a>
@@ -233,25 +204,26 @@
             <nav>
                 <ul class="sidebar-menu">
                     <li><a href="index.html">🏠 الصفحة الرئيسية</a></li>
+                    <li id="adminSidebarLi" style="display: none;">
+                        <a href="admin.html" class="btn-admin-highlight">⚙️ لوحة التحكم الإدارية</a>
+                    </li>
                     <li><a href="add-product.html" class="active">➕ أضف منتجك للبيع</a></li>
                     <li><a href="shop.html">🛍️ تسوق الآن</a></li>
-                    <li><a href="contact.html">📩 تواصل معنا</a></li>
                 </ul>
             </nav>
         </aside>
 
-        <!-- المحتوى الرئيسي -->
         <main class="main-content">
             <div class="form-card">
-                <h1>إضافة منتج جديد للبيع 📦</h1>
-                <p>قم بملء البيانات التالية لنشر منتجك الرقمي في متجر الخزنة الرقمية فوراً.</p>
+                <h1>إضافة منتج جديد (رفع مباشر من الكمبيوتر) 💻</h1>
+                <p>اختر الصور والملفات مباشرة من حاسوبك وسيتم رفعها ونشرها في المتجر فورا.</p>
 
                 <div id="alertBox" class="alert-box"></div>
 
                 <form id="addProductForm">
                     <div class="form-group">
                         <label for="productTitle">عنوان المنتج *</label>
-                        <input type="text" id="productTitle" placeholder="مثال: كتاب أساسيات برمجة Python أو مجسم 3D لسيارة" required>
+                        <input type="text" id="productTitle" placeholder="مثال: كتاب أساسيات برمجة Python أو مجسم 3D" required>
                     </div>
 
                     <div class="form-row">
@@ -266,38 +238,56 @@
                                 <option value="books">📚 كتب وروايات</option>
                                 <option value="models">🎨 مجسمات 3D & 2D</option>
                                 <option value="courses">🎓 دورات تعليمية</option>
-                                <option value="gaming">🎮 ألعاب واشتراكات</option>
+                                <option value="gaming">🎮 ألعاب وااشتراكات</option>
                                 <option value="other">💡 خدمات ومنتجات أخرى</option>
                             </select>
                         </div>
                     </div>
 
+                    <!-- اختيار صورة المنتج من الحاسوب -->
                     <div class="form-group">
-                        <label for="productImage">رابط صورة المعاينة (URL) *</label>
-                        <input type="url" id="productImage" placeholder="https://example.com/image.jpg" required>
+                        <label>صورة معاينة المنتج (من الحاسوب) *</label>
+                        <div class="file-upload-box" onclick="document.getElementById('productImageFile').click()">
+                            <p id="imageFileName">📁 اضغط هنا لاختيار صورة من جهازك</p>
+                            <span class="file-label-btn">تصفح الكمبيوتر 🖥️</span>
+                            <input type="file" id="productImageFile" accept="image/*" required onchange="updateFileName(this, 'imageFileName')">
+                        </div>
                     </div>
 
+                    <!-- اختيار ملف المنتج الرقمي من الحاسوب -->
                     <div class="form-group">
-                        <label for="productDownload">رابط تحميل الملف أو الخدمة (URL) *</label>
-                        <input type="url" id="productDownload" placeholder="رابط Google Drive, Mega, أو رابط المادة الرقمية" required>
+                        <label>ملف المنتج الرقمي (PDF, ZIP, RAR, 3D... من الحاسوب) *</label>
+                        <div class="file-upload-box" onclick="document.getElementById('productDataFile').click()">
+                            <p id="dataFileName">📦 اضغط هنا لاختيار ملف المنتج من جهازك</p>
+                            <span class="file-label-btn">تصفح الكمبيوتر 🖥️</span>
+                            <input type="file" id="productDataFile" required onchange="updateFileName(this, 'dataFileName')">
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label for="productDescription">وصف المنتج التفصيلي *</label>
-                        <textarea id="productDescription" rows="4" placeholder="اكتب شرحاً وافياً عن المميزات المحتواة في المنتج..." required></textarea>
+                        <textarea id="productDescription" rows="4" placeholder="اكتب شرحاً وافياً عن المنتجات..." required></textarea>
                     </div>
 
-                    <button type="submit" id="submitBtn" class="btn-submit">نشر المنتج في المتجر 🚀</button>
+                    <button type="submit" id="submitBtn" class="btn-submit">رفع ورابط ونشر المنتج 🚀</button>
                 </form>
             </div>
         </main>
     </div>
 
-    <!-- سكريبت الربط بـ Firebase Auth & Firestore -->
+    <script>
+        function updateFileName(input, targetId) {
+            if (input.files && input.files[0]) {
+                document.getElementById(targetId).textContent = "✅ تم اختيار: " + input.files[0].name;
+            }
+        }
+    </script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
@@ -312,13 +302,21 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
+        const SUPER_ADMIN_EMAIL = "ythr2010@gmail.com";
         let currentUser = null;
 
-        // التحقق من حالة تسجيل الدخول
         onAuthStateChanged(auth, (user) => {
+            const adminSidebarLi = document.getElementById("adminSidebarLi");
+            const helperAdmins = JSON.parse(localStorage.getItem("helperAdmins")) || [];
+
             if (user) {
                 currentUser = user;
+                const email = user.email ? user.email.toLowerCase() : "";
+                if (email === SUPER_ADMIN_EMAIL.toLowerCase() || helperAdmins.includes(email)) {
+                    if (adminSidebarLi) adminSidebarLi.style.display = "block";
+                }
             } else {
                 showAlert("يجب عليك تسجيل الدخول أولاً لتتمكن من إضافة المنتجات.", "error");
             }
@@ -338,23 +336,41 @@
             e.preventDefault();
 
             if (!currentUser) {
-                showAlert("عفواً، يتوجب عليك تسجيل الدخول للحساب أولاً!", "error");
+                showAlert("عفواً، يتوجب عليك تسجيل الدخول أولاً!", "error");
                 setTimeout(() => { window.location.href = "login.html"; }, 2000);
+                return;
+            }
+
+            const imageFile = document.getElementById("productImageFile").files[0];
+            const dataFile = document.getElementById("productDataFile").files[0];
+
+            if (!imageFile || !dataFile) {
+                showAlert("يرجى اختيار ملف الصورة وملف المنتج من جهاز الكمبيوتر أولاً.", "error");
                 return;
             }
 
             const title = document.getElementById("productTitle").value.trim();
             const price = parseFloat(document.getElementById("productPrice").value);
             const category = document.getElementById("productCategory").value;
-            const imageUrl = document.getElementById("productImage").value.trim();
-            const downloadUrl = document.getElementById("productDownload").value.trim();
             const description = document.getElementById("productDescription").value.trim();
 
             submitBtn.disabled = true;
-            submitBtn.textContent = "جاري الحفظ في Firestore...";
+            submitBtn.textContent = "⏳ جاري رفع الملفات من الحاسوب إلى السيرفر...";
 
             try {
-                // حفظ البيانات في كولكشن products في Firestore
+                // 1. رفع صورة المعاينة إلى Firebase Storage
+                const imageRef = ref(storage, `product_images/${Date.now()}_${imageFile.name}`);
+                const imgSnapshot = await uploadBytes(imageRef, imageFile);
+                const imageUrl = await getDownloadURL(imgSnapshot.ref);
+
+                // 2. رفع ملف المنتج الرقمي إلى Firebase Storage
+                submitBtn.textContent = "⏳ جاري رفع ملف المنتج الرقمي...";
+                const dataRef = ref(storage, `product_files/${Date.now()}_${dataFile.name}`);
+                const dataSnapshot = await uploadBytes(dataRef, dataFile);
+                const downloadUrl = await getDownloadURL(dataSnapshot.ref);
+
+                // 3. حفظ بيانات المنتج والروابط المرفوعة في Firestore
+                submitBtn.textContent = "⏳ جاري حفظ المنتج في المتجر...";
                 await addDoc(collection(db, "products"), {
                     title: title,
                     price: price,
@@ -367,19 +383,19 @@
                     createdAt: serverTimestamp()
                 });
 
-                showAlert("تم إضافة المنتج بنجاح! سيظهر الآن تلقائياً في الصفحة الرئيسية وفي لوحة التحكم.", "success");
+                showAlert("🎉 تم رفع الملفات بنجاح ونشر المنتج في المتجر ولوحة التحكم!", "success");
                 form.reset();
+                document.getElementById("imageFileName").textContent = "📁 اضغط هنا لاختيار صورة من جهازك";
+                document.getElementById("dataFileName").textContent = "📦 اضغط هنا لاختيار ملف المنتج من جهازك";
 
-                setTimeout(() => {
-                    window.location.href = "index.html";
-                }, 2000);
+                setTimeout(() => { window.location.href = "index.html"; }, 2000);
 
             } catch (error) {
-                console.error("خطأ أثناء حفظ المنتج:", error);
-                showAlert("حدث خطأ أثناء حفظ البيانات: " + error.message, "error");
+                console.error("خطأ أثناء الرفع:", error);
+                showAlert("حدث خطأ أثناء الرفع: " + error.message, "error");
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.textContent = "نشر المنتج في المتجر 🚀";
+                submitBtn.textContent = "رفع ورابط ونشر المنتج 🚀";
             }
         });
     </script>
