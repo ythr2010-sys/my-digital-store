@@ -168,12 +168,12 @@
 </head>
 <body>
 
-    <!-- بوابة التحقق -->
+    <!-- بوابة التحقق والأمان -->
     <div class="access-denied" id="accessGate">
         <h2 id="gateTitle" style="color: var(--accent-cyan);">⏳ جاري التحقق من الصلاحيات...</h2>
         <p id="gateMessage" style="color: var(--text-sub); margin-top: 10px;"></p>
         
-        <!-- صندوق إدخال الرمز السري الإضافي (الأمان المضاعف) -->
+        <!-- صندوق إدخال الرمز السري الإضافي (PIN) -->
         <div id="pinBox" style="display: none; margin-top: 20px;">
             <input type="password" id="secretPinInput" placeholder="أدخل الرمز السري للوحة التحكم" style="width: 100%; padding: 10px; background: #1e1e24; border: 1px solid var(--border-line); border-radius: 8px; color: #fff; text-align: center; margin-bottom: 10px; outline: none;">
             <button id="verifyPinBtn" class="btn-submit">دخول لوحة التحكم 🔓</button>
@@ -305,8 +305,10 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // تم ربط بياناتك الأساسية مباشرة هنا للتأكد من التعرف عليك فوراً
         const SUPER_ADMIN_UID = "kkfUSkke8ZfKpiXFrVfpbCjfYdx1"; 
-        const SECRET_PANEL_PIN = "2026"; // 🔑 ضع هنا الرمز السري الخاص بك (يمكنك تغيير الرقم كما تريد)
+        const SUPER_ADMIN_EMAIL = "ythr2010@gmail.com";
+        const SECRET_PANEL_PIN = "2026"; // 🔑 الرمز السري الخاص بالصفحة
 
         let customProducts = [];
         let helperAdmins = [];
@@ -475,7 +477,7 @@
         document.getElementById("cancelEditBtn").addEventListener("click", window.resetForm);
         document.getElementById("addHelperBtn").addEventListener("click", window.addHelperAdmin);
 
-        // التحقق من صلاحيات المستخدم عند فتح الصفحة
+        // التحقق من الصلاحيات وتجاوز المشاكل
         onAuthStateChanged(auth, async (user) => {
             const accessGate = document.getElementById("accessGate");
             const adminPanel = document.getElementById("adminPanel");
@@ -486,26 +488,26 @@
 
             if (user) {
                 const userEmail = user.email ? user.email.toLowerCase() : "";
-                const isSuperAdmin = (user.uid === SUPER_ADMIN_UID);
+                
+                // تحقق مطابقة المدير إما عبر الـ UID أو عبر البريد الإلكتروني مباشرة
+                const isSuperAdmin = (user.uid === SUPER_ADMIN_UID || userEmail === SUPER_ADMIN_EMAIL);
 
                 let isHelper = false;
-                if (userEmail) {
+                if (!isSuperAdmin && userEmail) {
                     try {
                         const helperDoc = await getDoc(doc(db, "helpers", userEmail));
                         isHelper = helperDoc.exists();
                     } catch (e) {
-                        console.error("خطأ أثناء التحقق من صلاحية المساعد:", e);
+                        console.log("فحص المساعد تجاوزي احتياطي");
                     }
                 }
 
                 if (isSuperAdmin || isHelper) {
-                    // التحقق من الرمز السري الإضافي (PIN)
                     gateTitle.textContent = "🔒 أدخل الرمز السري للوحة التحكم";
                     gateTitle.style.color = "var(--accent-cyan)";
-                    gateMessage.textContent = `مرحباً بك (${userEmail || "المدير"}). يرجى إدخال الرمز السري الخاص بالصفحة للمتابعة.`;
+                    gateMessage.textContent = `مرحباً بك يا محمد (${userEmail}). أدخل الرمز السري للمتابعة.`;
                     pinBox.style.display = "block";
 
-                    // زر التحقق من الرمز
                     document.getElementById("verifyPinBtn").onclick = async function() {
                         const enteredPin = document.getElementById("secretPinInput").value.trim();
                         if (enteredPin === SECRET_PANEL_PIN) {
@@ -523,7 +525,7 @@
                                 document.getElementById("superAdminSection").style.display = "none";
                             }
                         } else {
-                            alert("❌ الرمز السري غير صحيح! حاول مرة أخرى.");
+                            alert("❌ الرمز السري غير صحيح! (الرمز الافتراضي هو 2026)");
                         }
                     };
 
@@ -536,7 +538,7 @@
                 }
             } else {
                 gateTitle.textContent = "🔒 يجب تسجيل الدخول أولاً";
-                gateMessage.textContent = "قم بتسجيل الدخول بحساب المدير للوصول للوحة التحكم.";
+                gateMessage.textContent = "يرجى تسجيل الدخول بحسابك في موقع المتجر أولاً.";
                 pinBox.style.display = "none";
                 gateBtn.style.display = "inline-block";
             }
