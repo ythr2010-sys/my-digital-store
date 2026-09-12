@@ -30,7 +30,6 @@
             padding: 20px;
         }
 
-        /* رسالة رفض الوصول */
         .access-denied {
             background: var(--bg-card);
             border: 1px solid var(--danger-red);
@@ -42,7 +41,7 @@
         }
 
         .admin-panel {
-            display: none; /* تظهر فقط بعد التحقق من Firebase */
+            display: none;
         }
 
         .header-admin {
@@ -143,14 +142,12 @@
 </head>
 <body>
 
-    <!-- الشاشة الافتراضية عند الفحص أو عدم امتلاك صلاحية -->
     <div class="access-denied" id="accessGate">
         <h2 id="gateTitle" style="color: var(--accent-cyan);">⏳ جاري التحقق من الصلاحيات...</h2>
         <p id="gateMessage" style="color: var(--text-sub); margin-top: 10px;"></p>
         <a href="shop.html" id="gateBtn" style="display:none; margin-top:20px; color: var(--accent-cyan); text-decoration: none; font-weight: bold;">← العودة للمتجر</a>
     </div>
 
-    <!-- لوحة التحكم الإدارية -->
     <div class="admin-container admin-panel" id="adminPanel">
         <div class="header-admin">
             <div>
@@ -171,7 +168,6 @@
             <ul id="helpersList" style="list-style: none; margin-top: 10px; display: flex; flex-direction: column; gap: 8px;"></ul>
         </div>
 
-        <!-- بطاقة إضافة منتج جديد -->
         <div class="card">
             <h3 style="margin-bottom: 20px; color: var(--accent-cyan);">➕ إضافة منتج رقمي جديد</h3>
             <form id="addProductForm" onsubmit="handleAddProduct(event)">
@@ -213,7 +209,6 @@
             </form>
         </div>
 
-        <!-- قائمة المنتجات الحالية -->
         <div class="card">
             <h3 style="margin-bottom: 15px;">📋 المنتجات المسجلة حالياً</h3>
             <div style="overflow-x: auto;">
@@ -233,11 +228,11 @@
         </div>
     </div>
 
-    <!-- Firebase Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
+        // قم باستبدال إعدادات Firebase الخاصة بمتجرك هنا
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -250,10 +245,9 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
-        // 🟢 ضع بريدك الإلكتروني الخاص بك هنا ليصبح المدير الرئيسي الوحيد
-        const SUPER_ADMIN_EMAIL = "your_email@gmail.com"; 
+        // البريد الإلكتروني الخاص بك كمدير رئيسي
+        const SUPER_ADMIN_EMAIL = "ythr2010@gmail.com"; 
 
-        // قائمة بريد المساعدين (يتم حفظهم في LocalStorage)
         let helperAdmins = JSON.parse(localStorage.getItem("helperAdmins")) || [];
 
         let customProducts = JSON.parse(localStorage.getItem("customProducts")) || [
@@ -339,7 +333,6 @@
             }
         };
 
-        // وظائف المدير الرئيسي فقط: إضافة وتجريد المساعدين
         window.addHelperAdmin = function() {
             const emailInput = document.getElementById("helperEmailInput");
             const email = emailInput.value.trim().toLowerCase();
