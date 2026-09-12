@@ -455,5 +455,54 @@
             }
         });
     </script>
+    <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadShopProducts() {
+        const productsContainer = document.getElementById("productsContainer"); // ضع ID الحاوية التي تعرض بها بطاقات المنتجات
+        if (!productsContainer) return;
+
+        try {
+            const querySnapshot = await getDocs(collection(db, "products"));
+            let html = "";
+            querySnapshot.forEach((docSnap) => {
+                const product = docSnap.data();
+                html += `
+                    <div class="product-card">
+                        <img src="${product.imgUrl || 'https://via.placeholder.com/300'}" alt="${product.title}">
+                        <span class="badge">${product.badge}</span>
+                        <h3>${product.title}</h3>
+                        <p>${product.desc}</p>
+                        <div class="price">${product.price}</div>
+                        <a href="${product.fileUrl}" target="_blank" class="btn-buy">تحميل / شراء 📥</a>
+                    </div>
+                `;
+            });
+
+            if (html === "") {
+                productsContainer.innerHTML = "<p>لا توجد منتجات متاحة حالياً.</p>";
+            } else {
+                productsContainer.innerHTML = html;
+            }
+        } catch (error) {
+            console.error("خطأ في جلب منتجات المتجر:", error);
+        }
+    }
+
+    loadShopProducts();
+</script>
 </body>
 </html>
