@@ -33,7 +33,7 @@
 
         .access-denied {
             background: var(--bg-card);
-            border: 1px solid var(--danger-red);
+            border: 1px solid var(--border-line);
             border-radius: 16px;
             padding: 40px;
             max-width: 450px;
@@ -168,12 +168,21 @@
 </head>
 <body>
 
+    <!-- بوابة التحقق -->
     <div class="access-denied" id="accessGate">
         <h2 id="gateTitle" style="color: var(--accent-cyan);">⏳ جاري التحقق من الصلاحيات...</h2>
         <p id="gateMessage" style="color: var(--text-sub); margin-top: 10px;"></p>
-        <a href="shop.html" id="gateBtn" style="display:none; margin-top:20px; color: var(--accent-cyan); text-decoration: none; font-weight: bold;">← العودة للمتجر</a>
+        
+        <!-- صندوق إدخال الرمز السري الإضافي (الأمان المضاعف) -->
+        <div id="pinBox" style="display: none; margin-top: 20px;">
+            <input type="password" id="secretPinInput" placeholder="أدخل الرمز السري للوحة التحكم" style="width: 100%; padding: 10px; background: #1e1e24; border: 1px solid var(--border-line); border-radius: 8px; color: #fff; text-align: center; margin-bottom: 10px; outline: none;">
+            <button id="verifyPinBtn" class="btn-submit">دخول لوحة التحكم 🔓</button>
+        </div>
+
+        <a href="shop.html" id="gateBtn" style="display:none; margin-top:20px; color: var(--accent-cyan); text-decoration: none; font-weight: bold; display:inline-block;">← العودة للمتجر</a>
     </div>
 
+    <!-- لوحة التحكم الأساسية -->
     <div class="admin-container admin-panel" id="adminPanel">
         <div class="header-admin">
             <div>
@@ -297,6 +306,7 @@
         const db = getFirestore(app);
 
         const SUPER_ADMIN_UID = "kkfUSkke8ZfKpiXFrVfpbCjfYdx1"; 
+        const SECRET_PANEL_PIN = "2026"; // 🔑 ضع هنا الرمز السري الخاص بك (يمكنك تغيير الرقم كما تريد)
 
         let customProducts = [];
         let helperAdmins = [];
@@ -465,12 +475,14 @@
         document.getElementById("cancelEditBtn").addEventListener("click", window.resetForm);
         document.getElementById("addHelperBtn").addEventListener("click", window.addHelperAdmin);
 
+        // التحقق من صلاحيات المستخدم عند فتح الصفحة
         onAuthStateChanged(auth, async (user) => {
             const accessGate = document.getElementById("accessGate");
             const adminPanel = document.getElementById("adminPanel");
             const gateTitle = document.getElementById("gateTitle");
             const gateMessage = document.getElementById("gateMessage");
             const gateBtn = document.getElementById("gateBtn");
+            const pinBox = document.getElementById("pinBox");
 
             if (user) {
                 const userEmail = user.email ? user.email.toLowerCase() : "";
@@ -487,28 +499,45 @@
                 }
 
                 if (isSuperAdmin || isHelper) {
-                    accessGate.style.display = "none";
-                    adminPanel.style.display = "block";
+                    // التحقق من الرمز السري الإضافي (PIN)
+                    gateTitle.textContent = "🔒 أدخل الرمز السري للوحة التحكم";
+                    gateTitle.style.color = "var(--accent-cyan)";
+                    gateMessage.textContent = `مرحباً بك (${userEmail || "المدير"}). يرجى إدخال الرمز السري الخاص بالصفحة للمتابعة.`;
+                    pinBox.style.display = "block";
 
-                    await fetchProducts();
+                    // زر التحقق من الرمز
+                    document.getElementById("verifyPinBtn").onclick = async function() {
+                        const enteredPin = document.getElementById("secretPinInput").value.trim();
+                        if (enteredPin === SECRET_PANEL_PIN) {
+                            accessGate.style.display = "none";
+                            adminPanel.style.display = "block";
 
-                    if (isSuperAdmin) {
-                        document.getElementById("userRoleBadge").textContent = "المدير الرئيسي (Super Admin)";
-                        document.getElementById("superAdminSection").style.display = "block";
-                        await fetchHelpers();
-                    } else {
-                        document.getElementById("userRoleBadge").textContent = "مشرف مساعد (Helper Admin)";
-                        document.getElementById("superAdminSection").style.display = "none";
-                    }
+                            await fetchProducts();
+
+                            if (isSuperAdmin) {
+                                document.getElementById("userRoleBadge").textContent = "المدير الرئيسي (Super Admin)";
+                                document.getElementById("superAdminSection").style.display = "block";
+                                await fetchHelpers();
+                            } else {
+                                document.getElementById("userRoleBadge").textContent = "مشرف مساعد (Helper Admin)";
+                                document.getElementById("superAdminSection").style.display = "none";
+                            }
+                        } else {
+                            alert("❌ الرمز السري غير صحيح! حاول مرة أخرى.");
+                        }
+                    };
+
                 } else {
                     gateTitle.textContent = "❌ عذراً، لا تملك صلاحية الدخول";
                     gateTitle.style.color = "var(--danger-red)";
-                    gateMessage.textContent = `هذه الصفحة مخصصة لمدير الموقع فقط. حسابك الحالي (${userEmail || user.uid}) غير مصرح له.`;
+                    gateMessage.textContent = `حسابك الحالي (${userEmail || user.uid}) غير مصرح له بإدارة الموقع.`;
+                    pinBox.style.display = "none";
                     gateBtn.style.display = "inline-block";
                 }
             } else {
                 gateTitle.textContent = "🔒 يجب تسجيل الدخول أولاً";
                 gateMessage.textContent = "قم بتسجيل الدخول بحساب المدير للوصول للوحة التحكم.";
+                pinBox.style.display = "none";
                 gateBtn.style.display = "inline-block";
             }
         });
