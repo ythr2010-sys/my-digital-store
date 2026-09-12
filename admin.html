@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم | الخزنة الرقمية</title>
+    <title>لوحة التحكم الشاملة | الخزنة الرقمية</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -23,7 +23,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg-main); color: var(--text-main); line-height: 1.6; padding: 20px; }
 
-        /* شاشة التحقق والأمان (بوابة الدخول) */
+        /* شاشة التحقق والأمان */
         #authScreen {
             max-width: 420px;
             margin: 80px auto;
@@ -31,7 +31,6 @@
             border: 1px solid var(--border-line);
             border-radius: 16px;
             padding: 30px;
-            text-align: box;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             text-align: center;
         }
@@ -69,10 +68,10 @@
         }
         .btn-main:hover { opacity: 0.9; }
 
-        /* لوحة التحكم الفعلية (مخفية حتى يتم تسجيل الدخول الصحيح) */
+        /* لوحة التحكم الفعلية */
         #dashboardContent {
             display: none;
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
         }
 
@@ -139,9 +138,14 @@
         }
         .btn-edit { background: rgba(255, 165, 2, 0.2); color: var(--warning-yellow); border: 1px solid var(--warning-yellow); }
         .btn-delete { background: rgba(255, 71, 87, 0.2); color: var(--danger-red); border: 1px solid var(--danger-red); }
+        .btn-approve { background: rgba(46, 213, 115, 0.2); color: var(--success-green); border: 1px solid var(--success-green); }
         
         .img-preview { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; background: #222; }
         .error-msg { color: var(--danger-red); font-size: 0.85rem; margin-top: 10px; display: none; }
+        
+        .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        .badge-pending { background: rgba(255, 165, 2, 0.15); color: var(--warning-yellow); }
+        .badge-approved { background: rgba(46, 213, 115, 0.15); color: var(--success-green); }
     </style>
 </head>
 <body>
@@ -162,14 +166,34 @@
         </div>
     </div>
 
-    <!-- محتوى لوحة التحكم (لا يظهر إلا بعد نجاح التحقق) -->
+    <!-- محتوى لوحة التحكم -->
     <div id="dashboardContent">
         <div class="header-dash">
             <div>
                 <h1>👑 لوحة تحكم الخزنة الرقمية</h1>
-                <span style="color: var(--accent-cyan); font-size: 0.85rem;">مسجل كـ: المدير الرئيسي (محمد ياسر)</span>
+                <span style="color: var(--accent-cyan); font-size: 0.85rem;">مسجل كـ: المدير الرئيسي (محمد ياسر طاهري)</span>
             </div>
             <a href="shop.html" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">← العودة للمتجر</a>
+        </div>
+
+        <!-- قسم رسائل "تواصل معنا" والرد عليها -->
+        <div class="card">
+            <h3 style="margin-bottom: 15px; color: var(--accent-cyan);">📥 رسائل "تواصل معنا" الواردة</h3>
+            <div style="overflow-x: auto;">
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>المرسل</th>
+                            <th>النوع</th>
+                            <th>الرسالة</th>
+                            <th>الرد والتحكم</th>
+                        </tr>
+                    </thead>
+                    <tbody id="messagesTableBody">
+                        <tr><td colspan="4" style="text-align:center; color:var(--text-sub);">جاري تحميل الرسائل...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- نموذج إضافة أو تعديل منتج -->
@@ -218,24 +242,24 @@
                 </div>
 
                 <div style="display: flex; gap: 10px;">
-                    <button type="submit" class="btn-main" id="saveBtn">حفظ ونشر المنتج 💾</button>
+                    <button type="submit" class="btn-main" id="saveBtn">حفظ ونشر المنتج مباشرة 💾</button>
                     <button type="button" id="cancelBtn" class="btn-action" style="display:none; background:#333; color:#fff;">إلغاء ❌</button>
                 </div>
             </form>
         </div>
 
-        <!-- جدول المنتجات -->
+        <!-- جدول المنتجات ومراجعتها -->
         <div class="card">
-            <h3 style="margin-bottom: 15px;">📋 قائمة المنتجات الحالية</h3>
+            <h3 style="margin-bottom: 15px;">📋 إدارة المنتجات والموافقات</h3>
             <div style="overflow-x: auto;">
                 <table class="products-table">
                     <thead>
                         <tr>
                             <th>الصورة</th>
                             <th>العنوان</th>
-                            <th>الفئة</th>
+                            <th>البائع/المصدر</th>
+                            <th>الحالة</th>
                             <th>السعر</th>
-                            <th>الرابط</th>
                             <th>الإجراءات</th>
                         </tr>
                     </thead>
@@ -258,7 +282,6 @@
             deleteDoc 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // إعدادات فايربيس الخاصة بك
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -271,31 +294,86 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // بيانات الاعتماد السرية الخاصة بك فقط
         const ADMIN_EMAIL = "ythr2010@gmail.com";
-        const ADMIN_PIN = "2026"; // يمكنك تغيير هذا الرقم السري متى شئت
+        const ADMIN_PIN = "2026";
 
         let productsList = [];
 
-        // عند النقر على زر الدخول
+        // تسجيل الدخول
         document.getElementById("loginBtn").addEventListener("click", function() {
             const enteredEmail = document.getElementById("loginEmail").value.trim().toLowerCase();
             const enteredPin = document.getElementById("loginPin").value.trim();
             const errorMsg = document.getElementById("errorMsg");
 
             if (enteredEmail === ADMIN_EMAIL && enteredPin === ADMIN_PIN) {
-                // إخفاء شاشة تسجيل الدخول وإظهار لوحة التحكم
                 document.getElementById("authScreen").style.display = "none";
                 document.getElementById("dashboardContent").style.display = "block";
-                
-                // جلب المنتجات فوراً
                 loadProducts();
+                loadMessages();
             } else {
                 errorMsg.style.display = "block";
             }
         });
 
-        // دالة جلب المنتجات من Firestore
+        // جلب الرسائل الواردة من تواصل معنا
+        async function loadMessages() {
+            const tbody = document.getElementById("messagesTableBody");
+            try {
+                const querySnapshot = await getDocs(collection(db, "contact_messages"));
+                if (querySnapshot.empty) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-sub);">لا توجد رسائل جديدة حالياً.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = "";
+                querySnapshot.forEach((docSnap) => {
+                    const msg = docSnap.data();
+                    const msgId = docSnap.id;
+                    tbody.innerHTML = `
+                        <tr>
+                            <td><strong>${msg.name || 'مجهول'}</strong><br><small style="color:var(--text-sub);">${msg.email || ''}</small></td>
+                            <td><span class="badge badge-pending">${msg.requestType || 'استفسار'}</span></td>
+                            <td>${msg.message || ''}</td>
+                            <td>
+                                <textarea id="reply_${msgId}" rows="2" placeholder="اكتب ردك هنا لإرساله..." style="width:100%; margin-bottom:5px;">${msg.adminReply || ''}</textarea>
+                                <button class="btn-action btn-approve" onclick="window.sendReply('${msgId}', '${msg.email}')">إرسال الرد ✉️</button>
+                                <button class="btn-action btn-delete" onclick="window.deleteMessage('${msgId}')">حذف 🗑️</button>
+                            </td>
+                        </tr>
+                    ` + tbody.innerHTML;
+                });
+            } catch (error) {
+                console.error("خطأ في جلب الرسائل:", error);
+            }
+        }
+
+        // إرسال رد العميل
+        window.sendReply = async function(msgId, clientEmail) {
+            const replyText = document.getElementById(`reply_${msgId}`).value.trim();
+            if (!replyText) {
+                alert("الرجاء كتابة رد أولاً!");
+                return;
+            }
+            try {
+                await updateDoc(doc(db, "contact_messages", msgId), {
+                    adminReply: replyText,
+                    status: 'replied'
+                });
+                alert(`تم حفظ الرد بنجاح! (يمكنك إرساله عبر البريد: ${clientEmail})`);
+                loadMessages();
+            } catch (error) {
+                alert("خطأ أثناء حفظ الرد: " + error.message);
+            }
+        };
+
+        window.deleteMessage = async function(msgId) {
+            if (confirm("هل تريد حذف هذه الرسالة؟")) {
+                await deleteDoc(doc(db, "contact_messages", msgId));
+                loadMessages();
+            }
+        };
+
+        // جلب المنتجات من Firestore
         async function loadProducts() {
             try {
                 const querySnapshot = await getDocs(collection(db, "products"));
@@ -309,7 +387,7 @@
             }
         }
 
-        // عرض المنتجات في الجدول
+        // عرض المنتجات في جدول الإدارة
         function renderTable() {
             const tbody = document.getElementById("tableBody");
             if (productsList.length === 0) {
@@ -317,20 +395,39 @@
                 return;
             }
 
-            tbody.innerHTML = productsList.map(p => `
-                <tr>
-                    <td><img src="${p.img || 'https://via.placeholder.com/40'}" class="img-preview" alt=""></td>
-                    <td><strong>${p.title}</strong></td>
-                    <td>${p.cat}</td>
-                    <td style="color:var(--accent-cyan); font-weight:bold;">${p.price}</td>
-                    <td><a href="${p.link}" target="_blank" style="color:var(--text-sub);">معاينة 🔗</a></td>
-                    <td>
-                        <button class="btn-action btn-edit" onclick="window.startEdit('${p.id}')">تعديل ✏️</button>
-                        <button class="btn-action btn-delete" onclick="window.removeProduct('${p.id}')">حذف 🗑️</button>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = productsList.map(p => {
+                const isApproved = p.status === 'approved';
+                const statusBadge = isApproved 
+                    ? `<span class="badge badge-approved">معتمد ومنشور</span>` 
+                    : `<span class="badge badge-pending">بانتظار الموافقة</span>`;
+
+                return `
+                    <tr>
+                        <td><img src="${p.img || 'https://via.placeholder.com/40'}" class="img-preview" alt=""></td>
+                        <td><strong>${p.title}</strong></td>
+                        <td>${p.sellerName || 'المدير (أنت)'}</td>
+                        <td>${statusBadge}</td>
+                        <td style="color:var(--accent-cyan); font-weight:bold;">${p.price}</td>
+                        <td>
+                            ${!isApproved ? `<button class="btn-action btn-approve" onclick="window.approveProduct('${p.id}')">قبول ✅</button>` : ''}
+                            <button class="btn-action btn-edit" onclick="window.startEdit('${p.id}')">تعديل ✏️</button>
+                            <button class="btn-action btn-delete" onclick="window.removeProduct('${p.id}')">رفض/حذف 🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
+
+        // قبول المنتج ليظهر في المتجر العام
+        window.approveProduct = async function(id) {
+            try {
+                await updateDoc(doc(db, "products", id), { status: 'approved' });
+                alert("تم قبول المنتج ونشره في المتجر بنجاح! 🚀");
+                loadProducts();
+            } catch (error) {
+                alert("خطأ: " + error.message);
+            }
+        };
 
         // إضافة أو تحديث منتج
         document.getElementById("productForm").addEventListener("submit", async function(e) {
@@ -345,6 +442,8 @@
                 img: document.getElementById("pImg").value,
                 link: document.getElementById("pLink").value,
                 desc: document.getElementById("pDesc").value,
+                status: 'approved', // ما يضيفه المدير يعتبر معتمداً فوراً
+                sellerName: "المدير (محمد ياسر)",
                 updatedAt: new Date()
             };
 
@@ -355,7 +454,7 @@
                 } else {
                     productData.createdAt = new Date();
                     await addDoc(collection(db, "products"), productData);
-                    alert("تمت إضافة المنتج بنجاح! ➕");
+                    alert("تمت إضافة ونشر المنتج بنجاح! ➕");
                 }
                 
                 resetFormFields();
@@ -365,7 +464,6 @@
             }
         });
 
-        // دالة التعديل
         window.startEdit = function(id) {
             const p = productsList.find(item => item.id === id);
             if (!p) return;
@@ -382,23 +480,21 @@
             document.getElementById("formTitle").textContent = "✏️ تعديل المنتج";
             document.getElementById("saveBtn").textContent = "تحديث المنتج 🔄";
             document.getElementById("cancelBtn").style.display = "inline-block";
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo({ top: 500, behavior: 'smooth' });
         };
 
-        // زر إلغاء التعديل
         document.getElementById("cancelBtn").addEventListener("click", resetFormFields);
 
         function resetFormFields() {
             document.getElementById("productForm").reset();
             document.getElementById("editDocId").value = "";
             document.getElementById("formTitle").textContent = "➕ إضافة منتج جديد";
-            document.getElementById("saveBtn").textContent = "حفظ ونشر المنتج 💾";
+            document.getElementById("saveBtn").textContent = "حفظ ونشر المنتج مباشرة 💾";
             document.getElementById("cancelBtn").style.display = "none";
         }
 
-        // حذف منتج
         window.removeProduct = async function(id) {
-            if (confirm("هل أنت متأكد من حذف هذا المنتج نهائياً؟")) {
+            if (confirm("هل أنت متأكد من رفض وحذف هذا المنتج نهائياً؟")) {
                 try {
                     await deleteDoc(doc(db, "products", id));
                     loadProducts();
