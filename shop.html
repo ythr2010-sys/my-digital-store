@@ -243,8 +243,8 @@
                     <button onclick="logoutUser()" class="btn-logout-sidebar">🚪 تسجيل الخروج</button>
                 </li>
                 <li id="adminMenuLi" style="display: none;">
-    <a href="admin.html" style="color: var(--accent-purple);">👑 لوحة التحكم (Admin)</a>
-</li>
+                    <a href="admin.html" style="color: var(--accent-purple);">👑 لوحة التحكم (Admin)</a>
+                </li>
             </ul>
         </aside>
 
@@ -262,7 +262,7 @@
                 <button class="filter-btn" data-cat="books" onclick="filterCategory('books', event)">📚 كتب وروايات</button>
                 <button class="filter-btn" data-cat="models" onclick="filterCategory('models', event)">🎨 مجسمات 3D/2D</button>
                 <button class="filter-btn" data-cat="courses" onclick="filterCategory('courses', event)">🎓 دورات فيديو</button>
-                <button class="filter-btn" data-cat="gaming" onclick="filterCategory('gaming', event)">🎮 ألعاب واشتراكات</button>
+                <button class="filter-btn" data-cat="gaming" onclick="filterCategory('gaming', event)">🎮 ألعاب وااشتراكات</button>
             </div>
 
             <!-- شبكة عرض المنتجات -->
@@ -290,7 +290,8 @@
     <script>
         let currentCategory = 'all';
 
-        const products = [
+        // قائمة المنتجات الافتراضية
+        const defaultProducts = [
             { id: 1, title: "كتاب أساسيات البرمجة بلغة Python", cat: "books", badge: "كتاب PDF", desc: "دليل شامل للمبتدئين لتعلم البرمجة وتطوير السكربتات من الصفر.", price: "9.99 $", fileUrl: "https://example.com/files/python.pdf" },
             { id: 2, title: "رواية ظلال الخزنة الرقمية", cat: "books", badge: "رواية إلكترونية", desc: "رواية خيال علمي وتشويق تقني مشوقة جدًا.", price: "4.99 $", fileUrl: "https://example.com/files/novel.pdf" },
             { id: 3, title: "حزمة مجسمات 3D أسلحة عالية الدقة", cat: "models", badge: "ملفات Blender/FBX", desc: "أصول 3D جاهزة للاستخدام في محركات الألعاب مثل Godot وUnity.", price: "19.99 $", fileUrl: "https://example.com/files/3d_weapons.zip" },
@@ -301,6 +302,12 @@
             { id: 8, title: "اشتراك شحن العاب وتفعيل سيرفرات", cat: "gaming", badge: "بطاقة رقمية", desc: "بطاقة تفعيل اشتراكات وخدمات رقمية متنوعة.", price: "12.00 $", fileUrl: "https://example.com/files/sub_card.txt" }
         ];
 
+        // جلب جميع المنتجات (الافتراضية + الإضافية من LocalStorage)
+        function getCombinedProducts() {
+            const customProducts = JSON.parse(localStorage.getItem("adminProducts")) || [];
+            return [...defaultProducts, ...customProducts];
+        }
+
         function renderProducts(items) {
             const grid = document.getElementById("productsGrid");
             if (items.length === 0) {
@@ -308,15 +315,15 @@
                 return;
             }
             grid.innerHTML = items.map(p => `
-                <div class="product-card" onclick="openModal(${p.id})">
+                <div class="product-card" onclick="openModal('${p.id}')">
                     <div>
-                        <span class="product-badge">${p.badge}</span>
+                        <span class="product-badge">${p.badge || 'منتج رقمي'}</span>
                         <h3 class="product-title">${p.title}</h3>
                         <p class="product-desc">${p.desc}</p>
                     </div>
                     <div class="product-footer">
                         <span class="product-price">${p.price}</span>
-                        <button class="btn-add" onclick="event.stopPropagation(); addToCart('${p.title}', '${p.price}', '${p.fileUrl}')">إضافة للسلة 🛒</button>
+                        <button class="btn-add" onclick="event.stopPropagation(); addToCart('${p.title.replace(/'/g, "\\'")}', '${p.price}', '${p.fileUrl || '#'}')">إضافة للسلة 🛒</button>
                     </div>
                 </div>
             `).join('');
@@ -324,8 +331,9 @@
 
         function handleFilterAndSearch() {
             const query = document.getElementById("searchInput").value.toLowerCase().trim();
+            const allProducts = getCombinedProducts();
             
-            const filtered = products.filter(p => {
+            const filtered = allProducts.filter(p => {
                 const matchesCat = (currentCategory === 'all' || p.cat === currentCategory);
                 const matchesSearch = p.title.toLowerCase().includes(query) || p.desc.toLowerCase().includes(query);
                 return matchesCat && matchesSearch;
@@ -349,17 +357,18 @@
         }
 
         function openModal(id) {
-            const item = products.find(p => p.id === id);
+            const allProducts = getCombinedProducts();
+            const item = allProducts.find(p => String(p.id) === String(id));
             if (!item) return;
 
-            document.getElementById("modalBadge").textContent = item.badge;
+            document.getElementById("modalBadge").textContent = item.badge || 'منتج رقمي';
             document.getElementById("modalTitle").textContent = item.title;
             document.getElementById("modalDesc").textContent = item.desc;
             document.getElementById("modalPrice").textContent = item.price;
             
             const modalAddBtn = document.getElementById("modalAddBtn");
             modalAddBtn.onclick = () => {
-                addToCart(item.title, item.price, item.fileUrl);
+                addToCart(item.title, item.price, item.fileUrl || '#');
                 closeModal();
             };
 
@@ -388,15 +397,24 @@
 
         function checkAuthStatus() {
             const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+            const userProfile = JSON.parse(localStorage.getItem("userProfile")) || {};
+            
             const loginLi = document.getElementById("loginMenuLi");
             const logoutLi = document.getElementById("logoutMenuLi");
+            const adminLi = document.getElementById("adminMenuLi");
 
             if (isLoggedIn) {
                 if (loginLi) loginLi.style.display = "none";
                 if (logoutLi) logoutLi.style.display = "block";
+                
+                // إظهار رابط لوحة التحكم في حال كان المستخدم آدمن
+                if (userProfile.role === "admin" && adminLi) {
+                    adminLi.style.display = "block";
+                }
             } else {
                 if (loginLi) loginLi.style.display = "block";
                 if (logoutLi) logoutLi.style.display = "none";
+                if (adminLi) adminLi.style.display = "none";
             }
         }
 
@@ -417,7 +435,7 @@
             if (categoryParam) {
                 filterCategory(categoryParam);
             } else {
-                renderProducts(products);
+                renderProducts(getCombinedProducts());
             }
         });
     </script>
