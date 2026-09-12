@@ -19,6 +19,7 @@
             --text-sub: #a0a0c0;
             --danger-red: #ff4757;
             --success-green: #2ed573;
+            --warning-yellow: #ffa502;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -116,6 +117,7 @@
             text-align: right;
             border-bottom: 1px solid var(--border-line);
             font-size: 0.9rem;
+            vertical-align: middle;
         }
 
         .products-table th {
@@ -123,20 +125,44 @@
             background: rgba(255, 255, 255, 0.02);
         }
 
-        .btn-delete {
-            background: rgba(255, 71, 87, 0.2);
-            color: var(--danger-red);
-            border: 1px solid var(--danger-red);
-            padding: 6px 12px;
+        .btn-action {
+            padding: 6px 10px;
             border-radius: 6px;
             cursor: pointer;
             font-family: inherit;
             font-size: 0.8rem;
+            border: none;
+            margin-left: 4px;
+        }
+
+        .btn-edit {
+            background: rgba(255, 165, 2, 0.2);
+            color: var(--warning-yellow);
+            border: 1px solid var(--warning-yellow);
+        }
+
+        .btn-edit:hover {
+            background: var(--warning-yellow);
+            color: #000;
+        }
+
+        .btn-delete {
+            background: rgba(255, 71, 87, 0.2);
+            color: var(--danger-red);
+            border: 1px solid var(--danger-red);
         }
 
         .btn-delete:hover {
             background: var(--danger-red);
             color: #fff;
+        }
+
+        .prod-img-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: #1e1e24;
         }
     </style>
 </head>
@@ -157,7 +183,7 @@
             <a href="shop.html" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">← العودة للمتجر</a>
         </div>
 
-        <!-- قسم إدارة المشرفين (يظهر فقط لك كمدير رئيسي) -->
+        <!-- قسم إدارة المشرفين المساعدين -->
         <div class="card" id="superAdminSection" style="display: none; border-color: var(--accent-purple);">
             <h3 style="margin-bottom: 15px; color: #c084fc;">🛡️ إدارة المشرفين المساعدين (صلاحية المدير الرئيسي فقط)</h3>
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -168,9 +194,12 @@
             <ul id="helpersList" style="list-style: none; margin-top: 10px; display: flex; flex-direction: column; gap: 8px;"></ul>
         </div>
 
+        <!-- قسم إضافة / تعديل المنتج -->
         <div class="card">
-            <h3 style="margin-bottom: 20px; color: var(--accent-cyan);">➕ إضافة منتج رقمي جديد</h3>
-            <form id="addProductForm" onsubmit="handleAddProduct(event)">
+            <h3 id="formTitle" style="margin-bottom: 20px; color: var(--accent-cyan);">➕ إضافة منتج رقمي جديد</h3>
+            <form id="addProductForm" onsubmit="handleFormSubmit(event)">
+                <input type="hidden" id="editProductId">
+                
                 <div class="form-grid">
                     <div class="form-group">
                         <label>عنوان المنتج:</label>
@@ -195,9 +224,15 @@
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label>رابط تنزيل الملف المباشر (Google Drive / Mega):</label>
-                    <input type="url" id="pFileUrl" placeholder="https://..." required>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>رابط صورة المنتج (Thumbnail Image):</label>
+                        <input type="url" id="pImgUrl" placeholder="https://example.com/image.jpg">
+                    </div>
+                    <div class="form-group">
+                        <label>رابط تنزيل الملف المباشر (Google Drive / Mega):</label>
+                        <input type="url" id="pFileUrl" placeholder="https://..." required>
+                    </div>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 20px;">
@@ -205,16 +240,21 @@
                     <textarea id="pDesc" rows="3" placeholder="اكتب وصفاً قصيراً ومفهوماً للمنتج..." required></textarea>
                 </div>
 
-                <button type="submit" class="btn-submit">حفظ وإضافة للمتجر 💾</button>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn-submit" id="submitBtn">حفظ وإضافة للمتجر 💾</button>
+                    <button type="button" class="btn-action" id="cancelEditBtn" onclick="resetForm()" style="display:none; background: #333; color: #fff;">إلغاء التعديل ❌</button>
+                </div>
             </form>
         </div>
 
+        <!-- جدول المنتجات المسجلة -->
         <div class="card">
             <h3 style="margin-bottom: 15px;">📋 المنتجات المسجلة حالياً</h3>
             <div style="overflow-x: auto;">
                 <table class="products-table">
                     <thead>
                         <tr>
+                            <th>الصورة</th>
                             <th>المنتج</th>
                             <th>الفئة</th>
                             <th>السعر</th>
@@ -245,13 +285,21 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
-        // البريد الإلكتروني الخاص بك كمدير رئيسي
         const SUPER_ADMIN_EMAIL = "ythr2010@gmail.com"; 
 
         let helperAdmins = JSON.parse(localStorage.getItem("helperAdmins")) || [];
 
         let customProducts = JSON.parse(localStorage.getItem("customProducts")) || [
-            { id: 1, title: "كتاب أساسيات البرمجة بلغة Python", cat: "books", badge: "كتاب PDF", desc: "دليل شامل للمبتدئين.", price: "9.99 $", fileUrl: "https://example.com/files/python.pdf" }
+            { 
+                id: 1, 
+                title: "كتاب أساسيات البرمجة بلغة Python", 
+                cat: "books", 
+                badge: "كتاب PDF", 
+                desc: "دليل شامل للمبتدئين.", 
+                price: "9.99 $", 
+                imgUrl: "https://via.placeholder.com/150",
+                fileUrl: "https://example.com/files/python.pdf" 
+            }
         ];
 
         onAuthStateChanged(auth, (user) => {
@@ -297,36 +345,77 @@
             const tbody = document.getElementById("adminProductsTable");
             tbody.innerHTML = customProducts.map((p, index) => `
                 <tr>
+                    <td><img src="${p.imgUrl || 'https://via.placeholder.com/40'}" class="prod-img-preview" alt="product"></td>
                     <td><strong>${p.title}</strong></td>
                     <td>${p.cat}</td>
                     <td style="color:var(--accent-cyan); font-weight:bold;">${p.price}</td>
-                    <td><a href="${p.fileUrl}" target="_blank" style="color:var(--text-sub);">معاينة الرابط 🔗</a></td>
-                    <td><button class="btn-delete" onclick="deleteProduct(${index})">حذف 🗑️</button></td>
+                    <td><a href="${p.fileUrl}" target="_blank" style="color:var(--text-sub);">معاينة 🔗</a></td>
+                    <td>
+                        <button class="btn-action btn-edit" onclick="editProduct(${p.id})">تعديل ✏️</button>
+                        <button class="btn-action btn-delete" onclick="deleteProduct(${index})">حذف 🗑️</button>
+                    </td>
                 </tr>
             `).join('');
         };
 
-        window.handleAddProduct = function(e) {
+        window.handleFormSubmit = function(e) {
             e.preventDefault();
-            const newProduct = {
-                id: Date.now(),
+            const editId = document.getElementById("editProductId").value;
+
+            const productData = {
+                id: editId ? Number(editId) : Date.now(),
                 title: document.getElementById("pTitle").value,
                 cat: document.getElementById("pCat").value,
                 badge: document.getElementById("pBadge").value,
                 price: document.getElementById("pPrice").value,
+                imgUrl: document.getElementById("pImgUrl").value,
                 fileUrl: document.getElementById("pFileUrl").value,
                 desc: document.getElementById("pDesc").value
             };
 
-            customProducts.push(newProduct);
+            if (editId) {
+                const idx = customProducts.findIndex(p => p.id === Number(editId));
+                if (idx !== -1) customProducts[idx] = productData;
+                alert("تم تحديث المنتج بنجاح! ✏️");
+            } else {
+                customProducts.push(productData);
+                alert("تمت إضافة المنتج بنجاح! ➕");
+            }
+
             localStorage.setItem("customProducts", JSON.stringify(customProducts));
             window.renderAdminTable();
+            resetForm();
+        };
+
+        window.editProduct = function(id) {
+            const p = customProducts.find(item => item.id === id);
+            if (!p) return;
+
+            document.getElementById("editProductId").value = p.id;
+            document.getElementById("pTitle").value = p.title;
+            document.getElementById("pCat").value = p.cat;
+            document.getElementById("pBadge").value = p.badge;
+            document.getElementById("pPrice").value = p.price;
+            document.getElementById("pImgUrl").value = p.imgUrl || "";
+            document.getElementById("pFileUrl").value = p.fileUrl;
+            document.getElementById("pDesc").value = p.desc;
+
+            document.getElementById("formTitle").textContent = "✏️ تعديل المنتج";
+            document.getElementById("submitBtn").textContent = "تحديث المنتج 🔄";
+            document.getElementById("cancelEditBtn").style.display = "inline-block";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.resetForm = function() {
             document.getElementById("addProductForm").reset();
-            alert("تمت إضافة المنتج بنجاح!");
+            document.getElementById("editProductId").value = "";
+            document.getElementById("formTitle").textContent = "➕ إضافة منتج رقمي جديد";
+            document.getElementById("submitBtn").textContent = "حفظ وإضافة للمتجر 💾";
+            document.getElementById("cancelEditBtn").style.display = "none";
         };
 
         window.deleteProduct = function(index) {
-            if (confirm("هل أنت تأكد من رغبتك في حذف هذا المنتج؟")) {
+            if (confirm("هل أنت متأكد من رغبتك في حذف هذا المنتج؟")) {
                 customProducts.splice(index, 1);
                 localStorage.setItem("customProducts", JSON.stringify(customProducts));
                 window.renderAdminTable();
@@ -346,7 +435,7 @@
         };
 
         window.removeHelperAdmin = function(email) {
-            if (confirm(`هل أنت تأكد من تجريد ${email} من صلاحيات الإشراف؟`)) {
+            if (confirm(`هل أنت متأكد من تجريد ${email} من صلاحيات الإشراف؟`)) {
                 helperAdmins = helperAdmins.filter(e => e !== email);
                 localStorage.setItem("helperAdmins", JSON.stringify(helperAdmins));
                 renderHelpersList();
@@ -360,9 +449,9 @@
                 return;
             }
             list.innerHTML = helperAdmins.map(email => `
-                <li style="display:flex; justify-content:space-between; align-items:center; background:#1e1e24; padding:8px 12px; border-radius:6px;">
+                <li style="display:flex; justify-style:space-between; align-items:center; background:#1e1e24; padding:8px 12px; border-radius:6px;">
                     <span>📧 ${email}</span>
-                    <button onclick="removeHelperAdmin('${email}')" class="btn-delete" style="padding:4px 8px;">عزل / حذف ❌</button>
+                    <button onclick="removeHelperAdmin('${email}')" class="btn-action btn-delete">عزل / حذف ❌</button>
                 </li>
             `).join('');
         }
