@@ -188,7 +188,7 @@
             <h3 style="margin-bottom: 15px; color: #c084fc;">🛡️ إدارة المشرفين المساعدين (صلاحية المدير الرئيسي فقط)</h3>
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                 <input type="email" id="helperEmailInput" placeholder="أدخل البريد الإلكتروني للمساعد الجديد" style="flex:1; padding: 10px; background:#1e1e24; border:1px solid var(--border-line); border-radius:8px; color:#fff;">
-                <button onclick="addHelperAdmin()" class="btn-submit" style="width: auto;">إضافة كمساعد ➕</button>
+                <button id="addHelperBtn" class="btn-submit" style="width: auto;">إضافة كمساعد ➕</button>
             </div>
             <h4>قائمة المساعدين الحاليين:</h4>
             <ul id="helpersList" style="list-style: none; margin-top: 10px; display: flex; flex-direction: column; gap: 8px;"></ul>
@@ -197,7 +197,7 @@
         <!-- قسم إضافة / تعديل المنتج -->
         <div class="card">
             <h3 id="formTitle" style="margin-bottom: 20px; color: var(--accent-cyan);">➕ إضافة منتج رقمي جديد</h3>
-            <form id="addProductForm" onsubmit="handleFormSubmit(event)">
+            <form id="addProductForm">
                 <input type="hidden" id="editProductId">
                 
                 <div class="form-grid">
@@ -242,7 +242,7 @@
 
                 <div style="display: flex; gap: 10px;">
                     <button type="submit" class="btn-submit" id="submitBtn">حفظ وإضافة للمتجر 💾</button>
-                    <button type="button" class="btn-action" id="cancelEditBtn" onclick="resetForm()" style="display:none; background: #333; color: #fff;">إلغاء التعديل ❌</button>
+                    <button type="button" class="btn-action" id="cancelEditBtn" style="display:none; background: #333; color: #fff;">إلغاء التعديل ❌</button>
                 </div>
             </form>
         </div>
@@ -272,7 +272,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // قم باستبدال إعدادات Firebase الخاصة بمتجرك هنا
+        // ضع إعدادات Firebase الخاصة بمشروعك هنا
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -288,7 +288,6 @@
         const SUPER_ADMIN_EMAIL = "ythr2010@gmail.com"; 
 
         let helperAdmins = JSON.parse(localStorage.getItem("helperAdmins")) || [];
-
         let customProducts = JSON.parse(localStorage.getItem("customProducts")) || [
             { 
                 id: 1, 
@@ -302,45 +301,7 @@
             }
         ];
 
-        onAuthStateChanged(auth, (user) => {
-            const accessGate = document.getElementById("accessGate");
-            const adminPanel = document.getElementById("adminPanel");
-            const gateTitle = document.getElementById("gateTitle");
-            const gateMessage = document.getElementById("gateMessage");
-            const gateBtn = document.getElementById("gateBtn");
-
-            if (user) {
-                const userEmail = user.email.toLowerCase();
-                const isSuperAdmin = (userEmail === SUPER_ADMIN_EMAIL.toLowerCase());
-                const isHelper = helperAdmins.includes(userEmail);
-
-                if (isSuperAdmin || isHelper) {
-                    accessGate.style.display = "none";
-                    adminPanel.style.display = "block";
-                    
-                    if (isSuperAdmin) {
-                        document.getElementById("userRoleBadge").textContent = "المدير الرئيسي (Super Admin)";
-                        document.getElementById("superAdminSection").style.display = "block";
-                        renderHelpersList();
-                    } else {
-                        document.getElementById("userRoleBadge").textContent = "مشرف مساعد (Helper Admin)";
-                        document.getElementById("superAdminSection").style.display = "none";
-                    }
-
-                    renderAdminTable();
-                } else {
-                    gateTitle.textContent = "❌ عذراً، لا تملك صلاحية الدخول";
-                    gateTitle.style.color = "var(--danger-red)";
-                    gateMessage.textContent = "هذه الصفحة مخصصة لمدير الموقع والمشرفين المعتمدين فقط.";
-                    gateBtn.style.display = "inline-block";
-                }
-            } else {
-                gateTitle.textContent = "🔒 يجب تسجيل الدخول أولاً";
-                gateMessage.textContent = "قم بتسجيل الدخول بحساب المدير للوصول للوحة التحكم.";
-                gateBtn.style.display = "inline-block";
-            }
-        });
-
+        // 1. ربط الدوال بالنطاق العام window لكي تعمل الأزرار بدون مشاكل
         window.renderAdminTable = function() {
             const tbody = document.getElementById("adminProductsTable");
             tbody.innerHTML = customProducts.map((p, index) => `
@@ -351,40 +312,11 @@
                     <td style="color:var(--accent-cyan); font-weight:bold;">${p.price}</td>
                     <td><a href="${p.fileUrl}" target="_blank" style="color:var(--text-sub);">معاينة 🔗</a></td>
                     <td>
-                        <button class="btn-action btn-edit" onclick="editProduct(${p.id})">تعديل ✏️</button>
-                        <button class="btn-action btn-delete" onclick="deleteProduct(${index})">حذف 🗑️</button>
+                        <button class="btn-action btn-edit" onclick="window.editProduct(${p.id})">تعديل ✏️</button>
+                        <button class="btn-action btn-delete" onclick="window.deleteProduct(${index})">حذف 🗑️</button>
                     </td>
                 </tr>
             `).join('');
-        };
-
-        window.handleFormSubmit = function(e) {
-            e.preventDefault();
-            const editId = document.getElementById("editProductId").value;
-
-            const productData = {
-                id: editId ? Number(editId) : Date.now(),
-                title: document.getElementById("pTitle").value,
-                cat: document.getElementById("pCat").value,
-                badge: document.getElementById("pBadge").value,
-                price: document.getElementById("pPrice").value,
-                imgUrl: document.getElementById("pImgUrl").value,
-                fileUrl: document.getElementById("pFileUrl").value,
-                desc: document.getElementById("pDesc").value
-            };
-
-            if (editId) {
-                const idx = customProducts.findIndex(p => p.id === Number(editId));
-                if (idx !== -1) customProducts[idx] = productData;
-                alert("تم تحديث المنتج بنجاح! ✏️");
-            } else {
-                customProducts.push(productData);
-                alert("تمت إضافة المنتج بنجاح! ➕");
-            }
-
-            localStorage.setItem("customProducts", JSON.stringify(customProducts));
-            window.renderAdminTable();
-            resetForm();
         };
 
         window.editProduct = function(id) {
@@ -449,12 +381,85 @@
                 return;
             }
             list.innerHTML = helperAdmins.map(email => `
-                <li style="display:flex; justify-style:space-between; align-items:center; background:#1e1e24; padding:8px 12px; border-radius:6px;">
+                <li style="display:flex; justify-content:space-between; align-items:center; background:#1e1e24; padding:8px 12px; border-radius:6px;">
                     <span>📧 ${email}</span>
-                    <button onclick="removeHelperAdmin('${email}')" class="btn-action btn-delete">عزل / حذف ❌</button>
+                    <button onclick="window.removeHelperAdmin('${email}')" class="btn-action btn-delete">عزل / حذف ❌</button>
                 </li>
             `).join('');
         }
+
+        // 2. ربط النماذج بالأحداث (Events)
+        document.getElementById("addProductForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const editId = document.getElementById("editProductId").value;
+
+            const productData = {
+                id: editId ? Number(editId) : Date.now(),
+                title: document.getElementById("pTitle").value,
+                cat: document.getElementById("pCat").value,
+                badge: document.getElementById("pBadge").value,
+                price: document.getElementById("pPrice").value,
+                imgUrl: document.getElementById("pImgUrl").value,
+                fileUrl: document.getElementById("pFileUrl").value,
+                desc: document.getElementById("pDesc").value
+            };
+
+            if (editId) {
+                const idx = customProducts.findIndex(p => p.id === Number(editId));
+                if (idx !== -1) customProducts[idx] = productData;
+                alert("تم تحديث المنتج بنجاح! ✏️");
+            } else {
+                customProducts.push(productData);
+                alert("تمت إضافة المنتج بنجاح! ➕");
+            }
+
+            localStorage.setItem("customProducts", JSON.stringify(customProducts));
+            window.renderAdminTable();
+            window.resetForm();
+        });
+
+        document.getElementById("cancelEditBtn").addEventListener("click", window.resetForm);
+        document.getElementById("addHelperBtn").addEventListener("click", window.addHelperAdmin);
+
+        // 3. التحقق من حالة الدخول وصلاحيات المستخدم
+        onAuthStateChanged(auth, (user) => {
+            const accessGate = document.getElementById("accessGate");
+            const adminPanel = document.getElementById("adminPanel");
+            const gateTitle = document.getElementById("gateTitle");
+            const gateMessage = document.getElementById("gateMessage");
+            const gateBtn = document.getElementById("gateBtn");
+
+            if (user) {
+                const userEmail = user.email.toLowerCase();
+                const isSuperAdmin = (userEmail === SUPER_ADMIN_EMAIL.toLowerCase());
+                const isHelper = helperAdmins.includes(userEmail);
+
+                if (isSuperAdmin || isHelper) {
+                    accessGate.style.display = "none";
+                    adminPanel.style.display = "block";
+                    
+                    if (isSuperAdmin) {
+                        document.getElementById("userRoleBadge").textContent = "المدير الرئيسي (Super Admin)";
+                        document.getElementById("superAdminSection").style.display = "block";
+                        renderHelpersList();
+                    } else {
+                        document.getElementById("userRoleBadge").textContent = "مشرف مساعد (Helper Admin)";
+                        document.getElementById("superAdminSection").style.display = "none";
+                    }
+
+                    window.renderAdminTable();
+                } else {
+                    gateTitle.textContent = "❌ عذراً، لا تملك صلاحية الدخول";
+                    gateTitle.style.color = "var(--danger-red)";
+                    gateMessage.textContent = "هذه الصفحة مخصصة لمدير الموقع والمشرفين المعتمدين فقط.";
+                    gateBtn.style.display = "inline-block";
+                }
+            } else {
+                gateTitle.textContent = "🔒 يجب تسجيل الدخول أولاً";
+                gateMessage.textContent = "قم بتسجيل الدخول بحساب المدير للوصول للوحة التحكم.";
+                gateBtn.style.display = "inline-block";
+            }
+        });
     </script>
 </body>
 </html>
