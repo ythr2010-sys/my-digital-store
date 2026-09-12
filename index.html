@@ -6,7 +6,7 @@
     
     <!-- تهيئة الموقع لمحركات البحث Google SEO -->
     <title>الخزنة الرقمية | DigiVault - متجر الكتب، المجسمات، والدورات الرقمية</title>
-    <meta name="description" content="متجر الخزنة الرقمية للخدمات والمنتجات الرقمية: كتب، روايات، مجسمات 3D/2D، دورات تعليمية، واشتراكات ألعاب بأفضل الأسعار.">
+    <meta name="description" content="متجر الخزنة الرقمية للخدمات والمنتجات الرقمية: كتب، روايات، مجسمات 3D/2D، دورات تعليمية، وااشتراكات ألعاب بأفضل الأسعار.">
     <meta name="keywords" content="متجر رقمي, كتب رقمية, مجسمات 3D, دورات تعليمية, اشتراكات, ألعاب, DigiVault">
     <meta property="og:title" content="الخزنة الرقمية | DigiVault">
     <meta property="og:description" content="منصتك الأولى لإقتناء أفضل المنتجات الرقمية التعليمية والترفيهية.">
@@ -307,6 +307,7 @@
             font-weight: bold;
             text-decoration: none;
             transition: 0.2s ease;
+            cursor: pointer;
         }
 
         .buy-btn:hover {
@@ -373,7 +374,7 @@
 
     <div class="page-wrapper">
         
-        <!-- القائمة الجانبية Left/Right Sidebar -->
+        <!-- القائمة الجانبية Sidebar -->
         <aside class="sidebar">
             <div class="logo">
                 <a href="index.html">الخزنة<span>الرقمية</span></a>
@@ -388,7 +389,7 @@
                         <a href="admin.html" class="btn-admin-highlight">⚙️ لوحة التحكم الإدارية</a>
                     </li>
 
-                    <!-- زر أضف منتجك يظهر دائماً وبشكل بارز -->
+                    <!-- زر أضف منتجك -->
                     <li><a href="add-product.html" class="btn-add-product-highlight">➕ أضف منتجك للبيع</a></li>
                     
                     <li><a href="shop.html">🛍️ تسوق الآن (المنتجات)</a></li>
@@ -426,7 +427,7 @@
                 <a href="shop.html" class="btn-cta">تصفح المتجر الكامل الآن 🚀</a>
             </section>
 
-            <!-- قسم عرض أحدث المنتجات من Firebase -->
+            <!-- قسم عرض أحدث المنتجات -->
             <section>
                 <h2 class="section-title">أحدث المنتجات المعروضة</h2>
                 <div class="products-grid" id="productsGrid">
@@ -471,11 +472,11 @@
         جميع الحقوق محفوظة © 2026 الخزنة الرقمية (DigiVault)
     </footer>
 
-    <!-- سكريبت Firebase Auth و Firestore وإدارة الجلسات متصل بملف Admin -->
+    <!-- سكريبت Firebase Auth و Firestore -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, orderBy, query, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
@@ -493,7 +494,7 @@
 
         const SUPER_ADMIN_EMAIL = "ythr2010@gmail.com";
 
-        // التحقق من حالة تسجيل الدخول وصلاحيات الإدارة
+        // التحقق من حالة تسجيل الدخول
         onAuthStateChanged(auth, (user) => {
             const userNav = document.getElementById("userNav");
             const loginMenuLi = document.getElementById("loginMenuLi");
@@ -541,7 +542,7 @@
             }
         });
 
-        // دالة تسجيل الخروج للجميع
+        // دالة تسجيل الخروج (إتاحتها لنطاق Window)
         window.logoutUser = function() {
             signOut(auth).then(() => {
                 localStorage.removeItem("isLoggedIn");
@@ -554,7 +555,16 @@
             });
         };
 
-        // دالة جلب المنتجات وعرضها
+        // دالة شراء المنتج
+        window.buyProduct = function(productId, downloadUrl) {
+            if(!downloadUrl || downloadUrl === '#') {
+                alert("رابط هذا المنتج غير متوفر حالياً، يرجى التواصل مع الدعم.");
+                return;
+            }
+            alert("سيتم تحويلك لبوابة الدفع، وبعد إتمام عملية الدفع سينفتح رابط التحميل تلقائياً:\n" + downloadUrl);
+        };
+
+        // جلب المنتجات وعرضها
         async function loadProducts() {
             const productsGrid = document.getElementById('productsGrid');
             if (!productsGrid) return;
@@ -562,8 +572,8 @@
             let productsList = [];
 
             try {
-                // 1. قراءة المنتجات من قواعد بيانات Firestore
-                const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+                // 1. قراءة المنتجات من Firebase Firestore (أحدث 12 منتج فقط للسرعة)
+                const q = query(collection(db, "products"), orderBy("createdAt", "desc"), limit(12));
                 const querySnapshot = await getDocs(q);
                 
                 querySnapshot.forEach((doc) => {
@@ -578,24 +588,24 @@
                     });
                 });
             } catch (error) {
-                console.warn("تنبيه: تعذر الجلب من Firestore، يتم التحقق من التخزين المحلي:", error);
+                console.warn("تنبيه: تعذر الجلب من Firestore، يتم الاعتماد على التخزين المحلي:", error);
             }
 
-            // 2. قراءة المنتجات الإضافية المسجلة من لوحة تحكم admin.html المحلية
+            // 2. قراءة المنتجات المسجلة في localStorage
             const customProducts = JSON.parse(localStorage.getItem("customProducts")) || [];
             customProducts.forEach(p => {
                 productsList.push({
-                    id: p.id,
-                    title: p.title,
-                    description: p.desc || p.description,
-                    price: p.price,
+                    id: p.id || Math.random().toString(),
+                    title: p.title || "منتج محلي",
+                    description: p.desc || p.description || "لا يوجد وصف.",
+                    price: p.price || "0",
                     imageUrl: p.imgUrl || p.imageUrl || "https://via.placeholder.com/300x160?text=DigiVault",
                     downloadUrl: p.fileUrl || p.downloadUrl || "#"
                 });
             });
 
             if (productsList.length === 0) {
-                productsGrid.innerHTML = '<p style="color: var(--text-sub); grid-column: 1/-1; text-align: center;">لا توجد منتجات معروضة حالياً. كن أول من يضيف منتجاً!</p>';
+                productsGrid.innerHTML = '<p style="color: var(--text-sub); grid-column: 1/-1; text-align: center; padding: 30px;">لا توجد منتجات معروضة حالياً. كن أول من يضيف منتجاً!</p>';
                 return;
             }
 
@@ -604,28 +614,29 @@
             productsList.forEach((product) => {
                 const card = document.createElement('div');
                 card.className = 'product-card';
+                
+                // تنظيف تنسيق السعر
+                const formattedPrice = String(product.price).includes('$') ? product.price : '$' + product.price;
+
                 card.innerHTML = `
                     <div style="width: 100%; height: 160px; overflow: hidden; border-radius: 8px; margin-bottom: 15px; background: #1e1e24;">
                         <img src="${product.imageUrl}" 
-                             onerror="this.src='https://via.placeholder.com/300x160?text=DigiVault'" 
+                             onerror="this.onerror=null;this.src='https://via.placeholder.com/300x160?text=DigiVault'" 
                              alt="${product.title}" 
                              style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
                     <h3>${product.title}</h3>
                     <p>${product.description}</p>
                     <div class="card-footer">
-                        <span class="price">${product.price.toString().includes('$') ? product.price : '$' + product.price}</span>
-                        <a href="#" onclick="buyProduct('${product.id}', '${product.downloadUrl}')" class="buy-btn">شراء الآن</a>
+                        <span class="price">${formattedPrice}</span>
+                        <button onclick="buyProduct('${product.id}', '${product.downloadUrl}')" class="buy-btn">شراء الآن</button>
                     </div>
                 `;
                 productsGrid.appendChild(card);
             });
         }
 
-        window.buyProduct = function(productId, downloadUrl) {
-            alert("سيتم تحويلك لبوابة الدفع، وبعد إتمام عملية الدفع سينفتح رابط التحميل تلقائياً:\n" + downloadUrl);
-        };
-
+        // تشغيل دالة التحميل
         loadProducts();
     </script>
 </body>
