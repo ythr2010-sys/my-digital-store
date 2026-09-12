@@ -4,14 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة التحكم | الخزنة الرقمية</title>
-    <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-main: #0a0a12;
             --bg-card: #141424;
-            --bg-sidebar: #10101c;
             --accent-cyan: #00d2ff;
             --accent-purple: #8a2be2;
             --border-line: rgba(255, 255, 255, 0.08);
@@ -23,199 +21,169 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg-main); color: var(--text-main); line-height: 1.6; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg-main); color: var(--text-main); line-height: 1.6; padding: 20px; }
 
-        .admin-container {
-            max-width: 1000px;
-            margin: 40px auto;
-            padding: 20px;
-        }
-
-        .access-denied {
+        /* شاشة التحقق والأمان (بوابة الدخول) */
+        #authScreen {
+            max-width: 420px;
+            margin: 80px auto;
             background: var(--bg-card);
             border: 1px solid var(--border-line);
             border-radius: 16px;
-            padding: 40px;
-            max-width: 450px;
-            margin: 100px auto;
+            padding: 30px;
+            text-align: box;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             text-align: center;
         }
 
-        .admin-panel {
+        #authScreen h2 { color: var(--accent-cyan); margin-bottom: 10px; }
+        #authScreen p { color: var(--text-sub); font-size: 0.9rem; margin-bottom: 20px; }
+
+        .input-box {
+            width: 100%;
+            padding: 12px 15px;
+            background: #1e1e28;
+            border: 1px solid var(--border-line);
+            border-radius: 8px;
+            color: #fff;
+            font-family: inherit;
+            margin-bottom: 15px;
+            outline: none;
+            text-align: center;
+            font-size: 1rem;
+        }
+        .input-box:focus { border-color: var(--accent-cyan); }
+
+        .btn-main {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+        .btn-main:hover { opacity: 0.9; }
+
+        /* لوحة التحكم الفعلية (مخفية حتى يتم تسجيل الدخول الصحيح) */
+        #dashboardContent {
             display: none;
+            max-width: 1000px;
+            margin: 0 auto;
         }
 
-        .header-admin {
+        .header-dash {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--border-line);
+            background: var(--bg-card);
+            border: 1px solid var(--border-line);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
         }
 
         .card {
             background: var(--bg-card);
             border: 1px solid var(--border-line);
-            border-radius: 14px;
-            padding: 25px;
-            margin-bottom: 30px;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
         }
 
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
             margin-bottom: 15px;
         }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
         .form-group label { font-size: 0.85rem; color: var(--text-sub); }
-
         .form-group input, .form-group select, .form-group textarea {
-            padding: 10px 14px;
-            background: #1e1e24;
+            padding: 10px;
+            background: #1e1e28;
             border: 1px solid var(--border-line);
             border-radius: 8px;
             color: #fff;
             font-family: inherit;
             outline: none;
         }
-
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-            border-color: var(--accent-cyan);
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-            color: #fff;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            font-family: inherit;
-            transition: 0.2s;
-            width: 100%;
-        }
-
-        .btn-submit:hover { opacity: 0.9; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent-cyan); }
 
         .products-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
         }
-
         .products-table th, .products-table td {
-            padding: 12px 15px;
+            padding: 12px;
             text-align: right;
             border-bottom: 1px solid var(--border-line);
             font-size: 0.9rem;
-            vertical-align: middle;
         }
-
-        .products-table th {
-            color: var(--accent-cyan);
-            background: rgba(255, 255, 255, 0.02);
-        }
+        .products-table th { color: var(--accent-cyan); background: rgba(255,255,255,0.02); }
 
         .btn-action {
-            padding: 6px 10px;
+            padding: 6px 12px;
             border-radius: 6px;
             cursor: pointer;
             font-family: inherit;
             font-size: 0.8rem;
             border: none;
-            margin-left: 4px;
+            margin-left: 5px;
         }
-
-        .btn-edit {
-            background: rgba(255, 165, 2, 0.2);
-            color: var(--warning-yellow);
-            border: 1px solid var(--warning-yellow);
-        }
-
-        .btn-edit:hover {
-            background: var(--warning-yellow);
-            color: #000;
-        }
-
-        .btn-delete {
-            background: rgba(255, 71, 87, 0.2);
-            color: var(--danger-red);
-            border: 1px solid var(--danger-red);
-        }
-
-        .btn-delete:hover {
-            background: var(--danger-red);
-            color: #fff;
-        }
-
-        .prod-img-preview {
-            width: 40px;
-            height: 40px;
-            border-radius: 6px;
-            object-fit: cover;
-            background: #1e1e24;
-        }
+        .btn-edit { background: rgba(255, 165, 2, 0.2); color: var(--warning-yellow); border: 1px solid var(--warning-yellow); }
+        .btn-delete { background: rgba(255, 71, 87, 0.2); color: var(--danger-red); border: 1px solid var(--danger-red); }
+        
+        .img-preview { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; background: #222; }
+        .error-msg { color: var(--danger-red); font-size: 0.85rem; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
 
-    <!-- بوابة التحقق والأمان -->
-    <div class="access-denied" id="accessGate">
-        <h2 id="gateTitle" style="color: var(--accent-cyan);">⏳ جاري التحقق من الصلاحيات...</h2>
-        <p id="gateMessage" style="color: var(--text-sub); margin-top: 10px;"></p>
+    <!-- شاشة تسجيل الدخول والتحقق الآمن -->
+    <div id="authScreen">
+        <h2>🔒 بوابة المدير الآمنة</h2>
+        <p>الرجاء إدخال بريدك الإلكتروني والرمز السري الخاص باللوحة</p>
         
-        <!-- صندوق إدخال الرمز السري الإضافي (PIN) -->
-        <div id="pinBox" style="display: none; margin-top: 20px;">
-            <input type="password" id="secretPinInput" placeholder="أدخل الرمز السري للوحة التحكم" style="width: 100%; padding: 10px; background: #1e1e24; border: 1px solid var(--border-line); border-radius: 8px; color: #fff; text-align: center; margin-bottom: 10px; outline: none;">
-            <button id="verifyPinBtn" class="btn-submit">دخول لوحة التحكم 🔓</button>
+        <input type="email" id="loginEmail" class="input-box" placeholder="أدخل البريد الإلكتروني (المدير)">
+        <input type="password" id="loginPin" class="input-box" placeholder="الرمز السري (PIN)">
+        
+        <button id="loginBtn" class="btn-main">دخول اللوحة 🔓</button>
+        <div id="errorMsg" class="error-msg">❌ البيانات المدخلة غير صحيحة! تأكد من البريد والرمز.</div>
+        
+        <div style="margin-top: 20px;">
+            <a href="shop.html" style="color: var(--accent-cyan); text-decoration: none; font-size: 0.85rem;">← العودة للمتجر</a>
         </div>
-
-        <a href="shop.html" id="gateBtn" style="display:none; margin-top:20px; color: var(--accent-cyan); text-decoration: none; font-weight: bold; display:inline-block;">← العودة للمتجر</a>
     </div>
 
-    <!-- لوحة التحكم الأساسية -->
-    <div class="admin-container admin-panel" id="adminPanel">
-        <div class="header-admin">
+    <!-- محتوى لوحة التحكم (لا يظهر إلا بعد نجاح التحقق) -->
+    <div id="dashboardContent">
+        <div class="header-dash">
             <div>
-                <h1>👑 لوحة إدارة الخزنة الرقمية</h1>
-                <span id="userRoleBadge" style="background: rgba(0,210,255,0.2); color: var(--accent-cyan); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;"></span>
+                <h1>👑 لوحة تحكم الخزنة الرقمية</h1>
+                <span style="color: var(--accent-cyan); font-size: 0.85rem;">مسجل كـ: المدير الرئيسي (محمد ياسر)</span>
             </div>
             <a href="shop.html" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">← العودة للمتجر</a>
         </div>
 
-        <!-- قسم إدارة المشرفين المساعدين -->
-        <div class="card" id="superAdminSection" style="display: none; border-color: var(--accent-purple);">
-            <h3 style="margin-bottom: 15px; color: #c084fc;">🛡️ إدارة المشرفين المساعدين (صلاحية المدير الرئيسي فقط)</h3>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <input type="email" id="helperEmailInput" placeholder="أدخل البريد الإلكتروني للمساعد الجديد" style="flex:1; padding: 10px; background:#1e1e24; border:1px solid var(--border-line); border-radius:8px; color:#fff;">
-                <button id="addHelperBtn" class="btn-submit" style="width: auto;">إضافة كمساعد ➕</button>
-            </div>
-            <h4>قائمة المساعدين الحاليين:</h4>
-            <ul id="helpersList" style="list-style: none; margin-top: 10px; display: flex; flex-direction: column; gap: 8px;"></ul>
-        </div>
-
-        <!-- قسم إضافة / تعديل المنتج -->
+        <!-- نموذج إضافة أو تعديل منتج -->
         <div class="card">
-            <h3 id="formTitle" style="margin-bottom: 20px; color: var(--accent-cyan);">➕ إضافة منتج رقمي جديد</h3>
-            <form id="addProductForm">
-                <input type="hidden" id="editProductId">
-                
+            <h3 id="formTitle" style="margin-bottom: 15px; color: var(--accent-cyan);">➕ إضافة منتج جديد</h3>
+            <form id="productForm">
+                <input type="hidden" id="editDocId">
                 <div class="form-grid">
                     <div class="form-group">
                         <label>عنوان المنتج:</label>
-                        <input type="text" id="pTitle" placeholder="مثال: كتاب أساسيات Python" required>
+                        <input type="text" id="pTitle" placeholder="مثال: كتاب بايثون الشامل" required>
                     </div>
                     <div class="form-group">
-                        <label>الفئة (Category):</label>
+                        <label>الفئة:</label>
                         <select id="pCat">
                             <option value="books">📚 كتب وروايات</option>
                             <option value="models">🎨 مجسمات 3D/2D</option>
@@ -225,7 +193,7 @@
                     </div>
                     <div class="form-group">
                         <label>شارة المنتج (Badge):</label>
-                        <input type="text" id="pBadge" placeholder="مثال: كتاب PDF أو ملف FBX" required>
+                        <input type="text" id="pBadge" placeholder="مثال: PDF أو FBX" required>
                     </div>
                     <div class="form-group">
                         <label>السعر ($):</label>
@@ -235,51 +203,51 @@
 
                 <div class="form-grid">
                     <div class="form-group">
-                        <label>رابط صورة المنتج (Thumbnail Image):</label>
-                        <input type="url" id="pImgUrl" placeholder="https://example.com/image.jpg">
+                        <label>رابط الصورة (Image URL):</label>
+                        <input type="url" id="pImg" placeholder="https://...">
                     </div>
                     <div class="form-group">
-                        <label>رابط تنزيل الملف المباشر (Google Drive / Mega):</label>
-                        <input type="url" id="pFileUrl" placeholder="https://..." required>
+                        <label>رابط التحميل المباشر:</label>
+                        <input type="url" id="pLink" placeholder="https://..." required>
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label>وصف المنتج:</label>
-                    <textarea id="pDesc" rows="3" placeholder="اكتب وصفاً قصيراً ومفهوماً للمنتج..." required></textarea>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label>الوصف:</label>
+                    <textarea id="pDesc" rows="3" placeholder="وصف موجز للمنتج..." required></textarea>
                 </div>
 
                 <div style="display: flex; gap: 10px;">
-                    <button type="submit" class="btn-submit" id="submitBtn">حفظ وإضافة للمتجر 💾</button>
-                    <button type="button" class="btn-action" id="cancelEditBtn" style="display:none; background: #333; color: #fff;">إلغاء التعديل ❌</button>
+                    <button type="submit" class="btn-main" id="saveBtn">حفظ ونشر المنتج 💾</button>
+                    <button type="button" id="cancelBtn" class="btn-action" style="display:none; background:#333; color:#fff;">إلغاء ❌</button>
                 </div>
             </form>
         </div>
 
-        <!-- جدول المنتجات المسجلة -->
+        <!-- جدول المنتجات -->
         <div class="card">
-            <h3 style="margin-bottom: 15px;">📋 المنتجات المسجلة حالياً</h3>
+            <h3 style="margin-bottom: 15px;">📋 قائمة المنتجات الحالية</h3>
             <div style="overflow-x: auto;">
                 <table class="products-table">
                     <thead>
                         <tr>
                             <th>الصورة</th>
-                            <th>المنتج</th>
+                            <th>العنوان</th>
                             <th>الفئة</th>
                             <th>السعر</th>
-                            <th>رابط التحميل</th>
-                            <th>إجراءات</th>
+                            <th>الرابط</th>
+                            <th>الإجراءات</th>
                         </tr>
                     </thead>
-                    <tbody id="adminProductsTable"></tbody>
+                    <tbody id="tableBody"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
+    <!-- سكربت جافاسكريبت والاتصال بقاعدة البيانات -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { 
             getFirestore, 
             collection, 
@@ -287,11 +255,10 @@
             addDoc, 
             doc, 
             updateDoc, 
-            deleteDoc, 
-            setDoc,
-            getDoc 
+            deleteDoc 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        // إعدادات فايربيس الخاصة بك
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -302,157 +269,81 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // تم ربط بياناتك الأساسية مباشرة هنا للتأكد من التعرف عليك فوراً
-        const SUPER_ADMIN_UID = "kkfUSkke8ZfKpiXFrVfpbCjfYdx1"; 
-        const SUPER_ADMIN_EMAIL = "ythr2010@gmail.com";
-        const SECRET_PANEL_PIN = "2026"; // 🔑 الرمز السري الخاص بالصفحة
+        // بيانات الاعتماد السرية الخاصة بك فقط
+        const ADMIN_EMAIL = "ythr2010@gmail.com";
+        const ADMIN_PIN = "2026"; // يمكنك تغيير هذا الرقم السري متى شئت
 
-        let customProducts = [];
-        let helperAdmins = [];
+        let productsList = [];
 
-        async function fetchProducts() {
+        // عند النقر على زر الدخول
+        document.getElementById("loginBtn").addEventListener("click", function() {
+            const enteredEmail = document.getElementById("loginEmail").value.trim().toLowerCase();
+            const enteredPin = document.getElementById("loginPin").value.trim();
+            const errorMsg = document.getElementById("errorMsg");
+
+            if (enteredEmail === ADMIN_EMAIL && enteredPin === ADMIN_PIN) {
+                // إخفاء شاشة تسجيل الدخول وإظهار لوحة التحكم
+                document.getElementById("authScreen").style.display = "none";
+                document.getElementById("dashboardContent").style.display = "block";
+                
+                // جلب المنتجات فوراً
+                loadProducts();
+            } else {
+                errorMsg.style.display = "block";
+            }
+        });
+
+        // دالة جلب المنتجات من Firestore
+        async function loadProducts() {
             try {
                 const querySnapshot = await getDocs(collection(db, "products"));
-                customProducts = [];
+                productsList = [];
                 querySnapshot.forEach((docSnap) => {
-                    customProducts.push({ id: docSnap.id, ...docSnap.data() });
+                    productsList.push({ id: docSnap.id, ...docSnap.data() });
                 });
-                renderAdminTable();
+                renderTable();
             } catch (error) {
                 console.error("خطأ في جلب المنتجات:", error);
             }
         }
 
-        async function fetchHelpers() {
-            try {
-                const querySnapshot = await getDocs(collection(db, "helpers"));
-                helperAdmins = [];
-                querySnapshot.forEach((docSnap) => {
-                    helperAdmins.push({ id: docSnap.id, ...docSnap.data() });
-                });
-                renderHelpersList();
-            } catch (error) {
-                console.error("خطأ في جلب المساعدين:", error);
-            }
-        }
-
-        window.renderAdminTable = function() {
-            const tbody = document.getElementById("adminProductsTable");
-            if (customProducts.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-sub);">لا توجد منتجات حالياً. قم بإضافة منتج جديد.</td></tr>`;
+        // عرض المنتجات في الجدول
+        function renderTable() {
+            const tbody = document.getElementById("tableBody");
+            if (productsList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-sub);">لا توجد منتجات حالياً.</td></tr>`;
                 return;
             }
-            tbody.innerHTML = customProducts.map((p) => `
+
+            tbody.innerHTML = productsList.map(p => `
                 <tr>
-                    <td><img src="${p.imgUrl || 'https://via.placeholder.com/40'}" class="prod-img-preview" alt="product"></td>
+                    <td><img src="${p.img || 'https://via.placeholder.com/40'}" class="img-preview" alt=""></td>
                     <td><strong>${p.title}</strong></td>
                     <td>${p.cat}</td>
                     <td style="color:var(--accent-cyan); font-weight:bold;">${p.price}</td>
-                    <td><a href="${p.fileUrl}" target="_blank" style="color:var(--text-sub);">معاينة 🔗</a></td>
+                    <td><a href="${p.link}" target="_blank" style="color:var(--text-sub);">معاينة 🔗</a></td>
                     <td>
-                        <button class="btn-action btn-edit" onclick="window.editProduct('${p.id}')">تعديل ✏️</button>
-                        <button class="btn-action btn-delete" onclick="window.deleteProduct('${p.id}')">حذف 🗑️</button>
+                        <button class="btn-action btn-edit" onclick="window.startEdit('${p.id}')">تعديل ✏️</button>
+                        <button class="btn-action btn-delete" onclick="window.removeProduct('${p.id}')">حذف 🗑️</button>
                     </td>
                 </tr>
             `).join('');
-        };
-
-        window.editProduct = function(docId) {
-            const p = customProducts.find(item => item.id === docId);
-            if (!p) return;
-
-            document.getElementById("editProductId").value = p.id;
-            document.getElementById("pTitle").value = p.title;
-            document.getElementById("pCat").value = p.cat;
-            document.getElementById("pBadge").value = p.badge;
-            document.getElementById("pPrice").value = p.price;
-            document.getElementById("pImgUrl").value = p.imgUrl || "";
-            document.getElementById("pFileUrl").value = p.fileUrl;
-            document.getElementById("pDesc").value = p.desc;
-
-            document.getElementById("formTitle").textContent = "✏️ تعديل المنتج";
-            document.getElementById("submitBtn").textContent = "تحديث المنتج 🔄";
-            document.getElementById("cancelEditBtn").style.display = "inline-block";
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
-
-        window.resetForm = function() {
-            document.getElementById("addProductForm").reset();
-            document.getElementById("editProductId").value = "";
-            document.getElementById("formTitle").textContent = "➕ إضافة منتج رقمي جديد";
-            document.getElementById("submitBtn").textContent = "حفظ وإضافة للمتجر 💾";
-            document.getElementById("cancelEditBtn").style.display = "none";
-        };
-
-        window.deleteProduct = async function(docId) {
-            if (confirm("هل أنت متأكد من رغبتك في حذف هذا المنتج نهائياً من المتجر؟")) {
-                try {
-                    await deleteDoc(doc(db, "products", docId));
-                    await fetchProducts();
-                    alert("تم حذف المنتج بنجاح! 🗑️");
-                } catch (error) {
-                    alert("حدث خطأ أثناء الحذف: " + error.message);
-                }
-            }
-        };
-
-        window.addHelperAdmin = async function() {
-            const emailInput = document.getElementById("helperEmailInput");
-            const email = emailInput.value.trim().toLowerCase();
-            if (email) {
-                try {
-                    await setDoc(doc(db, "helpers", email), { email: email, createdAt: new Date() });
-                    emailInput.value = "";
-                    await fetchHelpers();
-                    alert(`تمت إضافة ${email} كمشرف مساعد بنجاح!`);
-                } catch (error) {
-                    alert("حدث خطأ أثناء إضافة المشرف: " + error.message);
-                }
-            }
-        };
-
-        window.removeHelperAdmin = async function(docId) {
-            if (confirm(`هل أنت متأكد من تجريد هذا الحساب من صلاحيات الإشراف؟`)) {
-                try {
-                    await deleteDoc(doc(db, "helpers", docId));
-                    await fetchHelpers();
-                    alert("تم سحب الصلاحيات بنجاح!");
-                } catch (error) {
-                    alert("حدث خطأ أثناء العزل: " + error.message);
-                }
-            }
-        };
-
-        function helpersListMarkup() {
-            const list = document.getElementById("helpersList");
-            if (helperAdmins.length === 0) {
-                list.innerHTML = `<li style="color:var(--text-sub); font-size:0.85rem;">لا يوجد مشرفون مساعدون حالياً.</li>`;
-                return;
-            }
-            list.innerHTML = helperAdmins.map(helper => `
-                <li style="display:flex; justify-content:space-between; align-items:center; background:#1e1e24; padding:8px 12px; border-radius:6px;">
-                    <span>📧 ${helper.email}</span>
-                    <button onclick="window.removeHelperAdmin('${helper.id}')" class="btn-action btn-delete">عزل / حذف ❌</button>
-                </li>
-            `).join('');
         }
-        
-        window.renderHelpersList = helpersListMarkup;
 
-        document.getElementById("addProductForm").addEventListener("submit", async function(e) {
+        // إضافة أو تحديث منتج
+        document.getElementById("productForm").addEventListener("submit", async function(e) {
             e.preventDefault();
-            const editId = document.getElementById("editProductId").value;
+            const editId = document.getElementById("editDocId").value;
 
             const productData = {
                 title: document.getElementById("pTitle").value,
                 cat: document.getElementById("pCat").value,
                 badge: document.getElementById("pBadge").value,
                 price: document.getElementById("pPrice").value,
-                imgUrl: document.getElementById("pImgUrl").value,
-                fileUrl: document.getElementById("pFileUrl").value,
+                img: document.getElementById("pImg").value,
+                link: document.getElementById("pLink").value,
                 desc: document.getElementById("pDesc").value,
                 updatedAt: new Date()
             };
@@ -464,85 +355,59 @@
                 } else {
                     productData.createdAt = new Date();
                     await addDoc(collection(db, "products"), productData);
-                    alert("تمت إضافة المنتج للسيرفر بنجاح! ➕");
+                    alert("تمت إضافة المنتج بنجاح! ➕");
                 }
-
-                window.resetForm();
-                await fetchProducts();
-            } catch (error) {
-                alert("حدث خطأ أثناء الحفظ: " + error.message);
-            }
-        });
-
-        document.getElementById("cancelEditBtn").addEventListener("click", window.resetForm);
-        document.getElementById("addHelperBtn").addEventListener("click", window.addHelperAdmin);
-
-        // التحقق من الصلاحيات وتجاوز المشاكل
-        onAuthStateChanged(auth, async (user) => {
-            const accessGate = document.getElementById("accessGate");
-            const adminPanel = document.getElementById("adminPanel");
-            const gateTitle = document.getElementById("gateTitle");
-            const gateMessage = document.getElementById("gateMessage");
-            const gateBtn = document.getElementById("gateBtn");
-            const pinBox = document.getElementById("pinBox");
-
-            if (user) {
-                const userEmail = user.email ? user.email.toLowerCase() : "";
                 
-                // تحقق مطابقة المدير إما عبر الـ UID أو عبر البريد الإلكتروني مباشرة
-                const isSuperAdmin = (user.uid === SUPER_ADMIN_UID || userEmail === SUPER_ADMIN_EMAIL);
-
-                let isHelper = false;
-                if (!isSuperAdmin && userEmail) {
-                    try {
-                        const helperDoc = await getDoc(doc(db, "helpers", userEmail));
-                        isHelper = helperDoc.exists();
-                    } catch (e) {
-                        console.log("فحص المساعد تجاوزي احتياطي");
-                    }
-                }
-
-                if (isSuperAdmin || isHelper) {
-                    gateTitle.textContent = "🔒 أدخل الرمز السري للوحة التحكم";
-                    gateTitle.style.color = "var(--accent-cyan)";
-                    gateMessage.textContent = `مرحباً بك يا محمد (${userEmail}). أدخل الرمز السري للمتابعة.`;
-                    pinBox.style.display = "block";
-
-                    document.getElementById("verifyPinBtn").onclick = async function() {
-                        const enteredPin = document.getElementById("secretPinInput").value.trim();
-                        if (enteredPin === SECRET_PANEL_PIN) {
-                            accessGate.style.display = "none";
-                            adminPanel.style.display = "block";
-
-                            await fetchProducts();
-
-                            if (isSuperAdmin) {
-                                document.getElementById("userRoleBadge").textContent = "المدير الرئيسي (Super Admin)";
-                                document.getElementById("superAdminSection").style.display = "block";
-                                await fetchHelpers();
-                            } else {
-                                document.getElementById("userRoleBadge").textContent = "مشرف مساعد (Helper Admin)";
-                                document.getElementById("superAdminSection").style.display = "none";
-                            }
-                        } else {
-                            alert("❌ الرمز السري غير صحيح! (الرمز الافتراضي هو 2026)");
-                        }
-                    };
-
-                } else {
-                    gateTitle.textContent = "❌ عذراً، لا تملك صلاحية الدخول";
-                    gateTitle.style.color = "var(--danger-red)";
-                    gateMessage.textContent = `حسابك الحالي (${userEmail || user.uid}) غير مصرح له بإدارة الموقع.`;
-                    pinBox.style.display = "none";
-                    gateBtn.style.display = "inline-block";
-                }
-            } else {
-                gateTitle.textContent = "🔒 يجب تسجيل الدخول أولاً";
-                gateMessage.textContent = "يرجى تسجيل الدخول بحسابك في موقع المتجر أولاً.";
-                pinBox.style.display = "none";
-                gateBtn.style.display = "inline-block";
+                resetFormFields();
+                loadProducts();
+            } catch (error) {
+                alert("حدث خطأ: " + error.message);
             }
         });
+
+        // دالة التعديل
+        window.startEdit = function(id) {
+            const p = productsList.find(item => item.id === id);
+            if (!p) return;
+
+            document.getElementById("editDocId").value = p.id;
+            document.getElementById("pTitle").value = p.title;
+            document.getElementById("pCat").value = p.cat;
+            document.getElementById("pBadge").value = p.badge;
+            document.getElementById("pPrice").value = p.price;
+            document.getElementById("pImg").value = p.img || "";
+            document.getElementById("pLink").value = p.link;
+            document.getElementById("pDesc").value = p.desc;
+
+            document.getElementById("formTitle").textContent = "✏️ تعديل المنتج";
+            document.getElementById("saveBtn").textContent = "تحديث المنتج 🔄";
+            document.getElementById("cancelBtn").style.display = "inline-block";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // زر إلغاء التعديل
+        document.getElementById("cancelBtn").addEventListener("click", resetFormFields);
+
+        function resetFormFields() {
+            document.getElementById("productForm").reset();
+            document.getElementById("editDocId").value = "";
+            document.getElementById("formTitle").textContent = "➕ إضافة منتج جديد";
+            document.getElementById("saveBtn").textContent = "حفظ ونشر المنتج 💾";
+            document.getElementById("cancelBtn").style.display = "none";
+        }
+
+        // حذف منتج
+        window.removeProduct = async function(id) {
+            if (confirm("هل أنت متأكد من حذف هذا المنتج نهائياً؟")) {
+                try {
+                    await deleteDoc(doc(db, "products", id));
+                    loadProducts();
+                    alert("تم الحذف بنجاح! 🗑️");
+                } catch (error) {
+                    alert("خطأ أثناء الحذف: " + error.message);
+                }
+            }
+        };
     </script>
 </body>
 </html>
