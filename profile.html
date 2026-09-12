@@ -18,6 +18,7 @@
             --text-main: #ffffff;
             --text-sub: #a0a0c0;
             --danger-red: #ff4757;
+            --accent-green: #00e676;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -91,7 +92,7 @@
             color: #fff;
         }
 
-        .cart-card {
+        .cart-card, .orders-card {
             background: var(--bg-card);
             border: 1px solid var(--border-line);
             border-radius: 14px;
@@ -99,7 +100,7 @@
             margin-bottom: 25px;
         }
 
-        .cart-item {
+        .cart-item, .order-item-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -137,6 +138,21 @@
         }
         .btn-checkout:hover {
             opacity: 0.9;
+        }
+
+        .btn-download {
+            background: var(--accent-green);
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        .btn-download:hover {
+            box-shadow: 0 0 10px rgba(0, 230, 118, 0.5);
         }
 
         @media (max-width: 768px) {
@@ -188,17 +204,84 @@
                 <a href="login.html" style="background:var(--accent-cyan); color:#000; padding:8px 20px; border-radius:8px; font-weight:bold; text-decoration:none;">تسجيل الدخول</a>
             </div>
 
-            <h1 style="margin-bottom: 25px; font-size: 1.8rem;">سلة المشتريات 🛒</h1>
+            <!-- قسم المشتريات المسجلة من Firebase -->
+            <h1 style="margin-bottom: 15px; font-size: 1.6rem; color: var(--accent-cyan);">مكتبتي الرقمية والطلبات 📦</h1>
+            <div class="orders-card">
+                <div id="myPurchasesList">
+                    <p style="color:var(--text-sub);">جاري جلب المشتروات والطلبات...</p>
+                </div>
+            </div>
+
+            <!-- قسم سلة المشتريات -->
+            <h1 style="margin-bottom: 15px; font-size: 1.6rem; margin-top: 30px;">سلة المشتريات الحالية 🛒</h1>
 
             <div class="cart-card">
                 <div id="cartList">
                     <!-- المشتريات تظهر هنا -->
                 </div>
-                <!-- إضافة id="checkoutBtn" وتصحيح الكلاس إلى btn-checkout -->
                 <a href="checkout.html" id="checkoutBtn" class="btn-checkout">الانتقال إلى صفحة الدفع 💳</a>
             </div>
         </main>
     </div>
+
+    <!-- ربط Firebase لقراءة المشتريات السابقة -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
+            authDomain: "digivault-4c3a3.firebaseapp.com",
+            projectId: "digivault-4c3a3",
+            storageBucket: "digivault-4c3a3.firebasestorage.app",
+            messagingSenderId: "578335534171",
+            appId: "1:578335534171:web:1b108a849c0543f998a37e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // تحميل الطلبات والمشتريات المسجلة في قاعدة البيانات
+        async function loadPurchasesFromFirebase() {
+            const container = document.getElementById("myPurchasesList");
+            const userProfile = JSON.parse(localStorage.getItem("userProfile")) || { email: "ythr2010@gmail.com" };
+
+            try {
+                const q = query(collection(db, "purchases"), where("buyerEmail", "==", userProfile.email));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    container.innerHTML = "<p style='color:var(--text-sub); text-align:center;'>لا توجد طلبات سابقة لهذا الحساب.</p>";
+                    return;
+                }
+
+                let html = "";
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const items = data.items || [];
+                    
+                    items.forEach(item => {
+                        html += `
+                            <div class="order-item-row">
+                                <div>
+                                    <strong>${item.name || item.title}</strong>
+                                    <div style="font-size:0.85rem; color:var(--text-sub);">طريقة الدفع: ${data.paymentMethod || 'الذهبية'}</div>
+                                </div>
+                                <a href="#" onclick="alert('جاري تجهيز رابط التنزيل المباشر للملف الرقمي!'); return false;" class="btn-download">تنزيل الملف 📥</a>
+                            </div>
+                        `;
+                    });
+                });
+
+                container.innerHTML = html;
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = "<p style='color:var(--danger-red);'>تعذر تحميل الطلبات الحالية.</p>";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadPurchasesFromFirebase);
+    </script>
 
     <script>
         // عرض بيانات المستخدم وحالة تسجيل الدخول
@@ -246,7 +329,7 @@
             container.innerHTML = cart.map((item, index) => `
                 <div class="cart-item">
                     <div>
-                        <strong>${item.name}</strong>
+                        <strong>${item.name || item.title}</strong>
                         <div style="color:var(--accent-cyan); font-weight:bold;">${item.price}</div>
                     </div>
                     <button class="btn-remove" onclick="removeItem(${index})">حذف 🗑️</button>
@@ -263,7 +346,6 @@
 
         // دالة تسجيل الخروج المنظمة
         function logoutUser() {
-            // حذف جلسة الدخول فقط بدلاً من localStorage.clear() لتجنب حذف الحسابات المسجلة
             localStorage.removeItem("isLoggedIn");
             localStorage.removeItem("userProfile");
             sessionStorage.clear();
