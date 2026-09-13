@@ -3,199 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سلة المشتريات والحساب | الخزنة الرقمية</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <title>مشترياتي - DigiVault</title>
     <style>
         :root {
-            --bg-main: #0a0a12;
-            --bg-card: #141424;
-            --bg-sidebar: #10101c;
-            --accent-cyan: #00d2ff;
-            --accent-purple: #8a2be2;
-            --border-line: rgba(255, 255, 255, 0.08);
-            --text-main: #ffffff;
-            --text-sub: #a0a0c0;
-            --danger-red: #ff4757;
-            --accent-green: #00e676;
+            --bg-color: #f8fafc;
+            --text-main: #0f172a;
+            --text-sub: #475569;
+            --danger-red: #ef4444;
+            --primary: #2563eb;
+            --border-color: #e2e8f0;
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg-main); color: var(--text-main); line-height: 1.6; }
-
-        .page-wrapper { display: flex; min-height: 100vh; }
-
-        .sidebar {
-            width: 260px;
-            background: var(--bg-sidebar);
-            border-left: 1px solid var(--border-line);
-            padding: 25px 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            position: sticky;
-            top: 0;
-            height: 100vh;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
         }
-
-        .sidebar-menu { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-        .sidebar-menu li a, .sidebar-menu li button {
-            display: flex; align-items: center; gap: 12px; color: var(--text-sub);
-            text-decoration: none; padding: 12px 16px; border-radius: 10px; font-weight: 600; transition: 0.3s;
-            width: 100%; border: none; background: transparent; font-family: inherit; font-size: 1rem; cursor: pointer;
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
-        .sidebar-menu li a:hover, .sidebar-menu li a.active {
-            background: rgba(0, 210, 255, 0.1); color: var(--accent-cyan); border-right: 3px solid var(--accent-cyan);
-        }
-
-        .btn-logout-sidebar { color: var(--danger-red) !important; }
-        .btn-logout-sidebar:hover {
-            background: rgba(255, 71, 87, 0.1) !important;
-            border-right: 3px solid var(--danger-red) !important;
-        }
-
-        .main-content { flex: 1; padding: 30px; max-width: 900px; }
-
-        .user-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-line);
-            border-radius: 14px;
-            padding: 20px 25px;
-            margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-        }
-
-        .user-info { display: flex; align-items: center; gap: 15px; }
-        .user-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-cyan); }
-        .user-details h3 { font-size: 1.2rem; margin-bottom: 3px; }
-        .user-details p { color: var(--text-sub); font-size: 0.9rem; }
-
-        .btn-logout-main {
-            background: rgba(255, 71, 87, 0.15);
-            color: var(--danger-red);
-            border: 1px solid rgba(255, 71, 87, 0.3);
-            padding: 8px 18px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            font-family: inherit;
-            transition: 0.3s;
-        }
-        .btn-logout-main:hover { background: var(--danger-red); color: #fff; }
-
-        .cart-card, .orders-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-line);
-            border-radius: 14px;
-            padding: 25px;
-            margin-bottom: 25px;
-        }
-
-        .cart-item, .order-item-row {
+        .order-item-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border-line);
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
         }
-
-        .btn-remove {
-            background: rgba(255, 0, 0, 0.15);
-            color: #ff4d4d;
-            border: 1px solid rgba(255, 0, 0, 0.3);
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: inherit;
-            transition: 0.2s;
+        .order-item-row:last-child {
+            border-bottom: none;
         }
-        .btn-remove:hover { background: #ff4d4d; color: #fff; }
-
-        .btn-checkout {
-            display: block;
-            width: 100%;
-            text-align: center;
-            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-            color: #fff;
-            padding: 14px;
-            border-radius: 10px;
-            font-weight: 800;
-            text-decoration: none;
-            margin-top: 15px;
-            transition: opacity 0.3s;
-        }
-        .btn-checkout:hover { opacity: 0.9; }
-
         .btn-download {
-            background: var(--accent-green);
-            color: #000;
+            background-color: var(--primary);
+            color: white;
             padding: 8px 16px;
-            border-radius: 8px;
+            border-radius: 6px;
             text-decoration: none;
-            font-weight: bold;
             font-size: 0.9rem;
-            transition: 0.3s;
+            transition: background-color 0.2s;
         }
-        .btn-download:hover { box-shadow: 0 0 10px rgba(0, 230, 118, 0.5); }
-
-        @media (max-width: 768px) {
-            .page-wrapper { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; position: static; }
-            .user-card { flex-direction: column; text-align: center; }
-            .user-info { flex-direction: column; }
+        .btn-download:hover {
+            background-color: #1d4ed8;
         }
     </style>
 </head>
 <body>
 
-    <div class="page-wrapper">
-        <aside class="sidebar">
-            <div class="logo"><a href="index.html" style="font-size:1.5rem; font-weight:900; color:#fff; text-decoration:none;">الخزنة<span style="color:var(--accent-cyan);">الرقمية</span></a></div>
-            <ul class="sidebar-menu">
-                <li><a href="index.html">🏠 الصفحة الرئيسية</a></li>
-                <li><a href="shop.html">🛍️ تسوق الآن (المنتجات)</a></li>
-                <li><a href="contact.html">📩 تواصل معنا والأسئلة</a></li>
-                <li><a href="profile.html" class="active">🛒 سلة المشتريات والحساب</a></li>
-                <li><a href="privacy.html">🔒 سياسة الخصوصية</a></li>
-                <li id="loginMenuLi"><a href="login.html">🔑 تسجيل الدخول</a></li>
-                <li id="logoutMenuLi" style="display: none;"><button onclick="logoutUser()" class="btn-logout-sidebar">🚪 تسجيل الخروج</button></li>
-            </ul>
-        </aside>
-
-        <main class="main-content">
-            <div id="userProfileCard" class="user-card" style="display: none;">
-                <div class="user-info">
-                    <img id="userAvatar" src="" alt="صورة المستخدم" class="user-avatar">
-                    <div class="user-details">
-                        <h3 id="userName">اسم المستخدم</h3>
-                        <p id="userEmail">example@mail.com</p>
-                    </div>
-                </div>
-                <button onclick="logoutUser()" class="btn-logout-main">تسجيل الخروج 🚪</button>
-            </div>
-
-            <div id="guestNoticeCard" class="user-card" style="display: block; text-align: center;">
-                <p style="color: var(--text-sub); margin-bottom: 10px;">أنت تتصفح حالياً كزائر. قم بتسجيل الدخول لحفظ المشتريات ومتابعة طلباتك.</p>
-                <a href="login.html" style="background:var(--accent-cyan); color:#000; padding:8px 20px; border-radius:8px; font-weight:bold; text-decoration:none;">تسجيل الدخول</a>
-            </div>
-
-            <h1 style="margin-bottom: 15px; font-size: 1.6rem; color: var(--accent-cyan);">مكتبتي الرقمية والطلبات 📦</h1>
-            <div class="orders-card">
-                <div id="myPurchasesList">
-                    <p style="color:var(--text-sub);">جاري جلب المشتروات والطلبات...</p>
-                </div>
-            </div>
-
-            <h1 style="margin-bottom: 15px; font-size: 1.6rem; margin-top: 30px;">سلة المشتريات الحالية 🛒</h1>
-            <div class="cart-card">
-                <div id="cartList"></div>
-                <a href="checkout.html" id="checkoutBtn" class="btn-checkout">الانتقال إلى صفحة الدفع 💳</a>
-            </div>
-        </main>
+    <div class="container">
+        <h2>مشترياتي وملفاتي الرقمية</h2>
+        <div id="myPurchasesList">جاري تحميل المشتريات...</div>
     </div>
 
     <script type="module">
@@ -243,7 +104,7 @@
                         html += `
                             <div class="order-item-row">
                                 <div>
-                                    <strong>${item.name || item.title}</strong>
+                                    <strong>${item.name || item.title || 'منتج رقمي'}</strong>
                                     <div style="font-size:0.85rem; color:var(--text-sub);">طريقة الدفع: ${data.paymentMethod || 'الذهبية'} | الحالة: ${data.status || 'مكتمل'}</div>
                                 </div>
                                 ${isLinkValid 
@@ -255,87 +116,13 @@
                 });
 
                 container.innerHTML = html;
-            } else (err) => {
-                // fallthrough handled in catch
-            }
             } catch (err) {
                 console.error(err);
-                container.innerHTML = "<p style='color:var(--danger-red);'>تعذر تحميل الطلبات الحالية.</p>";
+                container.innerHTML = "<p style='color:var(--danger-red); text-align:center;'>تعذر تحميل الطلبات الحالية.</p>";
             }
         }
 
         window.addEventListener("DOMContentLoaded", loadPurchasesFromFirebase);
-    </script>
-
-    <script>
-        function loadUserProfile() {
-            const userProfile = JSON.parse(localStorage.getItem("userProfile"));
-            const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-
-            const userProfileCard = document.getElementById("userProfileCard");
-            const guestNoticeCard = document.getElementById("guestNoticeCard");
-            const loginMenuLi = document.getElementById("loginMenuLi");
-            const logoutMenuLi = document.getElementById("logoutMenuLi");
-
-            if (isLoggedIn && userProfile) {
-                document.getElementById("userName").textContent = userProfile.name || "مستخدم الخزنة الرقمية";
-                document.getElementById("userEmail").textContent = userProfile.email || "";
-                document.getElementById("userAvatar").src = userProfile.picture || "https://ui-avatars.com/api/?name=" + encodeURIComponent(userProfile.name || "User");
-
-                userProfileCard.style.display = "flex";
-                guestNoticeCard.style.display = "none";
-                if (loginMenuLi) loginMenuLi.style.display = "none";
-                if (logoutMenuLi) logoutMenuLi.style.display = "block";
-            } else {
-                userProfileCard.style.display = "none";
-                guestNoticeCard.style.display = "block";
-                if (loginMenuLi) loginMenuLi.style.display = "block";
-                if (logoutMenuLi) logoutMenuLi.style.display = "none";
-            }
-        }
-
-        function renderCart() {
-            const cart = JSON.parse(localStorage.getItem("cart")) || [];
-            const container = document.getElementById("cartList");
-            const btn = document.getElementById("checkoutBtn");
-
-            if (cart.length === 0) {
-                container.innerHTML = "<p style='color:var(--text-sub); text-align:center; padding:20px;'>سلة المشتريات فارغة حالياً.</p>";
-                if (btn) btn.style.display = "none";
-                return;
-            }
-
-            if (btn) btn.style.display = "block";
-            container.innerHTML = cart.map((item, index) => `
-                <div class="cart-item">
-                    <div>
-                        <strong>${item.name || item.title}</strong>
-                        <div style="color:var(--accent-cyan); font-weight:bold;">${item.price} دج</div>
-                    </div>
-                    <button class="btn-remove" onclick="removeItem(${index})">حذف 🗑️</button>
-                </div>
-            `).join('');
-        }
-
-        function removeItem(index) {
-            let cart = JSON.parse(localStorage.getItem("cart")) || [];
-            cart.splice(index, 1);
-            localStorage.setItem("cart", JSON.stringify(cart));
-            renderCart();
-        }
-
-        function logoutUser() {
-            localStorage.removeItem("isLoggedIn");
-            localStorage.removeItem("userProfile");
-            sessionStorage.clear();
-            alert("تم تسجيل الخروج بنجاح!");
-            window.location.href = "index.html";
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            loadUserProfile();
-            renderCart();
-        });
     </script>
 </body>
 </html>
