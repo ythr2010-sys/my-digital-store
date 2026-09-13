@@ -17,6 +17,7 @@
             --text-main: #ffffff;
             --text-sub: #a0a0c0;
             --danger-red: #ff4757;
+            --success-green: #2ed573;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -119,6 +120,12 @@
             box-shadow: 0 0 8px rgba(0,210,255,0.2);
         }
 
+        .form-error {
+            color: var(--danger-red);
+            font-size: 0.75rem;
+            display: none;
+        }
+
         .btn-primary {
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
             color: #fff;
@@ -133,7 +140,8 @@
             margin-top: 10px;
         }
 
-        .btn-primary:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn-primary:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
         .full-width { width: 100%; }
 
         .auth-footer { text-align: center; margin-top: 20px; font-size: 0.9rem; color: var(--text-sub); }
@@ -179,20 +187,23 @@
                 <span>أو عبر البريد الإلكتروني</span>
             </div>
 
-            <form id="signupForm" class="contact-form">
+            <form id="signupForm" class="contact-form" novalidate>
                 <div class="form-group">
                     <label for="fullName">الاسم الكامل</label>
                     <input type="text" id="fullName" placeholder="محمد ياسر" required>
+                    <span class="form-error" id="nameError">الرجاء إدخال الاسم الكامل (أقل شيء حرفان)</span>
                 </div>
 
                 <div class="form-group">
                     <label for="signupEmail">البريد الإلكتروني</label>
                     <input type="email" id="signupEmail" placeholder="example@gmail.com" required>
+                    <span class="form-error" id="emailError">الرجاء إدخال بريد إلكتروني صحيح</span>
                 </div>
 
                 <div class="form-group">
-                    <label for="signupPassword">كلمة المرور (6 أحرف على الأقل)</label>
+                    <label for="signupPassword">كلمة المرور (6 أحرف/رموز على الأقل)</label>
                     <input type="password" id="signupPassword" placeholder="••••••••" minlength="6" required>
+                    <span class="form-error" id="passwordError">كلمة المرور يجب أن تكون 6 أحرف على الأقل</span>
                 </div>
 
                 <button type="submit" class="btn-primary full-width" id="submitBtn">إنشاء الحساب</button>
@@ -208,10 +219,11 @@
         <p>جميع الحقوق محفوظة © 2026 الخزنة الرقمية (DigiVault)</p>
     </footer>
 
-    <!-- كود الربط بـ Firebase وإدارة المصادقة -->
+    <!-- كود الربط بـ Firebase (Auth + Firestore) وإدارة المصادقة -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
@@ -225,18 +237,67 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
         const googleProvider = new GoogleAuthProvider();
 
         const SUPER_ADMIN_EMAIL = "ythr2010@gmail.com";
+
+        // دوال المساعدة للتحقق من صحة المدخلات (Validation Helpers)
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        // حفظ وثيقة المستخدم في Firestore
+        async function saveUserToFirestore(user, name, role) {
+            const userRef = doc(db, "users", user.uid);
+            await setDoc(userRef, {
+                uid: user.uid,
+                name: name || user.displayName || "مستخدم الخزنة",
+                email: user.email,
+                role: role,
+                createdAt: serverTimestamp()
+            }, { merge: true });
+        }
 
         // معالجة نموذج إنشاء الحساب بالبريد الإلكتروني
         const signupForm = document.getElementById("signupForm");
         signupForm.addEventListener("submit", async (e) => {
             e.preventDefault();
-            const fullName = document.getElementById("fullName").value.trim();
-            const email = document.getElementById("signupEmail").value.trim();
-            const password = document.getElementById("signupPassword").value;
+
+            const fullNameInput = document.getElementById("fullName");
+            const emailInput = document.getElementById("signupEmail");
+            const passwordInput = document.getElementById("signupPassword");
+
+            const nameError = document.getElementById("nameError");
+            const emailError = document.getElementById("emailError");
+            const passwordError = document.getElementById("passwordError");
+
+            const fullName = fullNameInput.value.trim();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
             const submitBtn = document.getElementById("submitBtn");
+
+            // إعادة تعيين رسائل الأخطاء
+            nameError.style.display = "none";
+            emailError.style.display = "none";
+            passwordError.style.display = "none";
+
+            let isValid = true;
+            if (fullName.length < 2) {
+                nameError.style.display = "block";
+                isValid = false;
+            }
+            if (!validateEmail(email)) {
+                emailError.style.display = "block";
+                isValid = false;
+            }
+            if (password.length < 6) {
+                passwordError.style.display = "block";
+                isValid = false;
+            }
+
+            if (!isValid) return;
 
             submitBtn.disabled = true;
             submitBtn.textContent = "جاري إنشاء الحساب...";
@@ -245,16 +306,19 @@
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                // تحديث اسم المستخدم في فايربيس
+                // تحديث اسم المستخدم في Auth
                 await updateProfile(user, { displayName: fullName });
 
                 const role = (email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()) ? "admin" : "user";
 
-                // حفظ بيانات المستخدم في LocalStorage لتسهيل العرض في الملف الشخصي
+                // حفظ البيانات في Firestore
+                await saveUserToFirestore(user, fullName, role);
+
                 const userProfile = {
-                    name: fullName || user.displayName || "مستخدم الخزنة",
+                    name: fullName,
                     email: user.email,
-                    role: role
+                    role: role,
+                    uid: user.uid
                 };
 
                 localStorage.setItem("isLoggedIn", "true");
@@ -281,13 +345,18 @@
                 const result = await signInWithPopup(auth, googleProvider);
                 const user = result.user;
                 const email = user.email;
+                const name = user.displayName || "مستخدم Google";
 
                 const role = (email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()) ? "admin" : "user";
 
+                // حفظ البيانات في Firestore للمستخدمين القادمين عبر Google أيضاً
+                await saveUserToFirestore(user, name, role);
+
                 const userProfile = {
-                    name: user.displayName || "مستخدم Google",
+                    name: name,
                     email: user.email,
-                    role: role
+                    role: role,
+                    uid: user.uid
                 };
 
                 localStorage.setItem("isLoggedIn", "true");
@@ -298,7 +367,7 @@
 
             } catch (error) {
                 console.error("خطأ في تسجيل Google:", error);
-                alert("تعذر التسجيل بواسطة Google، يجدر التحقق من الاتصال بالشبكة.");
+                alert("تعذر التسجيل بواسطة Google، يرجى التحقق من الاتصال بالشبكة.");
             }
         });
     </script>
