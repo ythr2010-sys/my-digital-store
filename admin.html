@@ -3,343 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم الشاملة | الخزنة الرقمية - v2</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <title>لوحة تحكم DigiVault - إدارة متكاملة</title>
     <style>
         :root {
-            --bg-main: #0a0a12;
-            --bg-card: #141424;
-            --accent-cyan: #00d2ff;
-            --accent-purple: #8a2be2;
-            --border-line: rgba(255, 255, 255, 0.08);
-            --text-main: #ffffff;
-            --text-sub: #a0a0c0;
-            --danger-red: #ff4757;
-            --success-green: #2ed573;
-            --warning-yellow: #ffa502;
+            --bg-primary: #0a0b10;
+            --bg-secondary: #12151e;
+            --accent-cyan: #00f0ff;
+            --accent-purple: #7928ca;
+            --text-main: #f0f6fc;
+            --text-sub: #8b949e;
+            --danger-red: #ff3366;
+            --success-green: #00ff66;
+            --warning-orange: #ffab00;
+            --border-color: rgba(255, 255, 255, 0.08);
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg-main); color: var(--text-main); line-height: 1.6; padding: 20px; }
-
-        #authScreen {
-            max-width: 420px;
-            margin: 80px auto;
-            background: var(--bg-card);
-            border: 1px solid var(--border-line);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            text-align: center;
-        }
-
-        #authScreen h2 { color: var(--accent-cyan); margin-bottom: 10px; }
-        #authScreen p { color: var(--text-sub); font-size: 0.9rem; margin-bottom: 20px; }
-
-        .input-box {
-            width: 100%;
-            padding: 12px 15px;
-            background: #1e1e28;
-            border: 1px solid var(--border-line);
-            border-radius: 8px;
-            color: #fff;
-            font-family: inherit;
-            margin-bottom: 15px;
-            outline: none;
-            text-align: center;
-            font-size: 1rem;
-        }
-        .input-box:focus { border-color: var(--accent-cyan); }
-
-        .btn-main {
-            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-            color: #fff;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            font-family: inherit;
-            font-size: 1rem;
-            transition: 0.2s;
-        }
-        .btn-main:hover { opacity: 0.9; }
-
-        #dashboardContent {
-            display: none;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .header-dash {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--bg-card);
-            border: 1px solid var(--border-line);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        .stat-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-line);
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .stat-card h4 { color: var(--text-sub); font-size: 0.85rem; }
-        .stat-card span { font-size: 1.5rem; font-weight: 900; color: var(--accent-cyan); }
-
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-line);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .form-group { display: flex; flex-direction: column; gap: 5px; }
-        .form-group label { font-size: 0.85rem; color: var(--text-sub); }
-        .form-group input, .form-group select, .form-group textarea {
-            padding: 10px;
-            background: #1e1e28;
-            border: 1px solid var(--border-line);
-            border-radius: 8px;
-            color: #fff;
-            font-family: inherit;
-            outline: none;
-        }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent-cyan); }
-
-        .products-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        .products-table th, .products-table td {
-            padding: 12px;
-            text-align: right;
-            border-bottom: 1px solid var(--border-line);
-            font-size: 0.9rem;
-        }
-        .products-table th { color: var(--accent-cyan); background: rgba(255,255,255,0.02); }
-
-        .btn-action {
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 0.8rem;
-            border: none;
-            margin-left: 5px;
-        }
-        .btn-edit { background: rgba(255, 165, 2, 0.2); color: var(--warning-yellow); border: 1px solid var(--warning-yellow); }
-        .btn-delete { background: rgba(255, 71, 87, 0.2); color: var(--danger-red); border: 1px solid var(--danger-red); }
-        .btn-approve { background: rgba(46, 213, 115, 0.2); color: var(--success-green); border: 1px solid var(--success-green); }
-        
-        .img-preview { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; background: #222; }
-        .error-msg { color: var(--danger-red); font-size: 0.85rem; margin-top: 10px; display: none; }
-        
-        .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-        .badge-pending { background: rgba(255, 165, 2, 0.15); color: var(--warning-yellow); }
-        .badge-approved { background: rgba(46, 213, 115, 0.15); color: var(--success-green); }
-
-        .search-filter-bar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        .search-filter-bar input, .search-filter-bar select {
-            flex: 1;
-            min-width: 200px;
-            padding: 10px;
-            background: #1e1e28;
-            border: 1px solid var(--border-line);
-            border-radius: 8px;
-            color: #fff;
-            outline: none;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background-color: var(--bg-primary); color: var(--text-main); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1300px; margin: 0 auto; }
+        .card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+        .auth-box { max-width: 400px; margin: 100px auto; text-align: center; }
+        input, select, textarea, button { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.3); color: var(--text-main); font-size: 14px; }
+        button { background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan)); border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+        .error-msg { color: var(--danger-red); margin-bottom: 10px; display: none; font-size: 13px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: right; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+        th { background: rgba(255,255,255,0.02); color: var(--accent-cyan); }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; display: inline-block; }
+        .badge-approved { background: rgba(0,255,102,0.15); color: var(--success-green); border: 1px solid rgba(0,255,102,0.3); }
+        .badge-pending { background: rgba(255,171,0,0.15); color: var(--warning-orange); border: 1px solid rgba(255,171,0,0.3); }
+        .btn-action { padding: 6px 12px; width: auto; margin-left: 5px; font-size: 12px; border-radius: 6px; display: inline-block; }
+        .btn-approve { background: rgba(0,255,102,0.2); color: var(--success-green); border: 1px solid var(--success-green); }
+        .btn-edit { background: rgba(0,240,255,0.2); color: var(--accent-cyan); border: 1px solid var(--accent-cyan); }
+        .btn-delete { background: rgba(255,51,102,0.2); color: var(--danger-red); border: 1px solid var(--danger-red); }
+        .img-preview { width: 45px; height: 45px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color); }
+        .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 15px; border-radius: 10px; text-align: center; }
+        .stat-card h3 { font-size: 24px; color: var(--accent-cyan); margin-top: 5px; }
+        #dashboardContent { display: none; }
     </style>
 </head>
 <body>
 
-    <div id="authScreen">
-        <h2>🔒 بوابة المدير الآمنة</h2>
-        <p>الرجاء تسجيل الدخول باستخدام حساب Firebase للمدير</p>
-        
-        <input type="email" id="loginEmail" class="input-box" placeholder="البريد الإلكتروني">
-        <input type="password" id="loginPass" class="input-box" placeholder="كلمة المرور">
-        
-        <button id="loginBtn" class="btn-main">دخول اللوحة 🔓</button>
-        <div id="errorMsg" class="error-msg">❌ بيانات الدخول غير صحيحة أو ليست بصلاحيات مدير!</div>
-        
-        <div style="margin-top: 20px;">
-            <a href="shop.html" style="color: var(--accent-cyan); text-decoration: none; font-size: 0.85rem;">← العودة للمتجر</a>
-        </div>
+    <!-- شاشة تسجيل الدخول -->
+    <div id="authScreen" class="card auth-box">
+        <h2>🔐 دخول الإدارة / البائع</h2>
+        <p style="color:var(--text-sub); margin-bottom:15px; font-size:13px;">أدخل بيانات حسابك للمتابعة</p>
+        <div id="errorMsg" class="error-msg"></div>
+        <input type="email" id="loginEmail" placeholder="البريد الإلكتروني">
+        <input type="password" id="loginPass" placeholder="كلمة المرور">
+        <button id="loginBtn">دخول 🚀</button>
     </div>
 
-    <div id="dashboardContent">
-        <div class="header-dash">
+    <!-- محتوى لوحة التحكم -->
+    <div id="dashboardContent" class="container">
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
             <div>
-                <h1>👑 لوحة تحكم الخزنة الرقمية</h1>
-                <span id="adminEmailDisplay" style="color: var(--accent-cyan); font-size: 0.85rem;">مسجل كـ: المدير</span>
+                <h2>⚡ لوحة تحكم DigiVault</h2>
+                <small id="adminEmailDisplay" style="color:var(--text-sub);"></small>
             </div>
-            <div style="display: flex; gap: 15px; align-items: center;">
-                <a href="shop.html" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">← العودة للمتجر</a>
-                <button id="logoutBtn" class="btn-action btn-delete">تسجيل الخروج 🚪</button>
-            </div>
+            <button id="logoutBtn" style="width:auto; background:var(--danger-red);">تسجيل خروج 🚪</button>
         </div>
 
-        <!-- إحصائيات سريعة -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div><h4>إجمالي المنتجات</h4><span id="statProducts">0</span></div>
-                <span>📦</span>
-            </div>
-            <div class="stat-card">
-                <div><h4>الطلبات الكلية</h4><span id="statOrders">0</span></div>
-                <span>💳</span>
-            </div>
-            <div class="stat-card">
-                <div><h4>الرسائل الواردة</h4><span id="statMessages">0</span></div>
-                <span>📥</span>
-            </div>
+        <div class="grid-stats">
+            <div class="stat-card"><span>إجمالي المنتجات</span><h3 id="statProducts">0</h3></div>
+            <div class="stat-card"><span>الطلبات</span><h3 id="statOrders">0</h3></div>
+            <div class="stat-card"><span>الرسائل</span><h3 id="statMessages">0</h3></div>
         </div>
 
-        <!-- قسم طلبات الشراء -->
+        <!-- إدارة المنتجات -->
         <div class="card">
-            <h3 style="margin-bottom: 15px; color: var(--accent-cyan);">💳 طلبات الشراء الواردة (Orders)</h3>
-            <div style="overflow-x: auto;">
-                <table class="products-table">
-                    <thead>
-                        <tr>
-                            <th>رقم/معرف الطلب</th>
-                            <th>المشتري</th>
-                            <th>المنتجات</th>
-                            <th>طريقة الدفع</th>
-                            <th>الحالة</th>
-                            <th>الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ordersTableBody">
-                        <tr><td colspan="6" style="text-align:center; color:var(--text-sub);">جاري تحميل الطلبات...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- قسم رسائل التواصل -->
-        <div class="card">
-            <h3 style="margin-bottom: 15px; color: var(--accent-cyan);">📥 رسائل "تواصل معنا" الواردة</h3>
-            <div style="overflow-x: auto;">
-                <table class="products-table">
-                    <thead>
-                        <tr>
-                            <th>المرسل</th>
-                            <th>النوع</th>
-                            <th>الرسالة</th>
-                            <th>الرد والتحكم</th>
-                        </tr>
-                    </thead>
-                    <tbody id="messagesTableBody">
-                        <tr><td colspan="4" style="text-align:center; color:var(--text-sub);">جاري تحميل الرسائل...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- نموذج إضافة/تعديل المنتجات -->
-        <div class="card">
-            <h3 id="formTitle" style="margin-bottom: 15px; color: var(--accent-cyan);">➕ إضافة منتج جديد</h3>
+            <h3 id="formTitle">➕ إضافة منتج جديد</h3>
             <form id="productForm">
                 <input type="hidden" id="editDocId">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>عنوان المنتج:</label>
-                        <input type="text" id="pTitle" placeholder="مثال: كتاب بايثون الشامل" required>
-                    </div>
-                    <div class="form-group">
-                        <label>الفئة:</label>
-                        <select id="pCat">
-                            <option value="books">📚 كتب وروايات</option>
-                            <option value="models">🎨 مجسمات 3D/2D</option>
-                            <option value="courses">🎓 دورات فيديو</option>
-                            <option value="gaming">🎮 ألعاب واشتراكات</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>شارة المنتج (Badge):</label>
-                        <input type="text" id="pBadge" placeholder="مثال: PDF أو FBX" required>
-                    </div>
-                    <div class="form-group">
-                        <label>السعر ($):</label>
-                        <input type="text" id="pPrice" placeholder="مثال: 9.99" required>
-                    </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <input type="text" id="pTitle" placeholder="عنوان المنتج" required>
+                    <select id="pCat">
+                        <option value="books">كتب ودورات</option>
+                        <option value="scripts">أكواد وسكربتات</option>
+                        <option value="accounts">حسابات رقمية</option>
+                    </select>
                 </div>
-
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>رابط الصورة (Image URL):</label>
-                        <input type="url" id="pImg" placeholder="https://...">
-                    </div>
-                    <div class="form-group">
-                        <label>رابط التحميل المباشر (Download URL):</label>
-                        <input type="url" id="pLink" placeholder="https://..." required>
-                    </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <input type="text" id="pBadge" placeholder="الشارة (مثال: الأفضل مبيعاً)">
+                    <input type="text" id="pPrice" placeholder="السعر (مثال: $10 أو مجاني)" required>
                 </div>
-
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label>الوصف:</label>
-                    <textarea id="pDesc" rows="3" placeholder="وصف موجز للمنتج..." required></textarea>
-                </div>
-
-                <div style="display: flex; gap: 10px;">
-                    <button type="submit" class="btn-main" id="saveBtn">حفظ ونشر المنتج مباشرة 💾</button>
-                    <button type="button" id="cancelBtn" class="btn-action" style="display:none; background:#333; color:#fff;">إلغاء ❌</button>
+                <input type="url" id="pImg" placeholder="رابط صورة المنتج (Image URL)" required>
+                <input type="url" id="pLink" placeholder="رابط التحميل / التسليم الرقمي" required>
+                <textarea id="pDesc" rows="3" placeholder="وصف المنتج التفصيلي..."></textarea>
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" id="saveBtn">حفظ ونشر المنتج 💾</button>
+                    <button type="button" id="cancelBtn" style="display:none; background:var(--text-sub);">إلغاء التعديل</button>
                 </div>
             </form>
-        </div>
 
-        <!-- إدارة المنتجات مع فلترة وبحث -->
-        <div class="card">
-            <h3 style="margin-bottom: 15px;">📋 إدارة المنتجات والموافقات</h3>
-            <div class="search-filter-bar">
-                <input type="text" id="searchInput" placeholder="ابحث عن منتج..." oninput="window.filterTable()">
-                <select id="filterStatus" onchange="window.filterTable()">
-                    <option value="all">جميع الحالات</option>
+            <hr style="border-color:var(--border-color); margin: 20px 0;">
+
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <input type="text" id="searchInput" placeholder="ابحث عن منتج..." style="margin-bottom:0;" oninput="window.filterTable()">
+                <select id="filterStatus" style="width:200px; margin-bottom:0;" onchange="window.filterTable()">
+                    <option value="all">كل الحالة</option>
                     <option value="approved">معتمد ومنشور</option>
                     <option value="pending">بانتظار الموافقة</option>
                 </select>
             </div>
-            <div style="overflow-x: auto;">
-                <table class="products-table">
+
+            <div style="overflow-x:auto;">
+                <table>
                     <thead>
                         <tr>
                             <th>الصورة</th>
                             <th>العنوان</th>
-                            <th>البائع/المصدر</th>
+                            <th>البائع (Email)</th>
                             <th>الحالة</th>
                             <th>السعر</th>
                             <th>الإجراءات</th>
@@ -349,26 +124,50 @@
                 </table>
             </div>
         </div>
+
+        <!-- إدارة الطلبات -->
+        <div class="card">
+            <h3>📦 الطلبات الأخيرة</h3>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>رقم الطلب</th>
+                            <th>المشتري</th>
+                            <th>المنتجات</th>
+                            <th>طريقة الدفع</th>
+                            <th>الحالة</th>
+                            <th>الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- إدارة الرسائل -->
+        <div class="card">
+            <h3>💬 رسائل التواصل والاستفسارات</h3>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>المرسل</th>
+                            <th>النوع</th>
+                            <th>الرسالة</th>
+                            <th>الرد والتحكم</th>
+                        </tr>
+                    </thead>
+                    <tbody id="messagesTableBody"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { 
-            getFirestore, 
-            collection, 
-            getDocs, 
-            addDoc, 
-            doc, 
-            updateDoc, 
-            deleteDoc,
-            serverTimestamp 
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { 
-            getAuth, 
-            signInWithEmailAndPassword, 
-            onAuthStateChanged, 
-            signOut 
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
@@ -386,8 +185,19 @@
 
         const SUPER_ADMIN = "ythr2010@gmail.com";
         let productsList = [];
+        let currentUserObj = null;
+
+        window.filterTable = filterTable;
+        window.completeOrder = completeOrder;
+        window.removeOrder = removeOrder;
+        window.sendReply = sendReply;
+        window.deleteMessage = deleteMessage;
+        window.approveProduct = approveProduct;
+        window.startEdit = startEdit;
+        window.removeProduct = removeProduct;
 
         onAuthStateChanged(auth, async (user) => {
+            currentUserObj = user;
             const errorMsg = document.getElementById("errorMsg");
             if (user) {
                 let isAdmin = user.email === SUPER_ADMIN;
@@ -395,19 +205,18 @@
                     try {
                         const adminSnap = await getDocs(collection(db, "admins"));
                         adminSnap.forEach(d => { if (d.id === user.email) isAdmin = true; });
-                    } catch(e) {}
+                    } catch(e) {
+                        console.error("فشل التحقق من الأدمن الإضافي:", e);
+                    }
                 }
 
-                if (isAdmin) {
+                if (isAdmin || user) { // السماح للمستخدمين بالدخول لإدارة منتجاتهم أو لوحة الأدمن الكاملة
                     document.getElementById("authScreen").style.display = "none";
                     document.getElementById("dashboardContent").style.display = "block";
-                    document.getElementById("adminEmailDisplay").textContent = `مسجل كـ: ${user.email}`;
-                    loadProducts();
-                    loadMessages();
-                    loadOrders();
+                    document.getElementById("adminEmailDisplay").textContent = `مسجل كـ: ${user.email} ${isAdmin ? '(أدمن)' : '(بائع)'}`;
+                    loadAllData();
                 } else {
                     await signOut(auth);
-                    errorMsg.style.display = "block";
                 }
             } else {
                 document.getElementById("authScreen").style.display = "block";
@@ -415,7 +224,7 @@
             }
         });
 
-        document.getElementById("loginBtn").addEventListener("click", async function() {
+        document.getElementById("loginBtn").addEventListener("click", async () => {
             const email = document.getElementById("loginEmail").value.trim();
             const pass = document.getElementById("loginPass").value.trim();
             const errorMsg = document.getElementById("errorMsg");
@@ -424,6 +233,7 @@
             try {
                 await signInWithEmailAndPassword(auth, email, pass);
             } catch (err) {
+                errorMsg.textContent = "❌ بيانات الدخول غير صحيحة!";
                 errorMsg.style.display = "block";
             }
         });
@@ -432,115 +242,11 @@
             await signOut(auth);
         });
 
-        async function loadOrders() {
-            const tbody = document.getElementById("ordersTableBody");
-            try {
-                const querySnapshot = await getDocs(collection(db, "orders"));
-                document.getElementById("statOrders").textContent = querySnapshot.size;
-                if (querySnapshot.empty) {
-                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-sub);">لا توجد طلبات شراء حالياً.</td></tr>`;
-                    return;
-                }
-
-                tbody.innerHTML = "";
-                querySnapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const orderId = docSnap.id;
-                    const itemsHtml = (data.items || []).map(i => `${i.name || i.title}`).join('<br>');
-                    const isCompleted = data.status === 'completed' || data.status === 'مكتمل';
-
-                    tbody.innerHTML += `
-                        <tr>
-                            <td><small>${orderId.slice(0, 8)}...</small></td>
-                            <td><strong>${data.buyerEmail || 'غير معروف'}</strong></td>
-                            <td>${itemsHtml}</td>
-                            <td>${data.paymentMethod || 'الذهبية'}</td>
-                            <td><span class="badge ${isCompleted ? 'badge-approved' : 'badge-pending'}">${data.status || 'قيد المراجعة'}</span></td>
-                            <td>
-                                ${!isCompleted ? `<button class="btn-action btn-approve" onclick="window.completeOrder('${orderId}')">تأكيد واكتمال ✅</button>` : ''}
-                                <button class="btn-action btn-delete" onclick="window.removeOrder('${orderId}')">حذف 🗑️</button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            } catch (error) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--danger-red);">تعذر تحميل الطلبات.</td></tr>`;
-            }
+        function loadAllData() {
+            loadProducts();
+            loadMessages();
+            loadOrders();
         }
-
-        window.completeOrder = async function(id) {
-            try {
-                await updateDoc(doc(db, "orders", id), { status: 'completed' });
-                alert("تم تأكيد الطلب وتفعيل التحميل للعميل! 🚀");
-                loadOrders();
-            } catch (error) {
-                alert("خطأ: " + error.message);
-            }
-        };
-
-        window.removeOrder = async function(id) {
-            if (confirm("هل تريد حذف هذا الطلب نهائياً؟")) {
-                await deleteDoc(doc(db, "orders", id));
-                loadOrders();
-            }
-        };
-
-        async function loadMessages() {
-            const tbody = document.getElementById("messagesTableBody");
-            try {
-                const querySnapshot = await getDocs(collection(db, "contact_messages"));
-                document.getElementById("statMessages").textContent = querySnapshot.size;
-                if (querySnapshot.empty) {
-                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-sub);">لا توجد رسائل جديدة حالياً.</td></tr>`;
-                    return;
-                }
-
-                tbody.innerHTML = "";
-                querySnapshot.forEach((docSnap) => {
-                    const msg = docSnap.data();
-                    const msgId = docSnap.id;
-                    tbody.innerHTML += `
-                        <tr>
-                            <td><strong>${msg.name || 'مجهول'}</strong><br><small style="color:var(--text-sub);">${msg.email || ''}</small></td>
-                            <td><span class="badge badge-pending">${msg.requestType || 'استفسار'}</span></td>
-                            <td>${msg.message || ''}</td>
-                            <td>
-                                <textarea id="reply_${msgId}" rows="2" placeholder="اكتب ردك هنا..." style="width:100%; margin-bottom:5px;">${msg.adminReply || ''}</textarea>
-                                <button class="btn-action btn-approve" onclick="window.sendReply('${msgId}')">إرسال ✉️</button>
-                                <button class="btn-action btn-delete" onclick="window.deleteMessage('${msgId}')">حذف 🗑️</button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            } catch (error) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--danger-red);">تعذر تحميل الرسائل.</td></tr>`;
-            }
-        }
-
-        window.sendReply = async function(msgId) {
-            const replyText = document.getElementById(`reply_${msgId}`).value.trim();
-            if (!replyText) {
-                alert("الرجاء كتابة رد أولاً!");
-                return;
-            }
-            try {
-                await updateDoc(doc(db, "contact_messages", msgId), {
-                    adminReply: replyText,
-                    status: 'replied'
-                });
-                alert("تم حفظ الرد بنجاح!");
-                loadMessages();
-            } catch (error) {
-                alert("خطأ أثناء حفظ الرد: " + error.message);
-            }
-        };
-
-        window.deleteMessage = async function(msgId) {
-            if (confirm("هل تريد حذف هذه الرسالة؟")) {
-                await deleteDoc(doc(db, "contact_messages", msgId));
-                loadMessages();
-            }
-        };
 
         async function loadProducts() {
             try {
@@ -556,7 +262,7 @@
             }
         }
 
-        window.filterTable = function() {
+        function filterTable() {
             const searchVal = document.getElementById("searchInput").value.toLowerCase();
             const filterStat = document.getElementById("filterStatus").value;
 
@@ -566,7 +272,7 @@
                 return matchesSearch && matchesStat;
             });
             renderTable(filtered);
-        };
+        }
 
         function renderTable(list) {
             const tbody = document.getElementById("tableBody");
@@ -585,7 +291,7 @@
                     <tr>
                         <td><img src="${p.imageUrl || 'https://via.placeholder.com/40'}" class="img-preview" alt=""></td>
                         <td><strong>${p.title}</strong></td>
-                        <td>${p.sellerName || 'المدير'}</td>
+                        <td><small>${p.sellerEmail || 'غير معروف'}</small></td>
                         <td>${statusBadge}</td>
                         <td style="color:var(--accent-cyan); font-weight:bold;">${p.price}</td>
                         <td>
@@ -598,19 +304,20 @@
             }).join('');
         }
 
-        window.approveProduct = async function(id) {
+        async function approveProduct(id) {
             try {
                 await updateDoc(doc(db, "products", id), { status: 'approved' });
-                alert("تم قبول المنتج ونشره في المتجر بنجاح! 🚀");
                 loadProducts();
             } catch (error) {
                 alert("خطأ: " + error.message);
             }
-        };
+        }
 
         document.getElementById("productForm").addEventListener("submit", async function(e) {
             e.preventDefault();
             const editId = document.getElementById("editDocId").value;
+            const userEmail = currentUserObj ? currentUserObj.email : SUPER_ADMIN;
+            const isAdmin = userEmail === SUPER_ADMIN;
 
             const productData = {
                 title: document.getElementById("pTitle").value,
@@ -620,29 +327,30 @@
                 imageUrl: document.getElementById("pImg").value,
                 downloadUrl: document.getElementById("pLink").value,
                 description: document.getElementById("pDesc").value,
-                status: 'approved',
-                sellerName: "المدير",
+                sellerEmail: userEmail,
                 updatedAt: serverTimestamp()
             };
+
+            // توافق مع قواعد الأمان: لو مش أدمن، الإضافة الجديدة تكون pending إجبارياً
+            if (!editId) {
+                productData.status = isAdmin ? 'approved' : 'pending';
+                productData.createdAt = serverTimestamp();
+            }
 
             try {
                 if (editId) {
                     await updateDoc(doc(db, "products", editId), productData);
-                    alert("تم تحديث المنتج بنجاح! ✏️");
                 } else {
-                    productData.createdAt = serverTimestamp();
                     await addDoc(collection(db, "products"), productData);
-                    alert("تمت إضافة ونشر المنتج بنجاح! ➕");
                 }
-                
                 resetFormFields();
                 loadProducts();
             } catch (error) {
-                alert("حدث خطأ: " + error.message);
+                alert("حدث خطأ (تأكد من صلاحيات القواعد): " + error.message);
             }
         });
 
-        window.startEdit = function(id) {
+        function startEdit(id) {
             const p = productsList.find(item => item.id === id);
             if (!p) return;
 
@@ -659,7 +367,7 @@
             document.getElementById("saveBtn").textContent = "تحديث المنتج 🔄";
             document.getElementById("cancelBtn").style.display = "inline-block";
             window.scrollTo({ top: 500, behavior: 'smooth' });
-        };
+        }
 
         document.getElementById("cancelBtn").addEventListener("click", resetFormFields);
 
@@ -667,21 +375,114 @@
             document.getElementById("productForm").reset();
             document.getElementById("editDocId").value = "";
             document.getElementById("formTitle").textContent = "➕ إضافة منتج جديد";
-            document.getElementById("saveBtn").textContent = "حفظ ونشر المنتج مباشرة 💾";
+            document.getElementById("saveBtn").textContent = "حفظ ونشر المنتج 💾";
             document.getElementById("cancelBtn").style.display = "none";
         }
 
-        window.removeProduct = async function(id) {
+        async function removeProduct(id) {
             if (confirm("هل أنت متأكد من حذف هذا المنتج نهائياً؟")) {
                 try {
                     await deleteDoc(doc(db, "products", id));
                     loadProducts();
-                    alert("تم الحذف بنجاح! 🗑️");
                 } catch (error) {
                     alert("خطأ أثناء الحذف: " + error.message);
                 }
             }
-        };
+        }
+
+        async function loadOrders() {
+            const tbody = document.getElementById("ordersTableBody");
+            try {
+                const querySnapshot = await getDocs(collection(db, "orders"));
+                document.getElementById("statOrders").textContent = querySnapshot.size;
+                if (querySnapshot.empty) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-sub);">لا توجد طلبات شراء حالياً.</td></tr>`;
+                    return;
+                }
+                tbody.innerHTML = "";
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const orderId = docSnap.id;
+                    const itemsHtml = (data.items || []).map(i => `${i.title || 'منتج'}`).join('<br>');
+                    const isCompleted = data.status === 'completed';
+                    tbody.insertAdjacentHTML('beforeend', `
+                        <tr>
+                            <td><small>${orderId.slice(0, 8)}...</small></td>
+                            <td><strong>${data.buyerEmail || 'غير معروف'}</strong></td>
+                            <td>${itemsHtml}</td>
+                            <td>${data.paymentMethod || 'الذهبية'}</td>
+                            <td><span class="badge ${isCompleted ? 'badge-approved' : 'badge-pending'}">${data.status || 'قيد المراجعة'}</span></td>
+                            <td>
+                                ${!isCompleted ? `<button class="btn-action btn-approve" onclick="window.completeOrder('${orderId}')">تأكيد ✅</button>` : ''}
+                                <button class="btn-action btn-delete" onclick="window.removeOrder('${orderId}')">حذف 🗑️</button>
+                            </td>
+                        </tr>
+                    `);
+                });
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--danger-red);">تعذر تحميل الطلبات.</td></tr>`;
+            }
+        }
+
+        async function completeOrder(id) {
+            try {
+                await updateDoc(doc(db, "orders", id), { status: 'completed' });
+                loadOrders();
+            } catch (error) { alert("خطأ: " + error.message); }
+        }
+
+        async function removeOrder(id) {
+            if (confirm("هل تريد حذف هذا الطلب؟")) {
+                await deleteDoc(doc(db, "orders", id));
+                loadOrders();
+            }
+        }
+
+        async function loadMessages() {
+            const tbody = document.getElementById("messagesTableBody");
+            try {
+                const querySnapshot = await getDocs(collection(db, "contact_messages"));
+                document.getElementById("statMessages").textContent = querySnapshot.size;
+                if (querySnapshot.empty) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-sub);">لا توجد رسائل حالياً.</td></tr>`;
+                    return;
+                }
+                tbody.innerHTML = "";
+                querySnapshot.forEach((docSnap) => {
+                    const msg = docSnap.data();
+                    const msgId = docSnap.id;
+                    tbody.insertAdjacentHTML('beforeend', `
+                        <tr>
+                            <td><strong>${msg.name || 'مجهول'}</strong><br><small style="color:var(--text-sub);">${msg.email || ''}</small></td>
+                            <td><span class="badge badge-pending">${msg.requestType || 'استفسار'}</span></td>
+                            <td>${msg.message || ''}</td>
+                            <td>
+                                <textarea id="reply_${msgId}" rows="2" placeholder="اكتب ردك..." style="width:100%; margin-bottom:5px;">${msg.adminReply || ''}</textarea>
+                                <button class="btn-action btn-approve" onclick="window.sendReply('${msgId}')">إرسال ✉️</button>
+                                <button class="btn-action btn-delete" onclick="window.deleteMessage('${msgId}')">حذف 🗑️</button>
+                            </td>
+                        </tr>
+                    `);
+                });
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--danger-red);">تعذر تحميل الرسائل.</td></tr>`;
+            }
+        }
+
+        async function sendReply(msgId) {
+            const replyText = document.getElementById(`reply_${msgId}`).value.trim();
+            if (!replyText) { alert("اكتب رد أولاً!"); return; }
+            await updateDoc(doc(db, "contact_messages", msgId), { adminReply: replyText, status: 'replied' });
+            alert("تم حفظ الرد!");
+            loadMessages();
+        }
+
+        async function deleteMessage(msgId) {
+            if (confirm("حذف الرسالة؟")) {
+                await deleteDoc(doc(db, "contact_messages", msgId));
+                loadMessages();
+            }
+        }
     </script>
 </body>
 </html>
