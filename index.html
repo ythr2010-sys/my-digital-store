@@ -6,7 +6,7 @@
     
     <!-- تهيئة الموقع لمحركات البحث Google SEO -->
     <title>الخزنة الرقمية | DigiVault - متجر الكتب، المجسمات، والدورات الرقمية</title>
-    <meta name="description" content="متجر الخزنة الرقمية للخدمات والمنتجات الرقمية: كتب، روايات، مجسمات 3D/2D، دورات تعليمية، وااشتراكات ألعاب بأفضل الأسعار.">
+    <meta name="description" content="متجر الخزنة الرقمية للخدمات والمنتجات الرقمية: كتب، روايات، مجسمات 3D/2D، دورات تعليمية، واشتراكات ألعاب بأفضل الأسعار.">
     <meta name="keywords" content="متجر رقمي, كتب رقمية, مجسمات 3D, دورات تعليمية, اشتراكات, ألعاب, DigiVault">
     <meta property="og:title" content="الخزنة الرقمية | DigiVault">
     <meta property="og:description" content="منصتك الأولى لإقتناء أفضل المنتجات الرقمية التعليمية والترفيهية.">
@@ -259,12 +259,33 @@
             flex-direction: column;
             justify-content: space-between;
             transition: 0.3s ease;
+            overflow: hidden;
         }
 
         .product-card:hover {
             border-color: var(--accent-cyan);
             transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 8px 25px rgba(0, 210, 255, 0.15);
+        }
+
+        .product-img-wrapper {
+            width: 100%;
+            height: 160px;
+            overflow: hidden;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background: #1e1e24;
+        }
+
+        .product-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .product-card:hover .product-img-wrapper img {
+            transform: scale(1.05);
         }
 
         .product-card h3 {
@@ -277,11 +298,10 @@
             color: var(--text-sub);
             font-size: 0.85rem;
             margin-bottom: 15px;
-            height: 40px;
-            overflow: hidden;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .card-footer {
@@ -424,7 +444,7 @@
             <!-- البانر الرئيسي -->
             <section class="hero-banner">
                 <h1>عالمك المفضل للمنتجات <span>الرقمية الشاملة</span></h1>
-                <p>كتب وروايات، دورات وفيديوهات تعليمية، مجسمات وملفات 3D/2D، وااشتراكات الألعاب - كل ذلك في مكان واحد وبتحميل فوري.</p>
+                <p>كتب وروايات، دورات وفيديوهات تعليمية، مجسمات وملفات 3D/2D، واشتراكات الألعاب - كل ذلك في مكان واحد وبتحميل فوري.</p>
                 <a href="shop.html" class="btn-cta">تصفح المتجر الكامل الآن 🚀</a>
             </section>
 
@@ -620,11 +640,10 @@
                 const formattedPrice = String(product.price).includes('$') ? product.price : '$' + product.price;
 
                 card.innerHTML = `
-                    <div style="width: 100%; height: 160px; overflow: hidden; border-radius: 8px; margin-bottom: 15px; background: #1e1e24;">
+                    <div class="product-img-wrapper">
                         <img src="${product.imageUrl}" 
                              onerror="this.onerror=null;this.src='https://via.placeholder.com/300x160?text=DigiVault'" 
-                             alt="${product.title}" 
-                             style="width: 100%; height: 100%; object-fit: cover;">
+                             alt="${product.title}">
                     </div>
                     <h3>${product.title}</h3>
                     <p>${product.description}</p>
