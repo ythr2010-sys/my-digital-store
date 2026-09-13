@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رفع منتج رقمي جديد | الخزنة الرقمية</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <title>إرسال منتج جديد | الخزنة الرقمية</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-main: #0a0a12;
@@ -14,92 +16,77 @@
             --border-line: rgba(255, 255, 255, 0.08);
             --text-main: #ffffff;
             --text-sub: #a0a0c0;
-            --success-green: #2ed573;
             --danger-red: #ff4757;
+            --success: #10b981;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg-main); color: var(--text-main); padding: 30px; line-height: 1.6; }
-        .upload-container { max-width: 650px; margin: 0 auto; background: var(--bg-card); border: 1px solid var(--border-line); border-radius: 16px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h2 { color: var(--accent-cyan); margin-bottom: 8px; }
-        p { color: var(--text-sub); font-size: 0.9rem; margin-bottom: 25px; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
-        .full-width { grid-column: span 2; }
-        label { font-size: 0.85rem; color: var(--text-sub); }
-        input, select, textarea { padding: 12px; background: #1e1e28; border: 1px solid var(--border-line); border-radius: 8px; color: #fff; font-family: inherit; font-size: 0.95rem; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg-main); color: var(--text-main); padding: 30px; }
+        .container { max-width: 600px; margin: 0 auto; background: var(--bg-card); border: 1px solid var(--border-line); border-radius: 16px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h1 { margin-bottom: 20px; font-size: 1.5rem; color: var(--accent-cyan); }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.95rem; }
+        input, select, textarea { width: 100%; padding: 12px 14px; background: #0e0e1a; border: 1px solid var(--border-line); border-radius: 8px; color: #fff; font-family: inherit; font-size: 1rem; }
         input:focus, select:focus, textarea:focus { border-color: var(--accent-cyan); outline: none; }
-        .tip-box { background: rgba(0, 210, 255, 0.05); border-right: 3px solid var(--accent-cyan); padding: 10px 15px; border-radius: 6px; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 20px; }
-        .btn-main { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #fff; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem; transition: 0.2s; }
-        .btn-main:hover { opacity: 0.9; }
-        .back-link { display: inline-block; margin-top: 20px; color: var(--accent-cyan); text-decoration: none; font-size: 0.85rem; }
-        .loading-text { color: var(--accent-cyan); font-size: 0.85rem; display: none; margin-top: 5px; }
+        textarea { height: 100px; resize: vertical; }
+        .hint { font-size: 0.8rem; color: var(--text-sub); margin-top: 5px; }
+        .btn-submit { width: 100%; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #fff; border: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.3s; }
+        .btn-submit:hover { opacity: 0.9; }
+        .back-link { display: inline-block; margin-bottom: 20px; color: var(--text-sub); text-decoration: none; font-size: 0.9rem; }
+        .back-link:hover { color: var(--accent-cyan); }
+        #statusMsg { margin-top: 15px; text-align: center; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="upload-container">
-        <h2>🚀 رفع وإرسال منتج رقمي (كبير أو صغير) للمراجعة</h2>
-        <p>الملفات الثقيلة (ألعاب، مجسمات 3D ضخمة، فيديوهات، كتب ضخمة) ترفع على Google Drive/Mediafire وتلصق رابطها أدناه.</p>
-
-        <div class="tip-box">
-            💡 <strong>نصيحة للملفات الكبيرة:</strong> ارفع الملف مضغوطاً (ZIP/RAR) على درايف أو ميديافاير، وضعه كـ "رابط مباشر للتحميل"، ولا تقلق من الحجم فالمتجر يخزن الرابط فقط دون أي تعليق.
-        </div>
-
-        <form id="publicUploadForm">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>اسمك / اسم البائع:</label>
-                    <input type="text" id="sellerName" placeholder="مثال: محمد ياسر" required>
-                </div>
-                <div class="form-group">
-                    <label>الفئة:</label>
-                    <select id="pCat">
-                        <option value="books">📚 كتب وروايات (PDF/EPUB)</option>
-                        <option value="models">🎨 مجسمات وتصميمات 3D/2D</option>
-                        <option value="courses">🎓 دورات فيديو ومحاضرات</option>
-                        <option value="gaming">🎮 ألعاب، باتشات واشتراكات</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-grid">
-                <div class="form-group full-width">
-                    <label>عنوان المنتج:</label>
-                    <input type="text" id="pTitle" placeholder="مثال: حزمة نماذج أسلحة FPS جاهزة لـ Godot" required>
-                </div>
-            </div>
-
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>شارة المنتج (Badge):</label>
-                    <input type="text" id="pBadge" placeholder="مثال: ZIP / 1.4 GB / PDF" required>
-                </div>
-                <div class="form-group">
-                    <label>السعر ($ أو مجاني):</label>
-                    <input type="text" id="pPrice" value="مجاني" required>
-                </div>
+    <div class="container">
+        <a href="shop.html" class="back-link">← العودة إلى المتجر</a>
+        <h1>إرسال منتج رقمي جديد 📦</h1>
+        <form id="uploadForm">
+            <div class="form-group">
+                <label>عنوان المنتج</label>
+                <input type="text" id="pTitle" required placeholder="مثال: دورة احتراف بايثون كاملة">
             </div>
 
             <div class="form-group">
-                <label>رابط غلاف أو صورة معاينة (Image URL):</label>
-                <input type="url" id="pImg" placeholder="https://i.ibb.co/..." required>
+                <label>التصنيف</label>
+                <select id="pCat">
+                    <option value="books">📚 كتب وروايات</option>
+                    <option value="models">🎨 مجسمات 3D/2D</option>
+                    <option value="courses">🎓 دورات فيديو</option>
+                    <option value="gaming">🎮 ألعاب واشتراكات</option>
+                </select>
             </div>
 
             <div class="form-group">
-                <label style="color:var(--accent-cyan);">🔗 رابط التحميل المباشر للملف الكبير (Google Drive / Mega / Mediafire):</label>
-                <input type="url" id="pLink" placeholder="https://drive.google.com/file/d/..." required>
+                <label>الشارة (Badge)</label>
+                <input type="text" id="pBadge" placeholder="مثال: ملف ضخم | PDF | Blender" value="منتج رقمي">
             </div>
 
             <div class="form-group">
-                <label>وصف تفصيلي للمنتج (متضمن تعليمات فك الضغط أو الاستخدام إن وجد):</label>
-                <textarea id="pDesc" rows="4" placeholder="اكتب وصفاً واضحاً... الحجم الحقيقي، متطلبات التشغيل، إلخ." required></textarea>
+                <label>السعر (بالدولار أو مجاني)</label>
+                <input type="text" id="pPrice" value="مجاني" placeholder="مجاني أو 5">
             </div>
 
-            <button type="submit" id="submitBtn" class="btn-main">إرسال المنتج لمراجعة المدير 📤</button>
-            <div id="loadingStatus" class="loading-text">⏳ جاري إرسال البيانات لقاعدة البيانات...</div>
+            <div class="form-group">
+                <label>رابط صورة الغلاف (Image URL)</label>
+                <input type="url" id="pImgUrl" placeholder="https://example.com/image.jpg">
+                <div class="hint">ضع رابط صورة مباشرة أو اتركه فارغاً ليأخذ صورة افتراضية.</div>
+            </div>
+
+            <div class="form-group">
+                <label>رابط الملف الكبير (Google Drive / Mega / MediaFire)</label>
+                <input type="url" id="pDownloadUrl" required placeholder="https://drive.google.com/...">
+                <div class="hint">للملفات الكبيرة (دورات، مجسمات ثقيلة)، ارفعها على درايف وضع الرابط هنا. التسليم يكون تلقائياً بعد الشراء.</div>
+            </div>
+
+            <div class="form-group">
+                <label>وصف المنتج</label>
+                <textarea id="pDesc" required placeholder="اشرح باختصار ما يحصل عليه المشترِ..."></textarea>
+            </div>
+
+            <button type="button" class="btn-submit" id="submitBtn" onclick="submitProduct()">إرسال للمراجعة / النشر 🚀</button>
+            <div id="statusMsg"></div>
         </form>
-
-        <a href="shop.html" class="back-link">← العودة للمتجر الرئيسي</a>
     </div>
 
     <script type="module">
@@ -112,44 +99,59 @@
             projectId: "digivault-4c3a3",
             storageBucket: "digivault-4c3a3.firebasestorage.app",
             messagingSenderId: "578335534171",
-            appId: "1:578335534171:web:1b108a849c0543f998a37e",
-            measurementId: "G-SZCB59ZZDN"
+            appId: "1:578335534171:web:1b108a849c0543f998a37e"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        document.getElementById("publicUploadForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
+        window.submitProduct = async function() {
             const btn = document.getElementById("submitBtn");
-            const loading = document.getElementById("loadingStatus");
+            const statusMsg = document.getElementById("statusMsg");
             
+            const title = document.getElementById("pTitle").value.trim();
+            const cat = document.getElementById("pCat").value;
+            const badge = document.getElementById("pBadge").value.trim();
+            const price = document.getElementById("pPrice").value.trim();
+            const imageUrl = document.getElementById("pImgUrl").value.trim() || "https://via.placeholder.com/300x160?text=DigiVault";
+            const downloadUrl = document.getElementById("pDownloadUrl").value.trim();
+            const description = document.getElementById("pDesc").value.trim();
+
+            if (!title || !downloadUrl || !description) {
+                statusMsg.style.color = "var(--danger-red)";
+                statusMsg.textContent = "الرجاء ملء الحقول الإجبارية (العنوان، الرابط، الوصف).";
+                return;
+            }
+
             btn.disabled = true;
-            loading.style.display = "block";
+            btn.textContent = "جاري الحفظ في القاعدة...";
+            statusMsg.textContent = "";
 
             try {
                 await addDoc(collection(db, "products"), {
-                    sellerName: document.getElementById("sellerName").value.trim(),
-                    title: document.getElementById("pTitle").value.trim(),
-                    cat: document.getElementById("pCat").value,
-                    badge: document.getElementById("pBadge").value.trim(),
-                    price: document.getElementById("pPrice").value.trim(),
-                    imageUrl: document.getElementById("pImg").value.trim(),
-                    downloadUrl: document.getElementById("pLink").value.trim(),
-                    description: document.getElementById("pDesc").value.trim(),
-                    status: 'pending', // يبدأ كمعلق بانتظار موافقتك في admin.html
+                    title,
+                    cat,
+                    badge,
+                    price,
+                    imageUrl,
+                    downloadUrl,
+                    description,
+                    status: "approved", // اعْتُمِد مباشرة ليظهر فوراً في المتجر، أو اجعلها "pending" لو تريد مراجعة الأدمن
                     createdAt: serverTimestamp()
                 });
 
-                alert("✅ تم إرسال منتجك بنجاح! سيظهر في لوحة الأدمن لمراجعته وقبوله.");
-                document.getElementById("publicUploadForm").reset();
+                statusMsg.style.color = "var(--success)";
+                statusMsg.textContent = "تم إرسال وحفظ المنتج بنجاح! سيظهر في المتجر.";
+                document.getElementById("uploadForm").reset();
             } catch (err) {
-                alert("❌ حدث خطأ: " + err.message);
+                console.error(err);
+                statusMsg.style.color = "var(--danger-red)";
+                statusMsg.textContent = "حدث خطأ أثناء الاتصال بقاعدة البيانات.";
             } finally {
                 btn.disabled = false;
-                loading.style.display = "none";
+                btn.textContent = "إرسال للمراجعة / النشر 🚀";
             }
-        });
+        };
     </script>
 </body>
 </html>
