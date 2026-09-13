@@ -14,6 +14,8 @@
             --bg-sidebar: #10101c;
             --accent-cyan: #00d2ff;
             --accent-purple: #8a2be2;
+            --accent-green: #00e676;
+            --danger-red: #ff4757;
             --border-line: rgba(255, 255, 255, 0.08);
             --text-main: #ffffff;
             --text-sub: #a0a0c0;
@@ -64,26 +66,114 @@
             color: #fff;
             font-family: inherit;
             font-size: 0.95rem;
+            transition: 0.3s;
         }
         .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--accent-cyan); outline: none; }
+        .form-group input.invalid, .form-group textarea.invalid { border-color: var(--danger-red); }
+
+        .error-msg { color: var(--danger-red); font-size: 0.78rem; margin-top: 4px; display: none; }
 
         .btn-submit {
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-            color: #fff; border: none; padding: 12px 25px; border-radius: 8px;
+            color: #fff; border: none; padding: 14px 25px; border-radius: 8px;
             font-weight: bold; cursor: pointer; font-family: inherit; font-size: 1rem; width: 100%;
-            transition: 0.2s;
+            transition: 0.3s;
+            display: flex; justify-content: center; align-items: center; gap: 8px;
         }
-        .btn-submit:hover { opacity: 0.9; }
+        .btn-submit:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
 
+        /* FAQ Accordion Styling */
         .faq-item {
             background: var(--bg-card);
             border: 1px solid var(--border-line);
             border-radius: 10px;
             margin-bottom: 12px;
-            padding: 16px;
+            padding: 18px;
+            transition: 0.3s;
         }
-        .faq-question { font-weight: 800; color: var(--accent-cyan); margin-bottom: 6px; }
-        .faq-answer { color: var(--text-sub); font-size: 0.9rem; }
+        .faq-item:hover { border-color: rgba(0, 210, 255, 0.3); }
+        .faq-question {
+            font-weight: 800;
+            color: var(--accent-cyan);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+        .faq-question::after {
+            content: '+';
+            font-size: 1.3rem;
+            color: var(--text-sub);
+            transition: transform 0.3s;
+        }
+        .faq-item.open .faq-question::after {
+            content: '−';
+            color: var(--accent-cyan);
+        }
+        .faq-answer {
+            color: var(--text-sub);
+            font-size: 0.9rem;
+            margin-top: 0;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease;
+        }
+        .faq-item.open .faq-answer {
+            max-height: 200px;
+            opacity: 1;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-line);
+        }
+
+        /* Ticket Reference Card */
+        #ticketCard {
+            display: none;
+            background: rgba(0, 230, 118, 0.08);
+            border: 1px solid var(--accent-green);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        /* Toast Notification */
+        #toastContainer {
+            position: fixed;
+            bottom: 25px;
+            left: 25px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border-line);
+            color: #fff;
+            padding: 14px 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+            animation: slideIn 0.3s ease;
+        }
+        .toast.success { border-right: 4px solid var(--accent-green); }
+        .toast.error { border-right: 4px solid var(--danger-red); }
+
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         @media (max-width: 768px) {
             .page-wrapper { flex-direction: column; }
@@ -109,6 +199,11 @@
         <main class="main-content">
             <h1 style="margin-bottom: 25px; font-size: 1.8rem;">الدعم الفني والتواصل 💬</h1>
 
+            <div id="ticketCard">
+                <h3 style="color: var(--accent-green); margin-bottom: 6px; font-size: 1rem;">✅ تم فتح تذكرة دعم برقم: <span id="displayTicketId" style="font-family: monospace;">---</span></h3>
+                <p style="font-size: 0.85rem; color: var(--text-sub);">احتفظ برقم التذكرة لمتابعة الرد من فريق الدعم عبر بريدك الإلكتروني.</p>
+            </div>
+
             <div class="form-section">
                 <h2 style="margin-bottom: 15px; font-size: 1.3rem;">هل تواجه مشكلة أو ترغب في إبداء رأيك؟</h2>
                 <form id="contactForm">
@@ -124,41 +219,46 @@
                     <div class="form-group">
                         <label>الاسم الكامل</label>
                         <input type="text" id="contactName" placeholder="أدخل اسمك" required>
+                        <div class="error-msg" id="nameErr">يرجى كتابة الاسم الكامل (3 أحرف على الأقل)</div>
                     </div>
 
                     <div class="form-group">
                         <label>البريد الإلكتروني</label>
                         <input type="email" id="contactEmail" placeholder="example@mail.com" required>
+                        <div class="error-msg" id="emailErr">يرجى إدخال بريد إلكتروني صحيح</div>
                     </div>
 
                     <div class="form-group">
                         <label>تفاصيل الرسالة</label>
-                        <textarea id="contactMessage" rows="5" placeholder="اكتب استفسارك أو رأيك بالتفصيل..." required></textarea>
+                        <textarea id="contactMessage" rows="5" placeholder="اكتب استفسارك أو رأيك بالتفصيل (10 أحرف على الأقل)..." required></textarea>
+                        <div class="error-msg" id="msgErr">يرجى كتابة تفاصيل واضحة (10 أحرف على الأقل)</div>
                     </div>
 
-                    <button type="submit" class="btn-submit">إرسال الطلب الان 🚀</button>
+                    <button type="submit" class="btn-submit" id="submitBtn"><span>إرسال الطلب الآن 🚀</span></button>
                 </form>
             </div>
 
-            <h2 style="margin-bottom: 15px; font-size: 1.3rem;">الأسئلة الشائعة ❓</h2>
-            <div class="faq-item">
+            <h2 style="margin-bottom: 15px; font-size: 1.3rem;">الأسئلة الشائعة ❓ <span style="font-size:0.8rem; font-weight:normal; color:var(--text-sub);">(اضغط على السؤال لعرض الإجابة)</span></h2>
+            
+            <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-question">كيف أحصل على المنتج بعد الشراء؟</div>
                 <div class="faq-answer">يتم تسليم الكتب، مجسمات 3D/2D، والدورات مباشرة عبر روابط تحميل فورية تظهر في حسابك بعد إتمام الطلب وتفعيله.</div>
             </div>
 
-            <div class="faq-item">
+            <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-question">ما هي طرق الدفع المتاحة؟</div>
                 <div class="faq-answer">ندعم حالياً البطاقة الذهبية / BaridiMob، التحويل البريدي CCP، وبطاقات Visa / Mastercard العالمية.</div>
             </div>
 
-            <div class="faq-item">
+            <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-question">ماذا أفعل إذا واجهت مشكلة في فتح الملفات أو التحميل؟</div>
                 <div class="faq-answer">تأكد من وجود برنامج لفك الضغط (مثل WinRAR) وقارئ PDF، أو يمكنك التواصل معنا مباشرة من خلال النموذج أعلاه وسيتواصل معك الدعم الفني.</div>
             </div>
         </main>
     </div>
 
-    <!-- كود فايربيس الموحد والمتوافق مع المشروع -->
+    <div id="toastContainer"></div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -177,13 +277,27 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // تعبئة البريد والاسم تلقائياً إذا كان المستخدم مسجلاً
+        window.toggleFaq = function(item) {
+            item.classList.toggle('open');
+        };
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById("toastContainer");
+            const toast = document.createElement("div");
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = '0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
         onAuthStateChanged(auth, (user) => {
             if (user && user.email) {
                 document.getElementById('contactEmail').value = user.email;
-                if (user.displayName) {
-                    document.getElementById('contactName').value = user.displayName;
-                }
+                if (user.displayName) document.getElementById('contactName').value = user.displayName;
             } else {
                 const localProfile = JSON.parse(localStorage.getItem("userProfile"));
                 if (localProfile) {
@@ -193,18 +307,53 @@
             }
         });
 
+        function validateForm() {
+            let isValid = true;
+            document.querySelectorAll('.error-msg').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('input, textarea').forEach(el => el.classList.remove('invalid'));
+
+            const name = document.getElementById('contactName').value.trim();
+            const email = document.getElementById('contactEmail').value.trim();
+            const message = document.getElementById('contactMessage').value.trim();
+
+            if (name.length < 3) {
+                document.getElementById('contactName').classList.add('invalid');
+                document.getElementById('nameErr').style.display = 'block';
+                isValid = false;
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                document.getElementById('contactEmail').classList.add('invalid');
+                document.getElementById('emailErr').style.display = 'block';
+                isValid = false;
+            }
+            if (message.length < 10) {
+                document.getElementById('contactMessage').classList.add('invalid');
+                document.getElementById('msgErr').style.display = 'block';
+                isValid = false;
+            }
+            return isValid;
+        }
+
         document.getElementById("contactForm").addEventListener("submit", async function(e) {
             e.preventDefault();
 
-            const submitBtn = this.querySelector('.btn-submit');
+            if (!validateForm()) {
+                showToast("يرجى تصحيح الأخطاء قبل الإرسال", "error");
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerText = "جاري الإرسال...";
+            submitBtn.innerHTML = `<span>جاري الإرسال... ⏳</span>`;
+
+            const ticketId = "SUP-" + Math.floor(100000 + Math.random() * 900000);
 
             const formData = {
+                ticketId: ticketId,
                 requestType: document.getElementById('requestType').value,
-                name: document.getElementById('contactName').value,
-                email: document.getElementById('contactEmail').value,
-                message: document.getElementById('contactMessage').value,
+                name: document.getElementById('contactName').value.trim(),
+                email: document.getElementById('contactEmail').value.trim(),
+                message: document.getElementById('contactMessage').value.trim(),
                 status: 'pending',
                 adminReply: '',
                 createdAt: serverTimestamp()
@@ -212,14 +361,16 @@
 
             try {
                 await addDoc(collection(db, "contact_messages"), formData);
-                alert("شكراً لك! تم استلام رسالتك بنجاح وسيتم الاطلاع عليها من طرف فريق الدعم.");
+                document.getElementById("displayTicketId").innerText = ticketId;
+                document.getElementById("ticketCard").style.display = "block";
+                showToast("تم إرسال رسالتك وتوليد تذكرة دعم بنجاح!");
                 this.reset();
             } catch (error) {
                 console.error("خطأ في إرسال الرسالة:", error);
-                alert("حدث خطأ أثناء الإرسال، يرجى المحاولة لاحقاً. (تأكد من صلاحيات Firestore Rules)");
+                showToast("حدث خطأ أثناء الإرسال، تحقق من الاتصال أو القواعد.", "error");
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerText = "إرسال الطلب الان 🚀";
+                submitBtn.innerHTML = `<span>إرسال الطلب الآن 🚀</span>`;
             }
         });
     </script>
