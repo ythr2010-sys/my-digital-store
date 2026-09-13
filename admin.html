@@ -150,13 +150,13 @@
 
     <div id="authScreen">
         <h2>🔒 بوابة المدير الآمنة</h2>
-        <p>الرجاء إدخال بريدك الإلكتروني والرمز السري الخاص باللوحة</p>
+        <p>الرجاء تسجيل الدخول باستخدام حساب Firebase للمدير</p>
         
-        <input type="email" id="loginEmail" class="input-box" placeholder="أدخل البريد الإلكتروني (المدير)">
-        <input type="password" id="loginPin" class="input-box" placeholder="الرمز السري (PIN)">
+        <input type="email" id="loginEmail" class="input-box" placeholder="البريد الإلكتروني">
+        <input type="password" id="loginPass" class="input-box" placeholder="كلمة المرور">
         
         <button id="loginBtn" class="btn-main">دخول اللوحة 🔓</button>
-        <div id="errorMsg" class="error-msg">❌ البيانات المدخلة غير صحيحة! تأكد من البريد والرمز.</div>
+        <div id="errorMsg" class="error-msg">❌ بيانات الدخول غير صحيحة أو ليست بصلاحيات مدير!</div>
         
         <div style="margin-top: 20px;">
             <a href="shop.html" style="color: var(--accent-cyan); text-decoration: none; font-size: 0.85rem;">← العودة للمتجر</a>
@@ -167,7 +167,7 @@
         <div class="header-dash">
             <div>
                 <h1>👑 لوحة تحكم الخزنة الرقمية</h1>
-                <span style="color: var(--accent-cyan); font-size: 0.85rem;">مسجل كـ: المدير الرئيسي (محمد ياسر طاهري)</span>
+                <span id="adminEmailDisplay" style="color: var(--accent-cyan); font-size: 0.85rem;">مسجل كـ: المدير</span>
             </div>
             <a href="shop.html" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">← العودة للمتجر</a>
         </div>
@@ -206,7 +206,7 @@
                             <option value="books">📚 كتب وروايات</option>
                             <option value="models">🎨 مجسمات 3D/2D</option>
                             <option value="courses">🎓 دورات فيديو</option>
-                            <option value="gaming">🎮 ألعاب وااشتراكات</option>
+                            <option value="gaming">🎮 ألعاب واشتراكات</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -215,7 +215,7 @@
                     </div>
                     <div class="form-group">
                         <label>السعر ($):</label>
-                        <input type="text" id="pPrice" placeholder="مثال: 9.99 $" required>
+                        <input type="text" id="pPrice" placeholder="مثال: 9.99" required>
                     </div>
                 </div>
 
@@ -225,7 +225,7 @@
                         <input type="url" id="pImg" placeholder="https://...">
                     </div>
                     <div class="form-group">
-                        <label>رابط التحميل المباشر:</label>
+                        <label>رابط التحميل المباشر (Download URL):</label>
                         <input type="url" id="pLink" placeholder="https://..." required>
                     </div>
                 </div>
@@ -271,38 +271,70 @@
             addDoc, 
             doc, 
             updateDoc, 
-            deleteDoc 
+            deleteDoc,
+            serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            onAuthStateChanged, 
+            signOut 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // ضع بيانات مشروعك الحقيقية هنا بدلاً من القيم الوهمية
         const firebaseConfig = {
-            apiKey: "ضع_مفتاح_API_الخاص_بك هنا",
+            apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
             authDomain: "digivault-4c3a3.firebaseapp.com",
             projectId: "digivault-4c3a3",
-            storageBucket: "digivault-4c3a3.appspot.com",
-            messagingSenderId: "ضع_رقم_مرسل_الرسائل",
-            appId: "ضع_معرف_التطبيق"
+            storageBucket: "digivault-4c3a3.firebasestorage.app",
+            messagingSenderId: "578335534171",
+            appId: "1:578335534171:web:1b108a849c0543f998a37e",
+            measurementId: "G-SZCB59ZZDN"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        const ADMIN_EMAIL = "ythr2010@gmail.com";
-        const ADMIN_PIN = "2026";
-
+        const SUPER_ADMIN = "ythr2010@gmail.com";
         let productsList = [];
 
-        document.getElementById("loginBtn").addEventListener("click", function() {
-            const enteredEmail = document.getElementById("loginEmail").value.trim().toLowerCase();
-            const enteredPin = document.getElementById("loginPin").value.trim();
+        onAuthStateChanged(auth, async (user) => {
             const errorMsg = document.getElementById("errorMsg");
+            if (user) {
+                // التحقق هل هو الأدمن أو ضمن مجموعة admins
+                let isAdmin = user.email === SUPER_ADMIN;
+                if (!isAdmin) {
+                    try {
+                        const adminSnap = await getDocs(collection(db, "admins"));
+                        adminSnap.forEach(d => { if (d.id === user.email) isAdmin = true; });
+                    } catch(e) {}
+                }
 
-            if (enteredEmail === ADMIN_EMAIL && enteredPin === ADMIN_PIN) {
-                document.getElementById("authScreen").style.display = "none";
-                document.getElementById("dashboardContent").style.display = "block";
-                loadProducts();
-                loadMessages();
+                if (isAdmin) {
+                    document.getElementById("authScreen").style.display = "none";
+                    document.getElementById("dashboardContent").style.display = "block";
+                    document.getElementById("adminEmailDisplay").textContent = `مسجل كـ: ${user.email}`;
+                    loadProducts();
+                    loadMessages();
+                } else {
+                    await signOut(auth);
+                    errorMsg.style.display = "block";
+                }
             } else {
+                document.getElementById("authScreen").style.display = "block";
+                document.getElementById("dashboardContent").style.display = "none";
+            }
+        });
+
+        document.getElementById("loginBtn").addEventListener("click", async function() {
+            const email = document.getElementById("loginEmail").value.trim();
+            const pass = document.getElementById("loginPass").value.trim();
+            const errorMsg = document.getElementById("errorMsg");
+            errorMsg.style.display = "none";
+
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch (err) {
                 errorMsg.style.display = "block";
             }
         });
@@ -327,19 +359,18 @@
                             <td>${msg.message || ''}</td>
                             <td>
                                 <textarea id="reply_${msgId}" rows="2" placeholder="اكتب ردك هنا..." style="width:100%; margin-bottom:5px;">${msg.adminReply || ''}</textarea>
-                                <button class="btn-action btn-approve" onclick="window.sendReply('${msgId}', '${msg.email}')">إرسال ✉️</button>
+                                <button class="btn-action btn-approve" onclick="window.sendReply('${msgId}')">إرسال ✉️</button>
                                 <button class="btn-action btn-delete" onclick="window.deleteMessage('${msgId}')">حذف 🗑️</button>
                             </td>
                         </tr>
                     `;
                 });
             } catch (error) {
-                console.error("خطأ في جلب الرسائل:", error);
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--danger-red);">تعذر تحميل الرسائل، تأكد من القواعد.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--danger-red);">تعذر تحميل الرسائل.</td></tr>`;
             }
         }
 
-        window.sendReply = async function(msgId, clientEmail) {
+        window.sendReply = async function(msgId) {
             const replyText = document.getElementById(`reply_${msgId}`).value.trim();
             if (!replyText) {
                 alert("الرجاء كتابة رد أولاً!");
@@ -392,7 +423,7 @@
 
                 return `
                     <tr>
-                        <td><img src="${p.img || 'https://via.placeholder.com/40'}" class="img-preview" alt=""></td>
+                        <td><img src="${p.imageUrl || 'https://via.placeholder.com/40'}" class="img-preview" alt=""></td>
                         <td><strong>${p.title}</strong></td>
                         <td>${p.sellerName || 'المدير'}</td>
                         <td>${statusBadge}</td>
@@ -421,17 +452,18 @@
             e.preventDefault();
             const editId = document.getElementById("editDocId").value;
 
+            // توحيد المسميات مع shop.html (imageUrl / downloadUrl)
             const productData = {
                 title: document.getElementById("pTitle").value,
                 cat: document.getElementById("pCat").value,
                 badge: document.getElementById("pBadge").value,
                 price: document.getElementById("pPrice").value,
-                img: document.getElementById("pImg").value,
-                link: document.getElementById("pLink").value,
-                desc: document.getElementById("pDesc").value,
+                imageUrl: document.getElementById("pImg").value,
+                downloadUrl: document.getElementById("pLink").value,
+                description: document.getElementById("pDesc").value,
                 status: 'approved',
-                sellerName: "المدير (محمد ياسر)",
-                updatedAt: new Date()
+                sellerName: "المدير",
+                updatedAt: serverTimestamp()
             };
 
             try {
@@ -439,7 +471,7 @@
                     await updateDoc(doc(db, "products", editId), productData);
                     alert("تم تحديث المنتج بنجاح! ✏️");
                 } else {
-                    productData.createdAt = new Date();
+                    productData.createdAt = serverTimestamp();
                     await addDoc(collection(db, "products"), productData);
                     alert("تمت إضافة ونشر المنتج بنجاح! ➕");
                 }
@@ -456,13 +488,13 @@
             if (!p) return;
 
             document.getElementById("editDocId").value = p.id;
-            document.getElementById("pTitle").value = p.title;
-            document.getElementById("pCat").value = p.cat;
-            document.getElementById("pBadge").value = p.badge;
-            document.getElementById("pPrice").value = p.price;
-            document.getElementById("pImg").value = p.img || "";
-            document.getElementById("pLink").value = p.link;
-            document.getElementById("pDesc").value = p.desc;
+            document.getElementById("pTitle").value = p.title || "";
+            document.getElementById("pCat").value = p.cat || "books";
+            document.getElementById("pBadge").value = p.badge || "";
+            document.getElementById("pPrice").value = p.price || "";
+            document.getElementById("pImg").value = p.imageUrl || "";
+            document.getElementById("pLink").value = p.downloadUrl || "";
+            document.getElementById("pDesc").value = p.description || "";
 
             document.getElementById("formTitle").textContent = "✏️ تعديل المنتج";
             document.getElementById("saveBtn").textContent = "تحديث المنتج 🔄";
