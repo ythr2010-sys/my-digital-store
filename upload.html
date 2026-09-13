@@ -24,11 +24,45 @@
         .container { max-width: 600px; margin: 0 auto; background: var(--bg-card); border: 1px solid var(--border-line); border-radius: 16px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         h1 { margin-bottom: 20px; font-size: 1.5rem; color: var(--accent-cyan); }
         .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.95rem; }
-        input, select, textarea { width: 100%; padding: 12px 14px; background: #0e0e1a; border: 1px solid var(--border-line); border-radius: 8px; color: #fff; font-family: inherit; font-size: 1rem; }
-        input:focus, select:focus, textarea:focus { border-color: var(--accent-cyan); outline: none; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.95rem; color: var(--text-main); }
+        
+        /* تنسيق موحد ومنسجم مع ألوان الموقع الداكنة */
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 14px;
+            background: #0e0e1a;
+            border: 1px solid var(--border-line);
+            border-radius: 8px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
+        }
+        
+        /* تنسيق القائمة المنسدلة (select) بألوان الموقع */
+        select option {
+            background-color: #141424;
+            color: #fff;
+            padding: 10px;
+        }
+        
+        input:focus, select:focus, textarea:focus { border-color: var(--accent-cyan); box-shadow: 0 0 8px rgba(0,210,255,0.2); }
         textarea { height: 100px; resize: vertical; }
         .hint { font-size: 0.8rem; color: var(--text-sub); margin-top: 5px; }
+        
+        .auth-status-bar {
+            background: rgba(0, 210, 255, 0.08);
+            border: 1px dashed var(--accent-cyan);
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         .btn-submit { width: 100%; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #fff; border: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.3s; }
         .btn-submit:hover { opacity: 0.9; }
         .back-link { display: inline-block; margin-bottom: 20px; color: var(--text-sub); text-decoration: none; font-size: 0.9rem; }
@@ -41,6 +75,11 @@
     <div class="container">
         <a href="shop.html" class="back-link">← العودة إلى المتجر</a>
         <h1>إرسال منتج رقمي جديد 📦</h1>
+        
+        <div id="authStatusBanner" class="auth-status-bar">
+            <span>جاري التحقق من حالة الحساب...</span>
+        </div>
+
         <form id="uploadForm">
             <div class="form-group">
                 <label>عنوان المنتج</label>
@@ -76,7 +115,7 @@
             <div class="form-group">
                 <label>رابط الملف الكبير (Google Drive / Mega / MediaFire)</label>
                 <input type="url" id="pDownloadUrl" required placeholder="https://drive.google.com/...">
-                <div class="hint">للملفات الكبيرة (دورات، مجسمات ثقيلة)، ارفعها على درايف وضع الرابط هنا. التسليم يكون تلقائياً بعد الشراء.</div>
+                <div class="hint">للملفات الكبيرة (دورات، مجسمات ثقيلة)، ارفعها على درايف وضع الرابط هنا.</div>
             </div>
 
             <div class="form-group">
@@ -92,6 +131,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
@@ -104,6 +144,25 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let activeUserEmail = null;
+
+        onAuthStateChanged(auth, (user) => {
+            const banner = document.getElementById("authStatusBanner");
+            const localProfile = JSON.parse(localStorage.getItem("userProfile") || "{}");
+            
+            if (user) {
+                activeUserEmail = user.email;
+                banner.innerHTML = `<span>🟢 متصل بحساب: <strong>${user.email}</strong></span>`;
+            } else if (localProfile && localProfile.email) {
+                activeUserEmail = localProfile.email;
+                banner.innerHTML = `<span>🟢 متصل بحساب (محلي): <strong>${localProfile.email}</strong></span>`;
+            } else {
+                activeUserEmail = 'guest@digivault';
+                banner.innerHTML = `<span>🟡 ترفع كضيف (يمكنك إدخال منتجك طبيعياً)</span>`;
+            }
+        });
 
         window.submitProduct = async function() {
             const btn = document.getElementById("submitBtn");
@@ -136,19 +195,22 @@
                     imageUrl,
                     downloadUrl,
                     description,
-                    status: "approved", // اعْتُمِد مباشرة ليظهر فوراً في المتجر، أو اجعلها "pending" لو تريد مراجعة الأدمن
+                    uploader: activeUserEmail,
+                    status: "approved",
                     createdAt: serverTimestamp()
                 });
 
                 statusMsg.style.color = "var(--success)";
                 statusMsg.textContent = "تم إرسال وحفظ المنتج بنجاح! سيظهر في المتجر.";
                 document.getElementById("uploadForm").reset();
+            } else {
+                // fallback لو حصل أي شيء
             } catch (err) {
                 console.error(err);
                 statusMsg.style.color = "var(--danger-red)";
                 statusMsg.textContent = "حدث خطأ أثناء الاتصال بقاعدة البيانات.";
             } finally {
-                btn.disabled = false;
+                btn.disabled.equals ? null : (btn.disabled = false);
                 btn.textContent = "إرسال للمراجعة / النشر 🚀";
             }
         };
