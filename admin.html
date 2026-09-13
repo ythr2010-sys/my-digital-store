@@ -144,7 +144,6 @@
         .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
         .badge-pending { background: rgba(255, 165, 2, 0.15); color: var(--warning-yellow); }
         .badge-approved { background: rgba(46, 213, 115, 0.15); color: var(--success-green); }
-        .badge-completed { background: rgba(0, 210, 255, 0.15); color: var(--accent-cyan); }
     </style>
 </head>
 <body>
@@ -173,22 +172,22 @@
             <a href="shop.html" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">← العودة للمتجر</a>
         </div>
 
-        <!-- قسم طلبات المشتريات المربوطة بالسلة -->
         <div class="card">
-            <h3 style="margin-bottom: 15px; color: var(--accent-cyan);">🛒 طلبات الشراء والمبيعات الواردة</h3>
+            <h3 style="margin-bottom: 15px; color: var(--accent-cyan);">💳 طلبات الشراء الواردة (Orders)</h3>
             <div style="overflow-x: auto;">
                 <table class="products-table">
                     <thead>
                         <tr>
-                            <th>العميل</th>
-                            <th>المنتج</th>
-                            <th>السعر</th>
+                            <th>رقم/معرف الطلب</th>
+                            <th>المشتري</th>
+                            <th>المنتجات</th>
+                            <th>طريقة الدفع</th>
                             <th>الحالة</th>
-                            <th>الإجراء</th>
+                            <th>الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="ordersTableBody">
-                        <tr><td colspan="5" style="text-align:center; color:var(--text-sub);">جاري تحميل الطلبات...</td></tr>
+                        <tr><td colspan="6" style="text-align:center; color:var(--text-sub);">جاري تحميل الطلبات...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -366,44 +365,48 @@
             try {
                 const querySnapshot = await getDocs(collection(db, "orders"));
                 if (querySnapshot.empty) {
-                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-sub);">لا توجد طلبات شراء حالياً.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-sub);">لا توجد طلبات شراء حالياً.</td></tr>`;
                     return;
                 }
+
                 tbody.innerHTML = "";
                 querySnapshot.forEach((docSnap) => {
-                    const order = docSnap.data();
+                    const data = docSnap.data();
                     const orderId = docSnap.id;
-                    const statusClass = order.status === 'completed' ? 'badge-completed' : 'badge-pending';
+                    const itemsHtml = (data.items || []).map(i => `${i.name || i.title}`).join('<br>');
+                    const isCompleted = data.status === 'completed' || data.status === 'مكتمل';
+
                     tbody.innerHTML += `
                         <tr>
-                            <td>${order.customerEmail || 'guest'}</td>
-                            <td><strong>${order.productTitle || ''}</strong></td>
-                            <td style="color:var(--accent-cyan); font-weight:bold;">${order.price || ''}</td>
-                            <td><span class="badge ${statusClass}">${order.status || 'pending'}</span></td>
+                            <td><small>${orderId.slice(0, 8)}...</small></td>
+                            <td><strong>${data.buyerEmail || 'غير معروف'}</strong></td>
+                            <td>${itemsHtml}</td>
+                            <td>${data.paymentMethod || 'الذهبية'}</td>
+                            <td><span class="badge ${isCompleted ? 'badge-approved' : 'badge-pending'}">${data.status || 'قيد المراجعة'}</span></td>
                             <td>
-                                <button class="btn-action btn-approve" onclick="window.completeOrder('${orderId}')">تأكيد/تسليم ✅</button>
-                                <button class="btn-action btn-delete" onclick="window.deleteOrder('${orderId}')">حذف 🗑️</button>
+                                ${!isCompleted ? `<button class="btn-action btn-approve" onclick="window.completeOrder('${orderId}')">تأكيد واكتمال ✅</button>` : ''}
+                                <button class="btn-action btn-delete" onclick="window.removeOrder('${orderId}')">حذف 🗑️</button>
                             </td>
                         </tr>
                     `;
                 });
-            } catch (e) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--danger-red);">تعذر تحميل الطلبات.</td></tr>`;
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--danger-red);">تعذر تحميل الطلبات.</td></tr>`;
             }
         }
 
         window.completeOrder = async function(id) {
             try {
                 await updateDoc(doc(db, "orders", id), { status: 'completed' });
-                alert("تم تحديث حالة الطلب إلى مكتمل! 🚀");
+                alert("تم تأكيد الطلب وتفعيل التحميل للعميل! 🚀");
                 loadOrders();
-            } catch (e) {
-                alert("خطأ: " + e.message);
+            } catch (error) {
+                alert("خطأ: " + error.message);
             }
         };
 
-        window.deleteOrder = async function(id) {
-            if (confirm("هل تريد حذف هذا الطلب؟")) {
+        window.removeOrder = async function(id) {
+            if (confirm("هل تريد حذف هذا الطلب نهائياً؟")) {
                 await deleteDoc(doc(db, "orders", id));
                 loadOrders();
             }
