@@ -14,6 +14,7 @@
             --accent-cyan: #00d2ff;
             --accent-purple: #8a2be2;
             --accent-green: #00e676;
+            --danger-red: #ff4757;
             --border-line: rgba(255, 255, 255, 0.08);
             --text-main: #ffffff;
             --text-sub: #a0a0c0;
@@ -56,16 +57,19 @@
             border: 1px solid var(--border-line);
             border-radius: 14px;
             padding: 25px;
+            margin-bottom: 20px;
         }
 
         .payment-tabs {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
         .tab-btn {
             flex: 1;
+            min-width: 140px;
             padding: 12px;
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border-line);
@@ -101,6 +105,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .account-row strong { color: var(--accent-cyan); font-family: monospace; font-size: 1rem; }
@@ -163,6 +169,18 @@
             font-weight: bold;
         }
 
+        .user-badge {
+            background: rgba(0, 210, 255, 0.1);
+            border: 1px solid rgba(0, 210, 255, 0.3);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         @media (max-width: 768px) {
             .page-wrapper { flex-direction: column; }
             .sidebar { width: 100%; }
@@ -179,7 +197,8 @@
                 <li><a href="index.html">🏠 الصفحة الرئيسية</a></li>
                 <li><a href="shop.html">🛍️ تسوق الآن (المنتجات)</a></li>
                 <li><a href="contact.html">📩 تواصل معنا والأسئلة</a></li>
-                <li><a href="profile.html" class="active">🛒 سلة المشتريات</a></li>
+                <li><a href="profile.html">🛒 سلة المشتريات / الملف</a></li>
+                <li><a href="checkout.html" class="active">💳 إتمام الدفع</a></li>
                 <li><a href="privacy.html">🔒 سياسة الخصوصية</a></li>
             </ul>
         </aside>
@@ -187,13 +206,18 @@
         <main class="main-content">
             <h1 style="margin-bottom: 25px; font-size: 1.8rem;">اختيار طريقة الدفع والتأكيد 💳</h1>
 
+            <div id="userInfoDisplay" class="user-badge">
+                <span>👤 المشتري: <strong id="buyerEmailText">جاري التحقق...</strong></span>
+                <span id="authStatusText" style="color: var(--accent-cyan);">مسجل</span>
+            </div>
+
             <div class="checkout-grid">
                 <!-- قسم خيارات الدفع -->
                 <div class="card-box">
                     <div class="payment-tabs">
-                        <button class="tab-btn active" onclick="switchTab(event, 'dahabia')">💳 الذهبية / BaridiMob</button>
-                        <button class="tab-btn" onclick="switchTab(event, 'ccp')">🏛️ تحويل CCP</button>
-                        <button class="tab-btn" onclick="switchTab(event, 'visa')">🌐 Visa / Mastercard</button>
+                        <button class="tab-btn active" onclick="window.switchTab(event, 'dahabia')">💳 الذهبية / BaridiMob</button>
+                        <button class="tab-btn" onclick="window.switchTab(event, 'ccp')">🏛️ تحويل CCP</button>
+                        <button class="tab-btn" onclick="window.switchTab(event, 'visa')">🌐 Visa / Mastercard</button>
                     </div>
 
                     <!-- 1. لوحة البطاقة الذهبية و BaridiMob -->
@@ -202,7 +226,7 @@
                             <div class="account-row">
                                 <span>رقم الحساب البريدي (RIP):</span>
                                 <strong id="demoRip">00799999999999999999</strong>
-                                <span class="copy-tag" onclick="copyText('demoRip')">نسخ</span>
+                                <span class="copy-tag" onclick="window.copyText('demoRip')">نسخ</span>
                             </div>
                             <div class="account-row">
                                 <span>صاحب الحساب:</span>
@@ -214,7 +238,7 @@
                             </div>
                         </div>
 
-                        <form onsubmit="processOrder(event, 'الذهبية / BaridiMob')">
+                        <form onsubmit="window.processOrder(event, 'الذهبية / BaridiMob')">
                             <div class="form-group">
                                 <label>رقم المعاملة (N° Transaction من تطبيق بريدي موب):</label>
                                 <input type="text" id="baridiTx" placeholder="أدخل رقم المعاملة (مثال: 987654)" required>
@@ -233,7 +257,7 @@
                             <div class="account-row">
                                 <span>رقم الحساب CCP:</span>
                                 <strong id="demoCcp">12345678 Clé 99</strong>
-                                <span class="copy-tag" onclick="copyText('demoCcp')">نسخ</span>
+                                <span class="copy-tag" onclick="window.copyText('demoCcp')">نسخ</span>
                             </div>
                             <div class="account-row">
                                 <span>صاحب الحساب:</span>
@@ -241,7 +265,7 @@
                             </div>
                         </div>
 
-                        <form onsubmit="processOrder(event, 'CCP البريدي')">
+                        <form onsubmit="window.processOrder(event, 'CCP البريدي')">
                             <div class="form-group">
                                 <label>رقم وصل التحويل البريدي (Reçu):</label>
                                 <input type="text" id="ccpRec" placeholder="أدخل رقم الوصل البريدي" required>
@@ -252,7 +276,7 @@
 
                     <!-- 3. لوحة فيزا وماستركارد العالمية -->
                     <div id="visa-panel" class="pay-panel">
-                        <form onsubmit="processOrder(event, 'Visa / Mastercard')">
+                        <form onsubmit="window.processOrder(event, 'Visa / Mastercard')">
                             <div class="form-group">
                                 <label>الاسم على البطاقة (Cardholder Name):</label>
                                 <input type="text" placeholder="Mohamed Yasser" required>
@@ -293,6 +317,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
@@ -305,6 +330,25 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let currentBuyerEmail = "guest@user.com";
+
+        onAuthStateChanged(auth, (user) => {
+            if (user && user.email) {
+                currentBuyerEmail = user.email;
+                document.getElementById("buyerEmailText").innerText = user.email;
+                document.getElementById("authStatusText").innerText = "متصل ✅";
+            } else {
+                const localProfile = JSON.parse(localStorage.getItem("userProfile"));
+                if (localProfile && localProfile.email) {
+                    currentBuyerEmail = localProfile.email;
+                    document.getElementById("buyerEmailText").innerText = localProfile.email;
+                } else {
+                    document.getElementById("buyerEmailText").innerText = "زائر (Guest)";
+                }
+            }
+        });
 
         window.switchTab = function(e, tab) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -336,8 +380,8 @@
                 total += priceNum;
                 return `
                     <div class="summary-item">
-                        <span>${item.name || item.title}</span>
-                        <span style="color:var(--accent-cyan); font-weight:bold;">${item.price}$</span>
+                        <span>${item.name || item.title || 'منتج رقمي'}</span>
+                        <span style="color:var(--accent-cyan); font-weight:bold;">${item.price}</span>
                     </div>
                 `;
             }).join('');
@@ -348,7 +392,6 @@
         window.processOrder = async function(e, method) {
             e.preventDefault();
             const cart = JSON.parse(localStorage.getItem("cart")) || [];
-            const userProfile = JSON.parse(localStorage.getItem("userProfile")) || { email: "guest@user.com" };
 
             if (cart.length === 0) {
                 alert("السلة فارغة!");
@@ -356,18 +399,18 @@
             }
 
             try {
-                // حفظ الطلب في Firebase
-                await addDoc(collection(db, "purchases"), {
-                    buyerEmail: userProfile.email,
+                // حفظ الطلب في مجموعة 'orders' ليتوافق مع لوحة التحكم
+                await addDoc(collection(db, "orders"), {
+                    buyerEmail: currentBuyerEmail,
                     items: cart,
                     paymentMethod: method,
                     status: method.includes("Visa") ? "completed" : "pending",
                     createdAt: serverTimestamp()
                 });
 
-                alert(`🎉 تم إرسال طلبك بنجاح باستخدام [${method}]!\nجاري توجيهك لصفحة حسابك للوصول إلى المنتجات.`);
+                alert(`🎉 تم إرسال طلبك بنجاح باستخدام [${method}]!\nسيظهر للمدير في لوحة التحكم لمراجعته وتفعيله.`);
                 localStorage.removeItem("cart"); // تفريغ السلة
-                window.location.href = "profile.html"; // التوجيه لصفحة الملف الشخصي/المشتريات
+                window.location.href = "profile.html"; // التوجيه لصفحة الملف الشخصي
             } catch (err) {
                 console.error(err);
                 alert("حدث خطأ أثناء حفظ الطلب: " + err.message);
