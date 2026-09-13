@@ -6,6 +6,8 @@
     <title>إضافة منتج رقمي - DigiVault الخزنة الرقمية</title>
     <!-- Tailwind CSS للتصميم السريع والحديث -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Cairo -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome للأيقونات -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -22,10 +24,13 @@
             <a href="index.html" class="text-xl font-bold text-blue-600 flex items-center gap-2">
                 <i class="fa-solid fa-vault"></i> DigiVault
             </a>
-            <div id="adminLinkContainer" class="hidden">
-                <a href="admin.html" class="bg-slate-900 text-white text-sm px-4 py-2 rounded-lg hover:bg-slate-800 transition flex items-center gap-2">
-                    <i class="fa-solid fa-gauge-high"></i> لوحة التحكم
-                </a>
+            <div class="flex items-center gap-3">
+                <div id="adminLinkContainer" class="hidden">
+                    <a href="admin.html" class="bg-slate-900 text-white text-sm px-4 py-2 rounded-lg hover:bg-slate-800 transition flex items-center gap-2">
+                        <i class="fa-solid fa-gauge-high"></i> لوحة التحكم
+                    </a>
+                </div>
+                <span id="userEmailBadge" class="text-xs text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full hidden"></span>
             </div>
         </div>
     </header>
@@ -83,7 +88,7 @@
                             <i class="fa-solid fa-cloud-arrow-up text-3xl text-blue-500 mb-2"></i>
                             <span class="text-xs text-slate-600 font-medium">اضغط لاختيار صورة الغلاف أو اسحبها هنا</span>
                         </div>
-                        <img id="imagePreviewTag" src="" alt="Preview" class="hidden max-h-48 mx-auto rounded-lg shadow-md">
+                        <img id="imagePreviewTag" src="" alt="Preview" class="hidden max-h-48 mx-auto rounded-lg shadow-md object-contain">
                     </div>
                 </div>
 
@@ -121,7 +126,7 @@
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-        // إعدادات Firebase الخاصة بك (استبدل بالقيم الفعلية)
+        // إعدادات Firebase الخاصة بك
         const firebaseConfig = {
             apiKey: "AIzaSyYOUR_API_KEY_HERE",
             authDomain: "digivault-app.firebaseapp.com",
@@ -136,7 +141,7 @@
         const db = getFirestore(app);
         const storage = getStorage(app);
 
-        const IMGBB_API_KEY = "YOUR_IMGBB_API_KEY_HERE"; // ضع مفتاح ImgBB هنا
+        const IMGBB_API_KEY = "YOUR_IMGBB_API_KEY_HERE";
         const MAIN_ADMIN_EMAIL = "ythr2010@gmail.com";
 
         let currentUser = null;
@@ -145,13 +150,17 @@
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
             const helperAdmins = JSON.parse(localStorage.getItem('helperAdmins') || '[]');
+            const badge = document.getElementById('userEmailBadge');
             
             if (user) {
+                badge.innerText = user.email;
+                badge.classList.remove('hidden');
                 const isAdmin = user.email === MAIN_ADMIN_EMAIL || helperAdmins.includes(user.email);
                 if (isAdmin) {
                     document.getElementById('adminLinkContainer').classList.remove('hidden');
                 }
             } else {
+                badge.classList.add('hidden');
                 showAlert('يجب تسجيل الدخول أولاً لرفع المنتجات!', 'bg-amber-100 text-amber-800');
             }
         });
@@ -210,8 +219,8 @@
             try {
                 // 1. رفع الصورة لـ ImgBB
                 document.getElementById('progressText').innerText = 'جاري رفع صورة الغلاف...';
-                document.getElementById('progressBar').style.width = '30%';
-                document.getElementById('progressPercent').innerText = '30%';
+                document.getElementById('progressBar').style.width = '25%';
+                document.getElementById('progressPercent').innerText = '25%';
                 const imageUrl = await uploadImageToImgBB(coverFile);
 
                 // 2. رفع الملف الرقمي لـ Firebase Storage
@@ -221,7 +230,7 @@
 
                 uploadTask.on('state_changed', 
                     (snapshot) => {
-                        const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 70) + 30;
+                        const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 75) + 25;
                         document.getElementById('progressBar').style.width = progress + '%';
                         document.getElementById('progressPercent').innerText = progress + '%';
                     }, 
