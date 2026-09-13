@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>متجر المنتجات الرقمية | الخزنة الرقمية</title>
-    <meta name="description" content="تصفح واشترِ أحدث الكتب الإلكترونية، مجسمات 3D/2D، الدورات التعليمية والبطاقات الرقمية بحرية أمان وتسليم فوري.">
+    <meta name="description" content="تصفح واشترِ أحدث الكتب الإلكترونية، مجسمات 3D/2D، الدورات التعليمية والبطاقات الرقمية بأمان وتسليم فوري.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
@@ -84,7 +84,7 @@
         .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 25px; }
         .product-card {
             background: var(--bg-card); border: 1px solid var(--border-line); border-radius: 14px;
-            padding: 15px; display: flex; flex-direction: column; justify-content: space-between; transition: 0.3s; cursor: pointer;
+            padding: 15px; display: flex; flex-direction: column; justify-content: space-between; transition: 0.3s; cursor: pointer; text-decoration: none; color: inherit;
         }
         .product-card:hover { border-color: var(--accent-cyan); transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); }
 
@@ -93,7 +93,7 @@
 
         .product-badge {
             align-self: flex-start; background: rgba(138, 43, 226, 0.2); color: #c084fc;
-            padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; margin-bottom: 8px;
+            padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; margin-bottom: 8px; display: inline-block;
         }
 
         .product-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 8px; color: #fff; }
@@ -109,18 +109,6 @@
             color: #fff; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: inherit; transition: 0.2s;
         }
         .btn-add:hover { opacity: 0.9; transform: scale(1.05); }
-
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(5px);
-            display: none; justify-content: center; align-items: center; z-index: 2000;
-        }
-        .modal-content {
-            background: var(--bg-card); border: 1px solid var(--accent-cyan); border-radius: 16px;
-            width: 90%; max-width: 500px; padding: 25px; position: relative; box-shadow: 0 10px 30px rgba(0,210,255,0.2);
-        }
-        .modal-close { position: absolute; top: 15px; left: 20px; background: transparent; border: none; color: var(--text-sub); font-size: 1.5rem; cursor: pointer; }
-        .modal-close:hover { color: var(--danger-red); }
 
         .toast-notification {
             position: fixed; bottom: 20px; left: 20px; background: var(--accent-cyan); color: #000;
@@ -154,7 +142,7 @@
         <main class="main-content">
             <div class="top-action-bar">
                 <h1 style="font-size: 1.8rem; margin:0;">كتالوج المنتجات الرقمية 📦</h1>
-                <a href="upload.html" class="btn-upload-direct">➕ إرسال منتج جديد (كبير/صغير)</a>
+                <a href="upload.html" class="btn-upload-direct">➕ إرسال منتج جديد</a>
             </div>
 
             <div class="search-container">
@@ -170,35 +158,16 @@
             </div>
             
             <div class="products-grid" id="productsGrid">
-                <p style="color: var(--text-sub); grid-column: 1/-1; text-align: center; padding: 30px;">جاري تحميل المنتجات المعتمدة...</p>
+                <p style="color: var(--text-sub); grid-column: 1/-1; text-align: center; padding: 40px;">ترقبوا نسخة الإطلاق... المنتجات قادمة قريباً.</p>
             </div>
         </main>
-    </div>
-
-    <!-- نافذة التفاصيل (Modal) -->
-    <div id="productModal" class="modal-overlay">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeModal()">&times;</button>
-            <span class="product-badge" id="modalBadge"></span>
-            <h2 id="modalTitle" style="margin-bottom: 10px; color:#fff;"></h2>
-            <p id="modalDesc" style="color: var(--text-sub); margin-bottom: 15px; font-size:0.95rem;"></p>
-            
-            <div id="modalFileLinkArea" style="margin-bottom: 20px; background: rgba(0,210,255,0.08); padding: 12px; border-radius: 8px; display: none; border: 1px dashed var(--accent-cyan);">
-                <a id="modalDirectDownload" href="#" target="_blank" style="color: var(--accent-cyan); text-decoration: none; font-size: 0.9rem; font-weight: bold; display: flex; align-items: center; gap: 8px;">📥 رابط التحميل الخارجي المباشر (Google Drive/Mega)</a>
-            </div>
-
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span id="modalPrice" class="product-price"></span>
-                <button id="modalAddBtn" class="btn-add">إضافة للسلة 🛒</button>
-            </div>
-        </div>
     </div>
 
     <div id="toast" class="toast-notification"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -261,6 +230,7 @@
                         desc: data.description || "لا يوجد وصف.",
                         price: data.price || "مجاني",
                         imgUrl: data.imageUrl || "https://via.placeholder.com/300x160?text=DigiVault",
+                        promoImg: data.promoImageUrl || data.imageUrl || "https://via.placeholder.com/800x400?text=DigiVault+Promo",
                         fileUrl: data.downloadUrl || "#"
                     });
                 });
@@ -276,7 +246,7 @@
             if (!grid) return;
 
             if (items.length === 0) {
-                grid.innerHTML = `<p style="color:var(--text-sub); grid-column: 1/-1; text-align:center; padding: 40px;">لا توجد منتجات معتمدة مطابقة للبحث.</p>`;
+                grid.innerHTML = `<p style="color:var(--text-sub); grid-column: 1/-1; text-align:center; padding: 40px;">لا توجد منتجات معتمدة حالياً - ترقبوا نسخة الإطلاق!</p>`;
                 return;
             }
 
@@ -284,7 +254,7 @@
                 const priceFormatted = String(p.price).includes('$') || p.price === 'مجاني' ? p.price : '$' + p.price;
                 const safeTitle = p.title.replace(/'/g, "\\'");
                 return `
-                    <div class="product-card" onclick="openModal('${p.id}')">
+                    <a href="product.html?id=${p.id}" class="product-card">
                         <div>
                             <div class="product-image-container">
                                 <img src="${p.imgUrl}" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x160?text=DigiVault'" alt="${p.title}">
@@ -295,9 +265,9 @@
                         </div>
                         <div class="product-footer">
                             <span class="product-price">${priceFormatted}</span>
-                            <button class="btn-add" onclick="event.stopPropagation(); addToCart('${safeTitle}', '${p.price}', '${p.fileUrl}')">إضافة للسلة 🛒</button>
+                            <button type="button" class="btn-add" onclick="event.preventDefault(); event.stopPropagation(); addToCart('${safeTitle}', '${p.price}', '${p.fileUrl}')">إضافة للسلة 🛒</button>
                         </div>
-                    </div>
+                    </a>
                 `;
             }).join('');
         };
@@ -327,36 +297,6 @@
             window.handleFilterAndSearch();
         };
 
-        window.openModal = function(id) {
-            const item = allProductsCache.find(p => String(p.id) === String(id));
-            if (!item) return;
-
-            document.getElementById("modalBadge").textContent = item.badge;
-            document.getElementById("modalTitle").textContent = item.title;
-            document.getElementById("modalDesc").textContent = item.desc;
-            document.getElementById("modalPrice").textContent = String(item.price).includes('$') || item.price === 'مجاني' ? item.price : '$' + item.price;
-            
-            const linkArea = document.getElementById("modalFileLinkArea");
-            const directLink = document.getElementById("modalDirectDownload");
-            if (item.fileUrl && item.fileUrl !== "#") {
-                directLink.href = item.fileUrl;
-                linkArea.style.display = "block";
-            } else {
-                linkArea.style.display = "none";
-            }
-
-            const modalAddBtn = document.getElementById("modalAddBtn");
-            modalAddBtn.onclick = () => {
-                window.addToCart(item.title, item.price, item.fileUrl);
-                window.closeModal();
-            };
-            document.getElementById("productModal").style.display = "flex";
-        };
-
-        window.closeModal = function() {
-            document.getElementById("productModal").style.display = "none";
-        };
-
         window.showToast = function(message) {
             const toast = document.getElementById("toast");
             if (!toast) return;
@@ -365,27 +305,10 @@
             setTimeout(() => { toast.style.display = "none"; }, 2500);
         };
 
-        window.addToCart = async function(name, price, fileUrl) {
+        window.addToCart = function(name, price, fileUrl) {
             let cart = JSON.parse(localStorage.getItem("cart")) || [];
-            cart.push({ name, price, fileUrl });
+            cart.push({ name, price, fileUrl, addedAt: Date.now() });
             localStorage.setItem("cart", JSON.stringify(cart));
-
-            const orderPayload = {
-                customerEmail: currentUserEmail || 'guest@digivault',
-                productTitle: name,
-                price: price,
-                status: 'pending',
-                createdAt: serverTimestamp()
-            };
-
-            try {
-                await addDoc(collection(db, "orders"), orderPayload);
-            } catch (e) {
-                let localOrders = JSON.parse(localStorage.getItem("siteOrders")) || [];
-                localOrders.push({ id: Date.now(), ...orderPayload, createdAt: new Date().toISOString() });
-                localStorage.setItem("siteOrders", JSON.stringify(localOrders));
-            }
-
             window.showToast(`تمت إضافة "${name}" إلى السلة 🛒`);
         };
 
