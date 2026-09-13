@@ -144,6 +144,7 @@
         .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
         .badge-pending { background: rgba(255, 165, 2, 0.15); color: var(--warning-yellow); }
         .badge-approved { background: rgba(46, 213, 115, 0.15); color: var(--success-green); }
+        .badge-completed { background: rgba(0, 210, 255, 0.15); color: var(--accent-cyan); }
     </style>
 </head>
 <body>
@@ -170,6 +171,27 @@
                 <span id="adminEmailDisplay" style="color: var(--accent-cyan); font-size: 0.85rem;">مسجل كـ: المدير</span>
             </div>
             <a href="shop.html" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">← العودة للمتجر</a>
+        </div>
+
+        <!-- قسم طلبات المشتريات المربوطة بالسلة -->
+        <div class="card">
+            <h3 style="margin-bottom: 15px; color: var(--accent-cyan);">🛒 طلبات الشراء والمبيعات الواردة</h3>
+            <div style="overflow-x: auto;">
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>العميل</th>
+                            <th>المنتج</th>
+                            <th>السعر</th>
+                            <th>الحالة</th>
+                            <th>الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        <tr><td colspan="5" style="text-align:center; color:var(--text-sub);">جاري تحميل الطلبات...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="card">
@@ -301,7 +323,6 @@
         onAuthStateChanged(auth, async (user) => {
             const errorMsg = document.getElementById("errorMsg");
             if (user) {
-                // التحقق هل هو الأدمن أو ضمن مجموعة admins
                 let isAdmin = user.email === SUPER_ADMIN;
                 if (!isAdmin) {
                     try {
@@ -316,6 +337,7 @@
                     document.getElementById("adminEmailDisplay").textContent = `مسجل كـ: ${user.email}`;
                     loadProducts();
                     loadMessages();
+                    loadOrders();
                 } else {
                     await signOut(auth);
                     errorMsg.style.display = "block";
@@ -338,6 +360,54 @@
                 errorMsg.style.display = "block";
             }
         });
+
+        async function loadOrders() {
+            const tbody = document.getElementById("ordersTableBody");
+            try {
+                const querySnapshot = await getDocs(collection(db, "orders"));
+                if (querySnapshot.empty) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-sub);">لا توجد طلبات شراء حالياً.</td></tr>`;
+                    return;
+                }
+                tbody.innerHTML = "";
+                querySnapshot.forEach((docSnap) => {
+                    const order = docSnap.data();
+                    const orderId = docSnap.id;
+                    const statusClass = order.status === 'completed' ? 'badge-completed' : 'badge-pending';
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${order.customerEmail || 'guest'}</td>
+                            <td><strong>${order.productTitle || ''}</strong></td>
+                            <td style="color:var(--accent-cyan); font-weight:bold;">${order.price || ''}</td>
+                            <td><span class="badge ${statusClass}">${order.status || 'pending'}</span></td>
+                            <td>
+                                <button class="btn-action btn-approve" onclick="window.completeOrder('${orderId}')">تأكيد/تسليم ✅</button>
+                                <button class="btn-action btn-delete" onclick="window.deleteOrder('${orderId}')">حذف 🗑️</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--danger-red);">تعذر تحميل الطلبات.</td></tr>`;
+            }
+        }
+
+        window.completeOrder = async function(id) {
+            try {
+                await updateDoc(doc(db, "orders", id), { status: 'completed' });
+                alert("تم تحديث حالة الطلب إلى مكتمل! 🚀");
+                loadOrders();
+            } catch (e) {
+                alert("خطأ: " + e.message);
+            }
+        };
+
+        window.deleteOrder = async function(id) {
+            if (confirm("هل تريد حذف هذا الطلب؟")) {
+                await deleteDoc(doc(db, "orders", id));
+                loadOrders();
+            }
+        };
 
         async function loadMessages() {
             const tbody = document.getElementById("messagesTableBody");
@@ -452,7 +522,6 @@
             e.preventDefault();
             const editId = document.getElementById("editDocId").value;
 
-            // توحيد المسميات مع shop.html (imageUrl / downloadUrl)
             const productData = {
                 title: document.getElementById("pTitle").value,
                 cat: document.getElementById("pCat").value,
