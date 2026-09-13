@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم الشاملة | الخزنة الرقمية</title>
+    <title>لوحة التحكم الشاملة | الخزنة الرقمية - v2</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -69,7 +69,7 @@
 
         #dashboardContent {
             display: none;
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
@@ -82,7 +82,27 @@
             padding: 20px;
             border-radius: 12px;
             margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-line);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .stat-card h4 { color: var(--text-sub); font-size: 0.85rem; }
+        .stat-card span { font-size: 1.5rem; font-weight: 900; color: var(--accent-cyan); }
 
         .card {
             background: var(--bg-card);
@@ -144,6 +164,23 @@
         .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
         .badge-pending { background: rgba(255, 165, 2, 0.15); color: var(--warning-yellow); }
         .badge-approved { background: rgba(46, 213, 115, 0.15); color: var(--success-green); }
+
+        .search-filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .search-filter-bar input, .search-filter-bar select {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px;
+            background: #1e1e28;
+            border: 1px solid var(--border-line);
+            border-radius: 8px;
+            color: #fff;
+            outline: none;
+        }
     </style>
 </head>
 <body>
@@ -169,9 +206,29 @@
                 <h1>👑 لوحة تحكم الخزنة الرقمية</h1>
                 <span id="adminEmailDisplay" style="color: var(--accent-cyan); font-size: 0.85rem;">مسجل كـ: المدير</span>
             </div>
-            <a href="shop.html" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">← العودة للمتجر</a>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <a href="shop.html" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">← العودة للمتجر</a>
+                <button id="logoutBtn" class="btn-action btn-delete">تسجيل الخروج 🚪</button>
+            </div>
         </div>
 
+        <!-- إحصائيات سريعة -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div><h4>إجمالي المنتجات</h4><span id="statProducts">0</span></div>
+                <span>📦</span>
+            </div>
+            <div class="stat-card">
+                <div><h4>الطلبات الكلية</h4><span id="statOrders">0</span></div>
+                <span>💳</span>
+            </div>
+            <div class="stat-card">
+                <div><h4>الرسائل الواردة</h4><span id="statMessages">0</span></div>
+                <span>📥</span>
+            </div>
+        </div>
+
+        <!-- قسم طلبات الشراء -->
         <div class="card">
             <h3 style="margin-bottom: 15px; color: var(--accent-cyan);">💳 طلبات الشراء الواردة (Orders)</h3>
             <div style="overflow-x: auto;">
@@ -193,6 +250,7 @@
             </div>
         </div>
 
+        <!-- قسم رسائل التواصل -->
         <div class="card">
             <h3 style="margin-bottom: 15px; color: var(--accent-cyan);">📥 رسائل "تواصل معنا" الواردة</h3>
             <div style="overflow-x: auto;">
@@ -212,6 +270,7 @@
             </div>
         </div>
 
+        <!-- نموذج إضافة/تعديل المنتجات -->
         <div class="card">
             <h3 id="formTitle" style="margin-bottom: 15px; color: var(--accent-cyan);">➕ إضافة منتج جديد</h3>
             <form id="productForm">
@@ -263,8 +322,17 @@
             </form>
         </div>
 
+        <!-- إدارة المنتجات مع فلترة وبحث -->
         <div class="card">
             <h3 style="margin-bottom: 15px;">📋 إدارة المنتجات والموافقات</h3>
+            <div class="search-filter-bar">
+                <input type="text" id="searchInput" placeholder="ابحث عن منتج..." oninput="window.filterTable()">
+                <select id="filterStatus" onchange="window.filterTable()">
+                    <option value="all">جميع الحالات</option>
+                    <option value="approved">معتمد ومنشور</option>
+                    <option value="pending">بانتظار الموافقة</option>
+                </select>
+            </div>
             <div style="overflow-x: auto;">
                 <table class="products-table">
                     <thead>
@@ -360,10 +428,15 @@
             }
         });
 
+        document.getElementById("logoutBtn").addEventListener("click", async () => {
+            await signOut(auth);
+        });
+
         async function loadOrders() {
             const tbody = document.getElementById("ordersTableBody");
             try {
                 const querySnapshot = await getDocs(collection(db, "orders"));
+                document.getElementById("statOrders").textContent = querySnapshot.size;
                 if (querySnapshot.empty) {
                     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-sub);">لا توجد طلبات شراء حالياً.</td></tr>`;
                     return;
@@ -416,6 +489,7 @@
             const tbody = document.getElementById("messagesTableBody");
             try {
                 const querySnapshot = await getDocs(collection(db, "contact_messages"));
+                document.getElementById("statMessages").textContent = querySnapshot.size;
                 if (querySnapshot.empty) {
                     tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-sub);">لا توجد رسائل جديدة حالياً.</td></tr>`;
                     return;
@@ -475,20 +549,33 @@
                 querySnapshot.forEach((docSnap) => {
                     productsList.push({ id: docSnap.id, ...docSnap.data() });
                 });
-                renderTable();
+                document.getElementById("statProducts").textContent = productsList.length;
+                renderTable(productsList);
             } catch (error) {
                 console.error("خطأ في جلب المنتجات:", error);
             }
         }
 
-        function renderTable() {
+        window.filterTable = function() {
+            const searchVal = document.getElementById("searchInput").value.toLowerCase();
+            const filterStat = document.getElementById("filterStatus").value;
+
+            const filtered = productsList.filter(p => {
+                const matchesSearch = (p.title || "").toLowerCase().includes(searchVal);
+                const matchesStat = filterStat === 'all' || p.status === filterStat;
+                return matchesSearch && matchesStat;
+            });
+            renderTable(filtered);
+        };
+
+        function renderTable(list) {
             const tbody = document.getElementById("tableBody");
-            if (productsList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-sub);">لا توجد منتجات حالياً.</td></tr>`;
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-sub);">لا توجد منتجات مطابقة.</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = productsList.map(p => {
+            tbody.innerHTML = list.map(p => {
                 const isApproved = p.status === 'approved';
                 const statusBadge = isApproved 
                     ? `<span class="badge badge-approved">معتمد ومنشور</span>` 
