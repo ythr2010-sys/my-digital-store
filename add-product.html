@@ -3,435 +3,274 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إضافة منتج جديد | الخزنة الرقمية DigiVault</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-    
+    <title>إضافة منتج رقمي - DigiVault الخزنة الرقمية</title>
+    <!-- Tailwind CSS للتصميم السريع والحديث -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome للأيقونات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --bg-main: #0a0a12;
-            --bg-card: #141424;
-            --bg-sidebar: #10101c;
-            --accent-cyan: #00d2ff;
-            --accent-purple: #8a2be2;
-            --border-line: rgba(255, 255, 255, 0.08);
-            --text-main: #ffffff;
-            --text-sub: #a0a0c0;
-            --danger-red: #ff4757;
-            --success-green: #10b981;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: 'Tajawal', sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            line-height: 1.6;
-            display: flex;
-            min-height: 100vh;
-            flex-direction: column;
-        }
-
-        .page-wrapper { display: flex; flex: 1; }
-
-        .sidebar {
-            width: 260px;
-            background: var(--bg-sidebar);
-            border-left: 1px solid var(--border-line);
-            padding: 25px 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            position: sticky;
-            top: 0;
-            height: 100vh;
-        }
-
-        .logo a {
-            font-size: 1.6rem;
-            font-weight: 900;
-            color: #fff;
-            text-decoration: none;
-            display: block;
-            text-align: center;
-        }
-
-        .logo a span { color: var(--accent-cyan); }
-
-        .sidebar-menu { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-
-        .sidebar-menu li a {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: var(--text-sub);
-            text-decoration: none;
-            padding: 12px 16px;
-            border-radius: 10px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar-menu li a:hover, .sidebar-menu li a.active {
-            background: rgba(0, 210, 255, 0.1);
-            color: var(--accent-cyan);
-            border-right: 3px solid var(--accent-cyan);
-        }
-
-        .btn-admin-highlight {
-            background: rgba(138, 43, 226, 0.2) !important;
-            color: #c084fc !important;
-            border: 1px solid var(--accent-purple) !important;
-            font-weight: 800 !important;
-        }
-
-        .main-content {
-            flex: 1;
-            padding: 30px;
-            max-width: 900px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .form-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-line);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .form-card h1 {
-            font-size: 1.8rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-            color: var(--accent-cyan);
-            border-right: 4px solid var(--accent-cyan);
-            padding-right: 10px;
-        }
-
-        .form-card p { color: var(--text-sub); font-size: 0.95rem; margin-bottom: 25px; }
-
-        .form-group { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
-
-        .form-group label { font-weight: 700; font-size: 0.95rem; color: var(--text-main); }
-
-        .form-group input[type="text"], 
-        .form-group input[type="number"], 
-        .form-group textarea, 
-        .form-group select {
-            width: 100%;
-            background: #0d0d18;
-            border: 1px solid var(--border-line);
-            border-radius: 8px;
-            padding: 12px 15px;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.95rem;
-            outline: none;
-        }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent-cyan); }
-
-        .file-upload-box {
-            border: 2px dashed var(--accent-cyan);
-            background: rgba(0, 210, 255, 0.03);
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.3s ease;
-        }
-
-        .file-upload-box:hover { background: rgba(0, 210, 255, 0.08); }
-        .file-upload-box input[type="file"] { display: none; }
-
-        .file-label-btn {
-            display: inline-block;
-            background: var(--accent-cyan);
-            color: #000;
-            padding: 8px 18px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 5px;
-        }
-
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-
-        .btn-submit {
-            width: 100%;
-            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-            color: #fff;
-            border: none;
-            padding: 14px;
-            border-radius: 10px;
-            font-weight: 800;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: 0.3s ease;
-            margin-top: 10px;
-        }
-
-        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 210, 255, 0.4); }
-        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
-
-        .alert-box { padding: 12px 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; display: none; }
-        .alert-success { background: rgba(16, 185, 129, 0.15); border: 1px solid var(--success-green); color: var(--success-green); }
-        .alert-error { background: rgba(255, 71, 87, 0.15); border: 1px solid var(--danger-red); color: var(--danger-red); }
-
-        @media (max-width: 768px) {
-            .page-wrapper { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; position: relative; }
-            .form-row { grid-template-columns: 1fr; }
-            .main-content { padding: 15px; }
-        }
+        body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
+        .preview-box { border: 2px dashed #cbd5e1; transition: all 0.3s ease; }
+        .preview-box:hover { border-color: #3b82f6; background-color: #eff6ff; }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col">
 
-    <div class="page-wrapper">
-        <aside class="sidebar">
-            <div class="logo">
-                <a href="index.html">الخزنة<span>الرقمية</span></a>
+    <!-- Navbar / رأس الصفحة -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="index.html" class="text-xl font-bold text-blue-600 flex items-center gap-2">
+                <i class="fa-solid fa-vault"></i> DigiVault
+            </a>
+            <div id="adminLinkContainer" class="hidden">
+                <a href="admin.html" class="bg-slate-900 text-white text-sm px-4 py-2 rounded-lg hover:bg-slate-800 transition flex items-center gap-2">
+                    <i class="fa-solid fa-gauge-high"></i> لوحة التحكم
+                </a>
             </div>
-            <nav>
-                <ul class="sidebar-menu">
-                    <li><a href="index.html">🏠 الصفحة الرئيسية</a></li>
-                    <li id="adminSidebarLi" style="display: none;">
-                        <a href="admin.html" class="btn-admin-highlight">⚙️ لوحة التحكم الإدارية</a>
-                    </li>
-                    <li><a href="add-product.html" class="active">➕ أضف منتجك للبيع</a></li>
-                    <li><a href="shop.html">🛍️ تسوق الآن</a></li>
-                </ul>
-            </nav>
-        </aside>
+        </div>
+    </header>
 
-        <main class="main-content">
-            <div class="form-card">
-                <h1>إضافة منتج جديد (رفع مباشر للصور والملفات) 💻</h1>
-                <p>اختر صورة المعاينة وملف المنتج الرقمي من حاسوبك وسيتم إرسالها للمراجعة.</p>
-
-                <div id="alertBox" class="alert-box"></div>
-
-                <form id="addProductForm">
-                    <div class="form-group">
-                        <label for="productTitle">عنوان المنتج *</label>
-                        <input type="text" id="productTitle" placeholder="مثال: كتاب أساسيات برمجة Python أو مجسم 3D" required>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="productPrice">السعر (بالدولار $) *</label>
-                            <input type="number" id="productPrice" step="0.01" min="0" placeholder="مثال: 9.99" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="productCategory">فئة المنتج *</label>
-                            <select id="productCategory" required>
-                                <option value="books">📚 كتب وروايات</option>
-                                <option value="models">🎨 مجسمات 3D & 2D</option>
-                                <option value="courses">🎓 دورات تعليمية</option>
-                                <option value="gaming">🎮 ألعاب واشتراكات</option>
-                                <option value="other">💡 خدمات ومنتجات أخرى</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>شارة المنتج (Badge) - اختياري</label>
-                        <input type="text" id="productBadge" placeholder="مثال: PDF / FBX / V1.2">
-                    </div>
-
-                    <!-- اختيار صورة المنتج من الحاسوب -->
-                    <div class="form-group">
-                        <label>صورة معاينة المنتج (من الحاسوب) *</label>
-                        <div class="file-upload-box" onclick="document.getElementById('productImageFile').click()">
-                            <p id="imageFileName">📁 اضغط هنا لاختيار صورة المعاينة من جهازك</p>
-                            <span class="file-label-btn">تصفح الكمبيوتر 🖥️</span>
-                            <input type="file" id="productImageFile" accept="image/*" required onchange="updateFileName(this, 'imageFileName')">
-                        </div>
-                    </div>
-
-                    <!-- رفع ملف المنتج الرقمي الفعلي من الحاسوب -->
-                    <div class="form-group">
-                        <label>ملف المنتج الرقمي (من الحاسوب - PDF, Zip, etc.) *</label>
-                        <div class="file-upload-box" onclick="document.getElementById('productFile').click()">
-                            <p id="docFileName">📁 اضغط هنا لاختيار ملف المنتج الرقمي من جهازك</p>
-                            <span class="file-label-btn">تصفح ملفات الكمبيوتر 🗂️</span>
-                            <input type="file" id="productFile" required onchange="updateFileName(this, 'docFileName')">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="productDescription">وصف المنتج التفصيلي *</label>
-                        <textarea id="productDescription" rows="4" placeholder="اكتب شرحاً وافياً عن المنتج..." required></textarea>
-                    </div>
-
-                    <button type="submit" id="submitBtn" class="btn-submit">رفع وإرسال للمراجعة والنشر 🚀</button>
-                </form>
+    <!-- المحتوى الرئيسي -->
+    <main class="flex-grow max-w-2xl w-full mx-auto p-4 sm:p-6 my-8">
+        <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-slate-100">
+            <div class="mb-6 border-b pb-4">
+                <h1 class="text-2xl font-extrabold text-slate-800">إضافة منتج رقمي جديد</h1>
+                <p class="text-sm text-slate-500 mt-1">املأ بيانات المنتج بدقة ليكون جاهزاً للمراجعة والنشر.</p>
             </div>
-        </main>
-    </div>
 
-    <script>
-        function updateFileName(input, targetId) {
-            if (input.files && input.files[0]) {
-                document.getElementById(targetId).textContent = "✅ تم اختيار: " + input.files[0].name;
-            }
-        }
-    </script>
+            <!-- تنبيهات الحالة -->
+            <div id="alertBox" class="hidden mb-6 p-4 rounded-xl text-sm font-medium"></div>
 
+            <form id="productForm" class="space-y-5">
+                <!-- عنوان المنتج -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">عنوان المنتج</label>
+                    <input type="text" id="title" required placeholder="مثال: حزمة تصاميم UI/UX احترافية" 
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                </div>
+
+                <!-- الوصف -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">وصف المنتج</label>
+                    <textarea id="description" rows="4" required placeholder="اشرح مميزات وما يحصل عليه المشتري بالتحديد..." 
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
+                </div>
+
+                <!-- السعر والفئة -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">السعر ($)</label>
+                        <input type="number" id="price" step="0.01" min="0" required placeholder="0.00" 
+                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">التصنيف</label>
+                        <select id="category" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white">
+                            <option value="design">تصاميم وجرافيك</option>
+                            <option value="code">برمجيات وأكواد</option>
+                            <option value="ebooks">كتب ومراجع</option>
+                            <option value="courses">دورات تعليمية</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- معاينة ورفع صورة الغلاف (ImgBB) -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">صورة الغلاف</label>
+                    <div class="preview-box rounded-xl p-4 text-center cursor-pointer relative" onclick="document.getElementById('coverImage').click()">
+                        <input type="file" id="coverImage" accept="image/*" class="hidden" onchange="previewImage(this)">
+                        <div id="imagePreviewContent" class="flex flex-col items-center justify-center py-4">
+                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-blue-500 mb-2"></i>
+                            <span class="text-xs text-slate-600 font-medium">اضغط لاختيار صورة الغلاف أو اسحبها هنا</span>
+                        </div>
+                        <img id="imagePreviewTag" src="" alt="Preview" class="hidden max-h-48 mx-auto rounded-lg shadow-md">
+                    </div>
+                </div>
+
+                <!-- رفع الملف الرقمي (Firebase Storage) -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">ملف المنتج الرقمي (Zip, PDF, ...)</label>
+                    <input type="file" id="digitalFile" required 
+                        class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                </div>
+
+                <!-- شريط التقدم للرفع -->
+                <div id="progressContainer" class="hidden space-y-2">
+                    <div class="flex justify-between text-xs text-slate-600">
+                        <span id="progressText">جاري الرفع...</span>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                        <div id="progressBar" class="bg-blue-600 h-full w-0 transition-all duration-300"></div>
+                    </div>
+                </div>
+
+                <!-- زر الإرسال -->
+                <button type="submit" id="submitBtn" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> نشر المنتج للمراجعة
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Firebase SDKs & App Logic -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
+        // إعدادات Firebase الخاصة بك (استبدل بالقيم الفعلية)
         const firebaseConfig = {
-            apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
-            authDomain: "digivault-4c3a3.firebaseapp.com",
-            projectId: "digivault-4c3a3",
-            storageBucket: "digivault-4c3a3.firebasestorage.app",
-            messagingSenderId: "578335534171",
-            appId: "1:578335534171:web:1b108a849c0543f998a37e",
-            measurementId: "G-SZCB59ZZDN"
+            apiKey: "AIzaSyYOUR_API_KEY_HERE",
+            authDomain: "digivault-app.firebaseapp.com",
+            projectId: "digivault-app",
+            storageBucket: "digivault-app.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef"
         };
-
-        const IMGBB_API_KEY = "db5807505d71f9889df779a9a4c05c64"; 
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const storage = getStorage(app);
 
-        const SUPER_ADMIN_EMAIL = "ythr2010@gmail.com";
+        const IMGBB_API_KEY = "YOUR_IMGBB_API_KEY_HERE"; // ضع مفتاح ImgBB هنا
+        const MAIN_ADMIN_EMAIL = "ythr2010@gmail.com";
+
         let currentUser = null;
 
+        // التحقق من المصادقة والصلاحيات
         onAuthStateChanged(auth, (user) => {
-            const adminSidebarLi = document.getElementById("adminSidebarLi");
-            const helperAdmins = JSON.parse(localStorage.getItem("helperAdmins")) || [];
-
+            currentUser = user;
+            const helperAdmins = JSON.parse(localStorage.getItem('helperAdmins') || '[]');
+            
             if (user) {
-                currentUser = user;
-                const email = user.email ? user.email.toLowerCase() : "";
-                if (email === SUPER_ADMIN_EMAIL.toLowerCase() || helperAdmins.includes(email)) {
-                    if (adminSidebarLi) adminSidebarLi.style.display = "block";
+                const isAdmin = user.email === MAIN_ADMIN_EMAIL || helperAdmins.includes(user.email);
+                if (isAdmin) {
+                    document.getElementById('adminLinkContainer').classList.remove('hidden');
                 }
             } else {
-                currentUser = null;
+                showAlert('يجب تسجيل الدخول أولاً لرفع المنتجات!', 'bg-amber-100 text-amber-800');
             }
         });
 
-        const form = document.getElementById("addProductForm");
-        const submitBtn = document.getElementById("submitBtn");
-        const alertBox = document.getElementById("alertBox");
-
-        function showAlert(message, type) {
-            alertBox.textContent = message;
-            alertBox.className = `alert-box ${type === 'success' ? 'alert-success' : 'alert-error'}`;
-            alertBox.style.display = 'block';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        async function uploadImageToImgBB(imageFile) {
-            return new Promise((resolve, reject) => {
+        // معاينة الصورة محلياً
+        window.previewImage = function(input) {
+            if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.readAsDataURL(imageFile);
-                reader.onload = async () => {
-                    const base64Data = reader.result.split(',')[1];
-                    const formData = new FormData();
-                    formData.append('key', IMGBB_API_KEY);
-                    formData.append('image', base64Data);
+                reader.onload = function(e) {
+                    document.getElementById('imagePreviewTag').src = e.target.result;
+                    document.getElementById('imagePreviewTag').classList.remove('hidden');
+                    document.getElementById('imagePreviewContent').classList.add('hidden');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        };
 
-                    try {
-                        const response = await fetch('https://api.imgbb.com/1/upload', {
-                            method: 'POST',
-                            body: formData
-                        });
-                        const data = await response.json();
-                        if (data.success) {
-                            resolve(data.data.url);
-                        } else {
-                            reject(new Error(data.error.message || 'فشل رفع الصورة على ImgBB'));
-                        }
-                    } catch (err) {
-                        reject(err);
-                    }
-                };
-                reader.onerror = (error) => reject(error);
+        // رفع الصورة إلى ImgBB
+        async function uploadImageToImgBB(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+            const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                method: 'POST',
+                body: formData
             });
+            const data = await response.json();
+            if (!data.success) throw new Error('فشل رفع الصورة إلى ImgBB');
+            return data.data.url;
         }
 
-        form.addEventListener("submit", async (e) => {
+        // التعامل مع نموذج الإرسال
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            const activeUser = auth.currentUser || currentUser;
-            if (!activeUser) {
-                showAlert("عفواً، يتوجب عليك تسجيل الدخول أولاً قبل رفع المنتجات!", "error");
-                setTimeout(() => { window.location.href = "login.html"; }, 2000);
+            if (!currentUser) {
+                showAlert('يرجى تسجيل الدخول قبل الإرسال.', 'bg-red-100 text-red-800');
                 return;
             }
 
-            const imageFile = document.getElementById("productImageFile").files[0];
-            const docFile = document.getElementById("productFile").files[0];
+            const title = document.getElementById('title').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const price = parseFloat(document.getElementById('price').value);
+            const category = document.getElementById('category').value;
+            const coverFile = document.getElementById('coverImage').files[0];
+            const digitalFile = document.getElementById('digitalFile').files[0];
 
-            if (!imageFile || !docFile) {
-                showAlert("يرجى اختيار صورة المعاينة وملف المنتج الرقمي من حاسوبك.", "error");
+            if (!coverFile) {
+                showAlert('الرجاء اختيار صورة الغلاف.', 'bg-red-100 text-red-800');
                 return;
             }
 
-            const title = document.getElementById("productTitle").value.trim();
-            const priceVal = parseFloat(document.getElementById("productPrice").value);
-            const category = document.getElementById("productCategory").value;
-            const badge = document.getElementById("productBadge").value.trim() || "DIGITAL";
-            const description = document.getElementById("productDescription").value.trim();
-
+            const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.textContent = "⏳ جاري رفع صورة الغلاف...";
+            submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> جاري المعالجة...`;
+            document.getElementById('progressContainer').classList.remove('hidden');
 
             try {
-                const imageUrl = await uploadImageToImgBB(imageFile);
+                // 1. رفع الصورة لـ ImgBB
+                document.getElementById('progressText').innerText = 'جاري رفع صورة الغلاف...';
+                document.getElementById('progressBar').style.width = '30%';
+                document.getElementById('progressPercent').innerText = '30%';
+                const imageUrl = await uploadImageToImgBB(coverFile);
 
-                submitBtn.textContent = "⏳ جاري رفع ملف المنتج الرقمي لـ Firebase Storage...";
-                const storageRef = ref(storage, `products_files/${Date.now()}_${docFile.name}`);
-                await uploadBytes(storageRef, docFile);
-                const downloadLink = await getDownloadURL(storageRef);
+                // 2. رفع الملف الرقمي لـ Firebase Storage
+                document.getElementById('progressText').innerText = 'جاري رفع الملف الرقمي...';
+                const fileRef = ref(storage, `products_files/${Date.now()}_${digitalFile.name}`);
+                const uploadTask = uploadBytesResumable(fileRef, digitalFile);
 
-                submitBtn.textContent = "⏳ جاري حفظ الطلب في قاعدة البيانات...";
-                await addDoc(collection(db, "products"), {
-                    title: title,
-                    price: priceVal + " $",
-                    cat: category,
-                    badge: badge,
-                    imageUrl: imageUrl,
-                    downloadUrl: downloadLink,
-                    originalFileName: docFile.name,
-                    description: description,
-                    status: 'pending', 
-                    sellerEmail: activeUser.email,
-                    sellerName: activeUser.email === SUPER_ADMIN_EMAIL ? "المدير (أنت)" : activeUser.email,
-                    createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp()
-                });
+                uploadTask.on('state_changed', 
+                    (snapshot) => {
+                        const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 70) + 30;
+                        document.getElementById('progressBar').style.width = progress + '%';
+                        document.getElementById('progressPercent').innerText = progress + '%';
+                    }, 
+                    (error) => {
+                        throw error;
+                    }, 
+                    async () => {
+                        const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
 
-                showAlert("🎉 تم رفع الملف والمنتج بنجاح! سيتم مراجعة طلبك.", "success");
-                form.reset();
-                document.getElementById("imageFileName").textContent = "📁 اضغط هنا لاختيار صورة من جهازك";
-                document.getElementById("docFileName").textContent = "📁 اضغط هنا لاختيار ملف المنتج الرقمي من جهازك";
+                        // 3. حفظ بيانات المنتج في Firestore
+                        await addDoc(collection(db, "products"), {
+                            title,
+                            description,
+                            price,
+                            category,
+                            imageUrl,
+                            downloadUrl,
+                            status: 'pending',
+                            sellerId: currentUser.uid,
+                            sellerEmail: currentUser.email,
+                            createdAt: serverTimestamp()
+                        });
 
-                setTimeout(() => { window.location.href = "index.html"; }, 3500);
+                        showAlert('تم إرسال المنتج بنجاح وهو بانتظار موافقة المدير.', 'bg-emerald-100 text-emerald-800');
+                        document.getElementById('productForm').reset();
+                        document.getElementById('imagePreviewTag').classList.add('hidden');
+                        document.getElementById('imagePreviewContent').classList.remove('hidden');
+                        document.getElementById('progressContainer').classList.add('hidden');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> نشر المنتج للمراجعة`;
+                    }
+                );
 
-            } catch (error) {
-                console.error("خطأ أثناء الإرسال:", error);
-                showAlert("حدث خطأ: " + error.message, "error");
-            } finally {
+            } catch (err) {
+                console.error(err);
+                showAlert('حدث خطأ أثناء الرفع: ' + err.message, 'bg-red-100 text-red-800');
                 submitBtn.disabled = false;
-                submitBtn.textContent = "رفع وإرسال للمراجعة والنشر 🚀";
+                submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> نشر المنتج للمراجعة`;
+                document.getElementById('progressContainer').classList.add('hidden');
             }
         });
+
+        function showAlert(msg, colorClass) {
+            const box = document.getElementById('alertBox');
+            box.className = `mb-6 p-4 rounded-xl text-sm font-medium ${colorClass}`;
+            box.innerText = msg;
+            box.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     </script>
 </body>
 </html>
