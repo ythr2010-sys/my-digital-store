@@ -121,7 +121,6 @@
 
         .form-group input[type="text"], 
         .form-group input[type="number"], 
-        .form-group input[type="url"], 
         .form-group textarea, 
         .form-group select {
             width: 100%;
@@ -212,8 +211,8 @@
 
         <main class="main-content">
             <div class="form-card">
-                <h1>إضافة منتج جديد (رفع مباشر للصورة + رابط تحميل) 💻</h1>
-                <p>اختر صورة المعاينة من حاسوبك وأدخل رابط التحميل المباشر للمنتج الرقمي وسيتم إرسالها للمراجعة.</p>
+                <h1>إضافة منتج جديد (رفع مباشر للصور والملفات) 💻</h1>
+                <p>اختر صورة المعاينة وملف المنتج الرقمي من حاسوبك وسيتم إرسالها للمراجعة.</p>
 
                 <div id="alertBox" class="alert-box"></div>
 
@@ -250,16 +249,20 @@
                     <div class="form-group">
                         <label>صورة معاينة المنتج (من الحاسوب) *</label>
                         <div class="file-upload-box" onclick="document.getElementById('productImageFile').click()">
-                            <p id="imageFileName">📁 اضغط هنا لاختيار صورة من جهازك</p>
+                            <p id="imageFileName">📁 اضغط هنا لاختيار صورة المعاينة من جهازك</p>
                             <span class="file-label-btn">تصفح الكمبيوتر 🖥️</span>
                             <input type="file" id="productImageFile" accept="image/*" required onchange="updateFileName(this, 'imageFileName')">
                         </div>
                     </div>
 
-                    <!-- حقل رابط التحميل للمنتج الرقمي -->
+                    <!-- رفع ملف المنتج الرقمي الفعلي من الحاسوب -->
                     <div class="form-group">
-                        <label for="productDownloadLink">رابط التحميل المباشر للمنتج الرقمي (Google Drive, Mediafire...) *</label>
-                        <input type="url" id="productDownloadLink" placeholder="https://drive.google.com/..." required>
+                        <label>ملف المنتج الرقمي (من الحاسوب - PDF, Zip, etc.) *</label>
+                        <div class="file-upload-box" onclick="document.getElementById('productFile').click()">
+                            <p id="docFileName">📁 اضغط هنا لاختيار ملف المنتج الرقمي من جهازك</p>
+                            <span class="file-label-btn">تصفح ملفات الكمبيوتر 🗂️</span>
+                            <input type="file" id="productFile" required onchange="updateFileName(this, 'docFileName')">
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -285,6 +288,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
@@ -301,6 +305,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
         const SUPER_ADMIN_EMAIL = "ythr2010@gmail.com";
         let currentUser = null;
@@ -371,10 +376,10 @@
             }
 
             const imageFile = document.getElementById("productImageFile").files[0];
-            const downloadLink = document.getElementById("productDownloadLink").value.trim();
+            const docFile = document.getElementById("productFile").files[0];
 
-            if (!imageFile || !downloadLink) {
-                showAlert("يرجى اختيار صورة المعاينة وإدخال رابط التحميل المباشر للمنتج.", "error");
+            if (!imageFile || !docFile) {
+                showAlert("يرجى اختيار صورة المعاينة وملف المنتج الرقمي من حاسوبك.", "error");
                 return;
             }
 
@@ -385,10 +390,15 @@
             const description = document.getElementById("productDescription").value.trim();
 
             submitBtn.disabled = true;
-            submitBtn.textContent = "⏳ جاري رفع الصورة إلى ImgBB...";
+            submitBtn.textContent = "⏳ جاري رفع صورة الغلاف...";
 
             try {
                 const imageUrl = await uploadImageToImgBB(imageFile);
+
+                submitBtn.textContent = "⏳ جاري رفع ملف المنتج الرقمي لـ Firebase Storage...";
+                const storageRef = ref(storage, `products_files/${Date.now()}_${docFile.name}`);
+                await uploadBytes(storageRef, docFile);
+                const downloadLink = await getDownloadURL(storageRef);
 
                 submitBtn.textContent = "⏳ جاري حفظ الطلب في قاعدة البيانات...";
                 await addDoc(collection(db, "products"), {
@@ -398,6 +408,7 @@
                     badge: badge,
                     imageUrl: imageUrl,
                     downloadUrl: downloadLink,
+                    originalFileName: docFile.name,
                     description: description,
                     status: 'pending', 
                     sellerEmail: activeUser.email,
@@ -406,9 +417,10 @@
                     updatedAt: serverTimestamp()
                 });
 
-                showAlert("🎉 تم إرسال المنتج بنجاح! سيتم مراجعة طلبك، في انتظار الرد بقبول أو الرفض.", "success");
+                showAlert("🎉 تم رفع الملف والمنتج بنجاح! سيتم مراجعة طلبك.", "success");
                 form.reset();
                 document.getElementById("imageFileName").textContent = "📁 اضغط هنا لاختيار صورة من جهازك";
+                document.getElementById("docFileName").textContent = "📁 اضغط هنا لاختيار ملف المنتج الرقمي من جهازك";
 
                 setTimeout(() => { window.location.href = "index.html"; }, 3500);
 
