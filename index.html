@@ -24,6 +24,7 @@
             --bg-sidebar: #10101c;
             --accent-cyan: #00d2ff;
             --accent-purple: #8a2be2;
+            --accent-green: #00e676;
             --border-line: rgba(255, 255, 255, 0.08);
             --text-main: #ffffff;
             --text-sub: #a0a0c0;
@@ -114,7 +115,6 @@
             border-right: 3px solid var(--accent-cyan);
         }
 
-        /* تمييز زر أضف منتجك */
         .btn-add-product-highlight {
             background: linear-gradient(135deg, #00d2ff, #8a2be2) !important;
             color: #ffffff !important;
@@ -128,7 +128,6 @@
             box-shadow: 0 6px 18px rgba(0, 210, 255, 0.5);
         }
 
-        /* تمييز زر لوحة التحكم للإدارة */
         .btn-admin-highlight {
             background: rgba(138, 43, 226, 0.2) !important;
             color: #c084fc !important;
@@ -167,7 +166,7 @@
             backdrop-filter: blur(10px);
             border-radius: 12px;
             border: 1px solid var(--border-line);
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         .user-nav {
@@ -196,15 +195,15 @@
             background: linear-gradient(135deg, rgba(138, 43, 226, 0.2), rgba(0, 210, 255, 0.15)), var(--bg-card);
             border: 1px solid var(--border-line);
             border-radius: 16px;
-            padding: 50px 30px;
+            padding: 40px 30px;
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
         .hero-banner h1 {
-            font-size: 2.5rem;
+            font-size: 2.3rem;
             font-weight: 900;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .hero-banner h1 span {
@@ -213,9 +212,9 @@
 
         .hero-banner p {
             color: var(--text-sub);
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             max-width: 700px;
-            margin: 0 auto 25px;
+            margin: 0 auto 20px;
         }
 
         .btn-cta {
@@ -232,6 +231,52 @@
         .btn-cta:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 20px rgba(0, 210, 255, 0.3);
+        }
+
+        /* Controls / Search / Filter Bar */
+        .controls-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .search-input {
+            background: var(--bg-card);
+            border: 1px solid var(--border-line);
+            border-radius: 10px;
+            padding: 10px 16px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.95rem;
+            width: 300px;
+            max-width: 100%;
+        }
+        .search-input:focus { border-color: var(--accent-cyan); outline: none; }
+
+        .filter-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .filter-tab {
+            background: var(--bg-card);
+            border: 1px solid var(--border-line);
+            color: var(--text-sub);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .filter-tab.active, .filter-tab:hover {
+            background: rgba(0, 210, 255, 0.15);
+            color: var(--accent-cyan);
+            border-color: var(--accent-cyan);
         }
 
         /* Feature Sections & Products Display */
@@ -335,6 +380,7 @@
             opacity: 0.9;
         }
 
+        /* Quick Categories Grid */
         .quick-categories {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -363,6 +409,36 @@
             margin-bottom: 10px;
         }
 
+        /* Toast Container */
+        #toastContainer {
+            position: fixed;
+            bottom: 25px;
+            left: 25px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border-line);
+            color: #fff;
+            padding: 14px 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+            animation: slideIn 0.3s ease;
+        }
+        .toast.success { border-right: 4px solid var(--accent-green); }
+
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
         footer {
             text-align: center;
             padding: 20px;
@@ -372,22 +448,13 @@
             margin-top: auto;
         }
 
-        /* Responsive Design Rules */
         @media (max-width: 768px) {
-            .page-wrapper { 
-                flex-direction: column; 
-            }
-            .sidebar { 
-                width: 100%; 
-                height: auto; 
-                position: relative; 
-            }
-            .hero-banner h1 {
-                font-size: 1.8rem;
-            }
-            .navbar {
-                padding: 15px;
-            }
+            .page-wrapper { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; }
+            .hero-banner h1 { font-size: 1.8rem; }
+            .navbar { padding: 15px; }
+            .controls-bar { flex-direction: column; align-items: stretch; }
+            .search-input { width: 100%; }
         }
     </style>
 </head>
@@ -405,20 +472,17 @@
                 <ul class="sidebar-menu">
                     <li><a href="index.html" class="active">🏠 الصفحة الرئيسية</a></li>
                     
-                    <!-- زر لوحة التحكم المخفي (يظهر للأدمن فقط) -->
                     <li id="adminSidebarLi" style="display: none;">
                         <a href="admin.html" class="btn-admin-highlight">⚙️ لوحة التحكم الإدارية</a>
                     </li>
 
-                    <!-- زر أضف منتجك -->
                     <li><a href="add-product.html" class="btn-add-product-highlight">➕ أضف منتجك للبيع</a></li>
                     
                     <li><a href="shop.html">🛍️ تسوق الآن (المنتجات)</a></li>
                     <li><a href="contact.html">📩 تواصل معنا والأسئلة</a></li>
-                    <li><a href="profile.html">🛒 سلة المشتريات</a></li>
+                    <li><a href="profile.html">🛒 سلة المشتريات (<span id="cartBadgeCount">0</span>)</a></li>
                     <li><a href="privacy.html">🔒 سياسة الخصوصية</a></li>
                     
-                    <!-- التحكم بحالة الحساب وتسجيل الخروج -->
                     <li id="loginMenuLi">
                         <a href="login.html">🔑 تسجيل الدخول</a>
                     </li>
@@ -447,6 +511,18 @@
                 <p>كتب وروايات، دورات وفيديوهات تعليمية، مجسمات وملفات 3D/2D، واشتراكات الألعاب - كل ذلك في مكان واحد وبتحميل فوري.</p>
                 <a href="shop.html" class="btn-cta">تصفح المتجر الكامل الآن 🚀</a>
             </section>
+
+            <!-- شريط البحث والتصفية الفورية -->
+            <div class="controls-bar">
+                <input type="text" id="searchInput" class="search-input" placeholder="ابحث عن منتج بالاسم...">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-category="all">الكل</button>
+                    <button class="filter-tab" data-category="books">📚 كتب</button>
+                    <button class="filter-tab" data-category="models">🎨 مجسمات 3D/2D</button>
+                    <button class="filter-tab" data-category="courses">🎓 دورات</button>
+                    <button class="filter-tab" data-category="gaming">🎮 ألعاب</button>
+                </div>
+            </div>
 
             <!-- قسم عرض أحدث المنتجات -->
             <section>
@@ -489,11 +565,13 @@
         </main>
     </div>
 
+    <div id="toastContainer"></div>
+
     <footer>
         جميع الحقوق محفوظة © 2026 الخزنة الرقمية (DigiVault)
     </footer>
 
-    <!-- سكريبت Firebase Auth و Firestore -->
+    <!-- سكريبت Firebase Auth, Firestore والمنطق التفاعلي الآمن -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -514,6 +592,37 @@
         const db = getFirestore(app);
 
         const SUPER_ADMIN_EMAIL = "ythr2010@gmail.com";
+        let allProductsLoaded = [];
+        let activeCategory = 'all';
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById("toastContainer");
+            const toast = document.createElement("div");
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span>✅</span><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = '0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function updateCartBadge() {
+            const cart = JSON.parse(localStorage.getItem("digivaultCart")) || [];
+            const count = cart.length;
+            const badge = document.getElementById("cartBadgeCount");
+            if (badge) badge.textContent = count;
+        }
+
+        window.addToCart = function(productJson) {
+            const product = JSON.parse(decodeURIComponent(productJson));
+            const cart = JSON.parse(localStorage.getItem("digivaultCart")) || [];
+            cart.push(product);
+            localStorage.setItem("digivaultCart", JSON.stringify(cart));
+            updateCartBadge();
+            showToast(`تم إضافة "${product.title}" إلى السلة 🛒`);
+        };
 
         // التحقق من حالة تسجيل الدخول
         onAuthStateChanged(auth, (user) => {
@@ -563,12 +672,8 @@
             }
         });
 
-        // دالة تسجيل الخروج (إتاحتها لنطاق Window)
         window.logoutUser = function() {
             signOut(auth).then(() => {
-                localStorage.removeItem("isLoggedIn");
-                localStorage.removeItem("userProfile");
-                sessionStorage.clear();
                 alert("تم تسجيل الخروج بنجاح!");
                 window.location.reload();
             }).catch((err) => {
@@ -576,24 +681,88 @@
             });
         };
 
-        // دالة شراء المنتج
-        window.buyProduct = function(productId, downloadUrl) {
-            if(!downloadUrl || downloadUrl === '#') {
-                alert("رابط هذا المنتج غير متوفر حالياً، يرجى التواصل مع الدعم.");
+        // دالة آمنة لبناء الكارد وتفادي XSS
+        function createProductCard(product) {
+            const card = document.createElement('div');
+            card.className = 'product-card';
+
+            const formattedPrice = String(product.price).includes('$') ? product.price : '$' + product.price;
+
+            const imgWrapper = document.createElement('div');
+            imgWrapper.className = 'product-img-wrapper';
+            const img = document.createElement('img');
+            img.src = product.imageUrl;
+            img.alt = product.title;
+            img.onerror = () => { img.src = 'https://via.placeholder.com/300x160?text=DigiVault'; };
+            imgWrapper.appendChild(img);
+
+            const titleEl = document.createElement('h3');
+            titleEl.textContent = product.title;
+
+            const descEl = document.createElement('p');
+            descEl.textContent = product.description;
+
+            const footer = document.createElement('div');
+            footer.className = 'card-footer';
+
+            const priceSpan = document.createElement('span');
+            priceSpan.className = 'price';
+            priceSpan.textContent = formattedPrice;
+
+            const btn = document.createElement('button');
+            btn.className = 'buy-btn';
+            btn.textContent = 'أضف للسلة';
+            const payload = encodeURIComponent(JSON.stringify(product));
+            btn.onclick = () => window.addToCart(payload);
+
+            footer.appendChild(priceSpan);
+            footer.appendChild(btn);
+
+            card.appendChild(imgWrapper);
+            card.appendChild(titleEl);
+            card.appendChild(descEl);
+            card.appendChild(footer);
+
+            return card;
+        }
+
+        function renderFilteredProducts() {
+            const productsGrid = document.getElementById('productsGrid');
+            const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            const filtered = allProductsLoaded.filter(p => {
+                const matchesCat = activeCategory === 'all' || (p.category && p.category.toLowerCase() === activeCategory);
+                const matchesSearch = p.title.toLowerCase().includes(searchVal) || p.description.toLowerCase().includes(searchVal);
+                return matchesCat && matchesSearch;
+            });
+
+            productsGrid.innerHTML = '';
+
+            if (filtered.length === 0) {
+                productsGrid.innerHTML = '<p style="color: var(--text-sub); grid-column: 1/-1; text-align: center; padding: 30px;">لا توجد منتجات تطابق بحثك حالياً.</p>';
                 return;
             }
-            alert("سيتم تحويلك لبوابة الدفع، وبعد إتمام عملية الدفع سينفتح رابط التحميل تلقائياً:\n" + downloadUrl);
-        };
 
-        // جلب المنتجات وعرضها
+            filtered.forEach((product) => {
+                productsGrid.appendChild(createProductCard(product));
+            });
+        }
+
+        // ربط أزرار التصفية وحقل البحث
+        document.getElementById('searchInput').addEventListener('input', renderFilteredProducts);
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                activeCategory = tab.getAttribute('data-category');
+                renderFilteredProducts();
+            });
+        });
+
         async function loadProducts() {
-            const productsGrid = document.getElementById('productsGrid');
-            if (!productsGrid) return;
-
             let productsList = [];
 
             try {
-                // 1. قراءة المنتجات من Firebase Firestore (أحدث 12 منتج فقط للسرعة)
                 const q = query(collection(db, "products"), orderBy("createdAt", "desc"), limit(12));
                 const querySnapshot = await getDocs(q);
                 
@@ -605,14 +774,14 @@
                         description: data.description || "لا يوجد وصف متاح.",
                         price: data.price || "0",
                         imageUrl: data.imageUrl || data.imgUrl || "https://via.placeholder.com/300x160?text=DigiVault",
-                        downloadUrl: data.downloadUrl || data.fileUrl || "#"
+                        downloadUrl: data.downloadUrl || data.fileUrl || "#",
+                        category: data.category || "all"
                     });
                 });
             } catch (error) {
-                console.warn("تنبيه: تعذر الجلب من Firestore، يتم الاعتماد على التخزين المحلي:", error);
+                console.warn("تنبيه: تعذر الجلب من Firestore (تأكد من إنشاء Index)، الاعتماد على التخزين المحلي:", error);
             }
 
-            // 2. قراءة المنتجات المسجلة في localStorage
             const customProducts = JSON.parse(localStorage.getItem("customProducts")) || [];
             customProducts.forEach(p => {
                 productsList.push({
@@ -621,42 +790,16 @@
                     description: p.desc || p.description || "لا يوجد وصف.",
                     price: p.price || "0",
                     imageUrl: p.imgUrl || p.imageUrl || "https://via.placeholder.com/300x160?text=DigiVault",
-                    downloadUrl: p.fileUrl || p.downloadUrl || "#"
+                    downloadUrl: p.fileUrl || p.downloadUrl || "#",
+                    category: p.category || "all"
                 });
             });
 
-            if (productsList.length === 0) {
-                productsGrid.innerHTML = '<p style="color: var(--text-sub); grid-column: 1/-1; text-align: center; padding: 30px;">لا توجد منتجات معروضة حالياً. كن أول من يضيف منتجاً!</p>';
-                return;
-            }
-
-            productsGrid.innerHTML = '';
-
-            productsList.forEach((product) => {
-                const card = document.createElement('div');
-                card.className = 'product-card';
-                
-                // تنظيف تنسيق السعر
-                const formattedPrice = String(product.price).includes('$') ? product.price : '$' + product.price;
-
-                card.innerHTML = `
-                    <div class="product-img-wrapper">
-                        <img src="${product.imageUrl}" 
-                             onerror="this.onerror=null;this.src='https://via.placeholder.com/300x160?text=DigiVault'" 
-                             alt="${product.title}">
-                    </div>
-                    <h3>${product.title}</h3>
-                    <p>${product.description}</p>
-                    <div class="card-footer">
-                        <span class="price">${formattedPrice}</span>
-                        <button onclick="buyProduct('${product.id}', '${product.downloadUrl}')" class="buy-btn">شراء الآن</button>
-                    </div>
-                `;
-                productsGrid.appendChild(card);
-            });
+            allProductsLoaded = productsList;
+            updateCartBadge();
+            renderFilteredProducts();
         }
 
-        // تشغيل دالة التحميل
         loadProducts();
     </script>
 </body>
