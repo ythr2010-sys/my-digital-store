@@ -212,7 +212,7 @@
 
         <main class="main-content">
             <div class="form-card">
-                <h1>إضافة منتج جديد (رفع مباشر للصور + رابط تحميل) 💻</h1>
+                <h1>إضافة منتج جديد (رفع مباشر للصورة + رابط تحميل) 💻</h1>
                 <p>اختر صورة المعاينة من حاسوبك وأدخل رابط التحميل المباشر للمنتج الرقمي وسيتم إرسالها للمراجعة.</p>
 
                 <div id="alertBox" class="alert-box"></div>
@@ -241,6 +241,11 @@
                         </div>
                     </div>
 
+                    <div class="form-group">
+                        <label>شارة المنتج (Badge) - اختياري</label>
+                        <input type="text" id="productBadge" placeholder="مثال: PDF / FBX / V1.2">
+                    </div>
+
                     <!-- اختيار صورة المنتج من الحاسوب -->
                     <div class="form-group">
                         <label>صورة معاينة المنتج (من الحاسوب) *</label>
@@ -251,7 +256,7 @@
                         </div>
                     </div>
 
-                    <!-- حقل رابط التحميل للمنتج الرقمي بدلاً من الرفع الثقيل -->
+                    <!-- حقل رابط التحميل للمنتج الرقمي -->
                     <div class="form-group">
                         <label for="productDownloadLink">رابط التحميل المباشر للمنتج الرقمي (Google Drive, Mediafire...) *</label>
                         <input type="url" id="productDownloadLink" placeholder="https://drive.google.com/..." required>
@@ -291,7 +296,6 @@
             measurementId: "G-SZCB59ZZDN"
         };
 
-        // مفتاح ImgBB الخاص بك
         const IMGBB_API_KEY = "db5807505d71f9889df779a9a4c05c64"; 
 
         const app = initializeApp(firebaseConfig);
@@ -375,30 +379,31 @@
             }
 
             const title = document.getElementById("productTitle").value.trim();
-            const price = parseFloat(document.getElementById("productPrice").value);
+            const priceVal = parseFloat(document.getElementById("productPrice").value);
             const category = document.getElementById("productCategory").value;
+            const badge = document.getElementById("productBadge").value.trim() || "DIGITAL";
             const description = document.getElementById("productDescription").value.trim();
 
             submitBtn.disabled = true;
             submitBtn.textContent = "⏳ جاري رفع الصورة إلى ImgBB...";
 
             try {
-                // 1. رفع الصورة إلى ImgBB
                 const imageUrl = await uploadImageToImgBB(imageFile);
 
-                // 2. حفظ بيانات المنتج في Firestore
                 submitBtn.textContent = "⏳ جاري حفظ الطلب في قاعدة البيانات...";
                 await addDoc(collection(db, "products"), {
                     title: title,
-                    price: price + " $",
+                    price: priceVal + " $",
                     cat: category,
-                    img: imageUrl,
-                    link: downloadLink,
-                    desc: description,
+                    badge: badge,
+                    imageUrl: imageUrl,
+                    downloadUrl: downloadLink,
+                    description: description,
                     status: 'pending', 
                     sellerEmail: activeUser.email,
                     sellerName: activeUser.email === SUPER_ADMIN_EMAIL ? "المدير (أنت)" : activeUser.email,
-                    createdAt: serverTimestamp()
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
                 });
 
                 showAlert("🎉 تم إرسال المنتج بنجاح! سيتم مراجعة طلبك، في انتظار الرد بقبول أو الرفض.", "success");
