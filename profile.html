@@ -57,7 +57,6 @@
 
         .main-content { flex: 1; padding: 30px; max-width: 900px; }
 
-        /* بطاقة معلومات الحساب */
         .user-card {
             background: var(--bg-card);
             border: 1px solid var(--border-line);
@@ -86,11 +85,7 @@
             font-family: inherit;
             transition: 0.3s;
         }
-
-        .btn-logout-main:hover {
-            background: var(--danger-red);
-            color: #fff;
-        }
+        .btn-logout-main:hover { background: var(--danger-red); color: #fff; }
 
         .cart-card, .orders-card {
             background: var(--bg-card);
@@ -118,10 +113,7 @@
             font-family: inherit;
             transition: 0.2s;
         }
-        .btn-remove:hover {
-            background: #ff4d4d;
-            color: #fff;
-        }
+        .btn-remove:hover { background: #ff4d4d; color: #fff; }
 
         .btn-checkout {
             display: block;
@@ -136,9 +128,7 @@
             margin-top: 15px;
             transition: opacity 0.3s;
         }
-        .btn-checkout:hover {
-            opacity: 0.9;
-        }
+        .btn-checkout:hover { opacity: 0.9; }
 
         .btn-download {
             background: var(--accent-green);
@@ -150,10 +140,7 @@
             font-size: 0.9rem;
             transition: 0.3s;
         }
-
-        .btn-download:hover {
-            box-shadow: 0 0 10px rgba(0, 230, 118, 0.5);
-        }
+        .btn-download:hover { box-shadow: 0 0 10px rgba(0, 230, 118, 0.5); }
 
         @media (max-width: 768px) {
             .page-wrapper { flex-direction: column; }
@@ -174,19 +161,12 @@
                 <li><a href="contact.html">📩 تواصل معنا والأسئلة</a></li>
                 <li><a href="profile.html" class="active">🛒 سلة المشتريات والحساب</a></li>
                 <li><a href="privacy.html">🔒 سياسة الخصوصية</a></li>
-                
-                <li id="loginMenuLi">
-                    <a href="login.html">🔑 تسجيل الدخول</a>
-                </li>
-                <li id="logoutMenuLi" style="display: none;">
-                    <button onclick="logoutUser()" class="btn-logout-sidebar">🚪 تسجيل الخروج</button>
-                </li>
+                <li id="loginMenuLi"><a href="login.html">🔑 تسجيل الدخول</a></li>
+                <li id="logoutMenuLi" style="display: none;"><button onclick="logoutUser()" class="btn-logout-sidebar">🚪 تسجيل الخروج</button></li>
             </ul>
         </aside>
 
         <main class="main-content">
-            
-            <!-- بطاقة بيانات الحساب -->
             <div id="userProfileCard" class="user-card" style="display: none;">
                 <div class="user-info">
                     <img id="userAvatar" src="" alt="صورة المستخدم" class="user-avatar">
@@ -198,13 +178,11 @@
                 <button onclick="logoutUser()" class="btn-logout-main">تسجيل الخروج 🚪</button>
             </div>
 
-            <!-- تنبيه زائر غير مسجل -->
             <div id="guestNoticeCard" class="user-card" style="display: block; text-align: center;">
                 <p style="color: var(--text-sub); margin-bottom: 10px;">أنت تتصفح حالياً كزائر. قم بتسجيل الدخول لحفظ المشتريات ومتابعة طلباتك.</p>
                 <a href="login.html" style="background:var(--accent-cyan); color:#000; padding:8px 20px; border-radius:8px; font-weight:bold; text-decoration:none;">تسجيل الدخول</a>
             </div>
 
-            <!-- قسم المشتريات المسجلة من Firebase -->
             <h1 style="margin-bottom: 15px; font-size: 1.6rem; color: var(--accent-cyan);">مكتبتي الرقمية والطلبات 📦</h1>
             <div class="orders-card">
                 <div id="myPurchasesList">
@@ -212,19 +190,14 @@
                 </div>
             </div>
 
-            <!-- قسم سلة المشتريات -->
             <h1 style="margin-bottom: 15px; font-size: 1.6rem; margin-top: 30px;">سلة المشتريات الحالية 🛒</h1>
-
             <div class="cart-card">
-                <div id="cartList">
-                    <!-- المشتريات تظهر هنا -->
-                </div>
+                <div id="cartList"></div>
                 <a href="checkout.html" id="checkoutBtn" class="btn-checkout">الانتقال إلى صفحة الدفع 💳</a>
             </div>
         </main>
     </div>
 
-    <!-- ربط Firebase لقراءة المشتريات السابقة -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -241,13 +214,17 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // تحميل الطلبات والمشتريات المسجلة في قاعدة البيانات
         async function loadPurchasesFromFirebase() {
             const container = document.getElementById("myPurchasesList");
-            const userProfile = JSON.parse(localStorage.getItem("userProfile")) || { email: "ythr2010@gmail.com" };
+            const userProfile = JSON.parse(localStorage.getItem("userProfile"));
+            
+            if (!userProfile || !userProfile.email) {
+                container.innerHTML = "<p style='color:var(--text-sub); text-align:center;'>قم بتسجيل الدخول لعرض مشترياتك وملفاتك الرقمية.</p>";
+                return;
+            }
 
             try {
-                const q = query(collection(db, "purchases"), where("buyerEmail", "==", userProfile.email));
+                const q = query(collection(db, "orders"), where("buyerEmail", "==", userProfile.email));
                 const querySnapshot = await getDocs(q);
 
                 if (querySnapshot.empty) {
@@ -261,30 +238,36 @@
                     const items = data.items || [];
                     
                     items.forEach(item => {
+                        const fileLink = item.downloadUrl || data.downloadUrl || "#";
+                        const isLinkValid = fileLink && fileLink !== "#";
                         html += `
                             <div class="order-item-row">
                                 <div>
                                     <strong>${item.name || item.title}</strong>
-                                    <div style="font-size:0.85rem; color:var(--text-sub);">طريقة الدفع: ${data.paymentMethod || 'الذهبية'}</div>
+                                    <div style="font-size:0.85rem; color:var(--text-sub);">طريقة الدفع: ${data.paymentMethod || 'الذهبية'} | الحالة: ${data.status || 'مكتمل'}</div>
                                 </div>
-                                <a href="#" onclick="alert('جاري تجهيز رابط التنزيل المباشر للملف الرقمي!'); return false;" class="btn-download">تنزيل الملف 📥</a>
+                                ${isLinkValid 
+                                    ? `<a href="${fileLink}" target="_blank" class="btn-download">تنزيل الملف 📥</a>` 
+                                    : `<span style="color:var(--text-sub); font-size:0.85rem;">قيد التجهيز من الإدارة</span>`}
                             </div>
                         `;
                     });
                 });
 
                 container.innerHTML = html;
+            } else (err) => {
+                // fallthrough handled in catch
+            }
             } catch (err) {
                 console.error(err);
                 container.innerHTML = "<p style='color:var(--danger-red);'>تعذر تحميل الطلبات الحالية.</p>";
             }
         }
 
-        document.addEventListener("DOMContentLoaded", loadPurchasesFromFirebase);
+        window.addEventListener("DOMContentLoaded", loadPurchasesFromFirebase);
     </script>
 
     <script>
-        // عرض بيانات المستخدم وحالة تسجيل الدخول
         function loadUserProfile() {
             const userProfile = JSON.parse(localStorage.getItem("userProfile"));
             const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
@@ -301,19 +284,16 @@
 
                 userProfileCard.style.display = "flex";
                 guestNoticeCard.style.display = "none";
-
                 if (loginMenuLi) loginMenuLi.style.display = "none";
                 if (logoutMenuLi) logoutMenuLi.style.display = "block";
             } else {
                 userProfileCard.style.display = "none";
                 guestNoticeCard.style.display = "block";
-
                 if (loginMenuLi) loginMenuLi.style.display = "block";
                 if (logoutMenuLi) logoutMenuLi.style.display = "none";
             }
         }
 
-        // عرض عناصر سلة المشتريات
         function renderCart() {
             const cart = JSON.parse(localStorage.getItem("cart")) || [];
             const container = document.getElementById("cartList");
@@ -330,7 +310,7 @@
                 <div class="cart-item">
                     <div>
                         <strong>${item.name || item.title}</strong>
-                        <div style="color:var(--accent-cyan); font-weight:bold;">${item.price}</div>
+                        <div style="color:var(--accent-cyan); font-weight:bold;">${item.price} دج</div>
                     </div>
                     <button class="btn-remove" onclick="removeItem(${index})">حذف 🗑️</button>
                 </div>
@@ -344,12 +324,10 @@
             renderCart();
         }
 
-        // دالة تسجيل الخروج المنظمة
         function logoutUser() {
             localStorage.removeItem("isLoggedIn");
             localStorage.removeItem("userProfile");
             sessionStorage.clear();
-
             alert("تم تسجيل الخروج بنجاح!");
             window.location.href = "index.html";
         }
