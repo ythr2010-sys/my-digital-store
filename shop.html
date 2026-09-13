@@ -58,6 +58,14 @@
 
         .main-content { flex: 1; padding: 30px; overflow-x: hidden; }
 
+        .top-action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+        .btn-upload-direct {
+            background: rgba(0, 210, 255, 0.12); color: var(--accent-cyan); border: 1px solid var(--accent-cyan);
+            padding: 10px 18px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 0.9rem;
+            transition: 0.3s; display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-upload-direct:hover { background: var(--accent-cyan); color: #000; }
+
         .search-container { margin-bottom: 20px; }
         .search-input {
             width: 100%; padding: 14px 18px; background: var(--bg-card);
@@ -144,10 +152,15 @@
         </aside>
 
         <main class="main-content">
-            <h1 style="margin-bottom: 20px; font-size: 1.8rem;">كتالوج المنتجات الرقمية 📦</h1>
+            <div class="top-action-bar">
+                <h1 style="font-size: 1.8rem; margin:0;">كتالوج المنتجات الرقمية 📦</h1>
+                <a href="upload.html" class="btn-upload-direct">➕ إرسال منتج جديد (كبير/صغير)</a>
+            </div>
+
             <div class="search-container">
                 <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن كتاب، مجسم 3D، أو دورة تعليمية..." oninput="handleFilterAndSearch()">
             </div>
+            
             <div class="filter-container">
                 <button class="filter-btn active" data-cat="all" onclick="filterCategory('all', event)">الكل</button>
                 <button class="filter-btn" data-cat="books" onclick="filterCategory('books', event)">📚 كتب وروايات</button>
@@ -155,6 +168,7 @@
                 <button class="filter-btn" data-cat="courses" onclick="filterCategory('courses', event)">🎓 دورات فيديو</button>
                 <button class="filter-btn" data-cat="gaming" onclick="filterCategory('gaming', event)">🎮 ألعاب واشتراكات</button>
             </div>
+            
             <div class="products-grid" id="productsGrid">
                 <p style="color: var(--text-sub); grid-column: 1/-1; text-align: center; padding: 30px;">جاري تحميل المنتجات المعتمدة...</p>
             </div>
@@ -167,7 +181,12 @@
             <button class="modal-close" onclick="closeModal()">&times;</button>
             <span class="product-badge" id="modalBadge"></span>
             <h2 id="modalTitle" style="margin-bottom: 10px; color:#fff;"></h2>
-            <p id="modalDesc" style="color: var(--text-sub); margin-bottom: 20px; font-size:0.95rem;"></p>
+            <p id="modalDesc" style="color: var(--text-sub); margin-bottom: 15px; font-size:0.95rem;"></p>
+            
+            <div id="modalFileLinkArea" style="margin-bottom: 20px; background: rgba(0,210,255,0.08); padding: 12px; border-radius: 8px; display: none; border: 1px dashed var(--accent-cyan);">
+                <a id="modalDirectDownload" href="#" target="_blank" style="color: var(--accent-cyan); text-decoration: none; font-size: 0.9rem; font-weight: bold; display: flex; align-items: center; gap: 8px;">📥 رابط التحميل الخارجي المباشر (Google Drive/Mega)</a>
+            </div>
+
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span id="modalPrice" class="product-price"></span>
                 <button id="modalAddBtn" class="btn-add">إضافة للسلة 🛒</button>
@@ -211,7 +230,6 @@
                 if (loginLi) loginLi.style.display = "none";
                 if (logoutLi) logoutLi.style.display = "block";
                 
-                // فحص الأذونات (أدمن رئيسي أو مساعد عبر مجموعة admins)
                 let isAdmin = user.email === SUPER_ADMIN;
                 if (!isAdmin) {
                     try {
@@ -228,7 +246,6 @@
             }
         });
 
-        // جلب المنتجات المعتمدة أمنياً من Firestore فقط
         async function fetchApprovedProducts() {
             let fetchedProducts = [];
             try {
@@ -242,7 +259,7 @@
                         cat: data.cat || "books",
                         badge: data.badge || 'منتج رقمي',
                         desc: data.description || "لا يوجد وصف.",
-                        price: data.price || "0.00",
+                        price: data.price || "مجاني",
                         imgUrl: data.imageUrl || "https://via.placeholder.com/300x160?text=DigiVault",
                         fileUrl: data.downloadUrl || "#"
                     });
@@ -264,7 +281,7 @@
             }
 
             grid.innerHTML = items.map(p => {
-                const priceFormatted = String(p.price).includes('$') ? p.price : '$' + p.price;
+                const priceFormatted = String(p.price).includes('$') || p.price === 'مجاني' ? p.price : '$' + p.price;
                 const safeTitle = p.title.replace(/'/g, "\\'");
                 return `
                     <div class="product-card" onclick="openModal('${p.id}')">
@@ -317,8 +334,17 @@
             document.getElementById("modalBadge").textContent = item.badge;
             document.getElementById("modalTitle").textContent = item.title;
             document.getElementById("modalDesc").textContent = item.desc;
-            document.getElementById("modalPrice").textContent = String(item.price).includes('$') ? item.price : '$' + item.price;
+            document.getElementById("modalPrice").textContent = String(item.price).includes('$') || item.price === 'مجاني' ? item.price : '$' + item.price;
             
+            const linkArea = document.getElementById("modalFileLinkArea");
+            const directLink = document.getElementById("modalDirectDownload");
+            if (item.fileUrl && item.fileUrl !== "#") {
+                directLink.href = item.fileUrl;
+                linkArea.style.display = "block";
+            } else {
+                linkArea.style.display = "none";
+            }
+
             const modalAddBtn = document.getElementById("modalAddBtn");
             modalAddBtn.onclick = () => {
                 window.addToCart(item.title, item.price, item.fileUrl);
@@ -344,7 +370,6 @@
             cart.push({ name, price, fileUrl });
             localStorage.setItem("cart", JSON.stringify(cart));
 
-            // حفظ الطلب في قاعدة البيانات إن كان مستخدماً مسجلاً، مع احتياطي محلي للتوافق
             const orderPayload = {
                 customerEmail: currentUserEmail || 'guest@digivault',
                 productTitle: name,
@@ -356,7 +381,6 @@
             try {
                 await addDoc(collection(db, "orders"), orderPayload);
             } catch (e) {
-                // تخزين احتياطي محلي لو لم يتوفر اتصال فوري أو لراحة الزائر
                 let localOrders = JSON.parse(localStorage.getItem("siteOrders")) || [];
                 localOrders.push({ id: Date.now(), ...orderPayload, createdAt: new Date().toISOString() });
                 localStorage.setItem("siteOrders", JSON.stringify(localOrders));
