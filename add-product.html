@@ -14,9 +14,16 @@
         body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
         .preview-box { border: 2px dashed #cbd5e1; transition: all 0.3s ease; }
         .preview-box:hover { border-color: #3b82f6; background-color: #eff6ff; }
+        /* Toast Notifications */
+        #toast-container { position: fixed; bottom: 20px; left: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: #0f172a; color: white; padding: 12px 20px; border-radius: 12px; font-size: 0.85rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
 
     <!-- Navbar / رأس الصفحة -->
     <header class="bg-white shadow-sm sticky top-0 z-50">
@@ -40,7 +47,7 @@
         <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-slate-100">
             <div class="mb-6 border-b pb-4">
                 <h1 class="text-2xl font-extrabold text-slate-800">إضافة منتج رقمي جديد</h1>
-                <p class="text-sm text-slate-500 mt-1">املأ بيانات المنتج بدقة ليكون جاهزاً للمراجعة والنشر.</p>
+                <p class="text-sm text-slate-500 mt-1">املأ بيانات المنتج بدقة ليكون جاهزاً للمرض والنشر.</p>
             </div>
 
             <!-- تنبيهات الحالة -->
@@ -64,8 +71,8 @@
                 <!-- السعر والفئة -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">السعر ($)</label>
-                        <input type="number" id="price" step="0.01" min="0" required placeholder="0.00" 
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">السعر ($ أو مجاني)</label>
+                        <input type="text" id="price" required placeholder="مجاني أو 5.00" 
                             class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                     </div>
                     <div>
@@ -79,9 +86,10 @@
                     </div>
                 </div>
 
-                <!-- معاينة ورفع صورة الغلاف (ImgBB) -->
+                <!-- معاينة ورفع صورة الغلاف (ImgBB أو رابط) -->
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">صورة الغلاف</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">صورة الغلاف (ملف أو رابط)</label>
+                    <input type="url" id="imageUrlInput" placeholder="https://via.placeholder.com/300x150 (اختياري إن رفعت ملفاً)" class="w-full px-4 py-2 rounded-xl border border-slate-300 mb-2 text-xs">
                     <div class="preview-box rounded-xl p-4 text-center cursor-pointer relative" onclick="document.getElementById('coverImage').click()">
                         <input type="file" id="coverImage" accept="image/*" class="hidden" onchange="previewImage(this)">
                         <div id="imagePreviewContent" class="flex flex-col items-center justify-center py-4">
@@ -92,11 +100,10 @@
                     </div>
                 </div>
 
-                <!-- رفع الملف الرقمي (Firebase Storage) -->
+                <!-- رابط الملف أو الملف المحلي -->
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">ملف المنتج الرقمي (Zip, PDF, ...)</label>
-                    <input type="file" id="digitalFile" required 
-                        class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">رابط التحميل المباشر (Google Drive / Mega / رابط مباشر)</label>
+                    <input type="url" id="downloadUrlInput" required placeholder="https://drive.google.com/..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                 </div>
 
                 <!-- شريط التقدم للرفع -->
@@ -119,14 +126,12 @@
         </div>
     </main>
 
-    <!-- Firebase SDKs & App Logic -->
+    <!-- Firebase SDKs & App Logic with Hybrid Fallback -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-        // إعدادات Firebase الخاصة بك
         const firebaseConfig = {
             apiKey: "AIzaSyYOUR_API_KEY_HERE",
             authDomain: "digivault-app.firebaseapp.com",
@@ -136,36 +141,53 @@
             appId: "1:123456789:web:abcdef"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
-
         const IMGBB_API_KEY = "YOUR_IMGBB_API_KEY_HERE";
         const MAIN_ADMIN_EMAIL = "ythr2010@gmail.com";
-
         let currentUser = null;
+        let isFirebaseValid = false;
 
-        // التحقق من المصادقة والصلاحيات
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            const helperAdmins = JSON.parse(localStorage.getItem('helperAdmins') || '[]');
-            const badge = document.getElementById('userEmailBadge');
-            
-            if (user) {
-                badge.innerText = user.email;
-                badge.classList.remove('hidden');
-                const isAdmin = user.email === MAIN_ADMIN_EMAIL || helperAdmins.includes(user.email);
-                if (isAdmin) {
-                    document.getElementById('adminLinkContainer').classList.remove('hidden');
-                }
-            } else {
-                badge.classList.add('hidden');
-                showAlert('يجب تسجيل الدخول أولاً لرفع المنتجات!', 'bg-amber-100 text-amber-800');
+        let app, auth, db;
+        try {
+            if (!firebaseConfig.apiKey.includes("YOUR_")) {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                isFirebaseValid = true;
+                onAuthStateChanged(auth, (user) => {
+                    currentUser = user;
+                    const badge = document.getElementById('userEmailBadge');
+                    if (user) {
+                        badge.innerText = user.email;
+                        badge.classList.remove('hidden');
+                        if (user.email === MAIN_ADMIN_EMAIL) {
+                            document.getElementById('adminLinkContainer').classList.remove('hidden');
+                        }
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                });
             }
-        });
+        } catch(e) {
+            console.log("Firebase fallback mode active.");
+        }
 
-        // معاينة الصورة محلياً
+        window.showToast = function(msg) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i><span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        function showAlert(msg, colorClass) {
+            const box = document.getElementById('alertBox');
+            box.className = `mb-6 p-4 rounded-xl text-sm font-medium ${colorClass}`;
+            box.innerText = msg;
+            box.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         window.previewImage = function(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -178,7 +200,6 @@
             }
         };
 
-        // رفع الصورة إلى ImgBB
         async function uploadImageToImgBB(file) {
             const formData = new FormData();
             formData.append('image', file);
@@ -191,95 +212,62 @@
             return data.data.url;
         }
 
-        // التعامل مع نموذج الإرسال
         document.getElementById('productForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!currentUser) {
-                showAlert('يرجى تسجيل الدخول قبل الإرسال.', 'bg-red-100 text-red-800');
-                return;
-            }
-
-            const title = document.getElementById('title').value.trim();
-            const description = document.getElementById('description').value.trim();
-            const price = parseFloat(document.getElementById('price').value);
-            const category = document.getElementById('category').value;
-            const coverFile = document.getElementById('coverImage').files[0];
-            const digitalFile = document.getElementById('digitalFile').files[0];
-
-            if (!coverFile) {
-                showAlert('الرجاء اختيار صورة الغلاف.', 'bg-red-100 text-red-800');
-                return;
-            }
-
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> جاري المعالجة...`;
-            document.getElementById('progressContainer').classList.remove('hidden');
+            submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...`;
 
             try {
-                // 1. رفع الصورة لـ ImgBB
-                document.getElementById('progressText').innerText = 'جاري رفع صورة الغلاف...';
-                document.getElementById('progressBar').style.width = '25%';
-                document.getElementById('progressPercent').innerText = '25%';
-                const imageUrl = await uploadImageToImgBB(coverFile);
+                let imageUrl = document.getElementById('imageUrlInput').value.trim() || 'https://via.placeholder.com/300x150';
+                const coverFile = document.getElementById('coverImage').files[0];
+                if (coverFile && IMGBB_API_KEY !== "YOUR_IMGBB_API_KEY_HERE") {
+                    document.getElementById('progressContainer').classList.remove('hidden');
+                    document.getElementById('progressBar').style.width = '50%';
+                    imageUrl = await uploadImageToImgBB(coverFile);
+                } else if (coverFile) {
+                    imageUrl = document.getElementById('imagePreviewTag').src;
+                }
 
-                // 2. رفع الملف الرقمي لـ Firebase Storage
-                document.getElementById('progressText').innerText = 'جاري رفع الملف الرقمي...';
-                const fileRef = ref(storage, `products_files/${Date.now()}_${digitalFile.name}`);
-                const uploadTask = uploadBytesResumable(fileRef, digitalFile);
+                const productData = {
+                    id: 'prod_' + Date.now(),
+                    title: document.getElementById('title').value.trim(),
+                    description: document.getElementById('description').value.trim(),
+                    price: document.getElementById('price').value.trim(),
+                    category: document.getElementById('category').value,
+                    imageUrl,
+                    downloadUrl: document.getElementById('downloadUrlInput').value.trim(),
+                    status: 'approved',
+                    createdAt: new Date().toISOString()
+                };
 
-                uploadTask.on('state_changed', 
-                    (snapshot) => {
-                        const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 75) + 25;
-                        document.getElementById('progressBar').style.width = progress + '%';
-                        document.getElementById('progressPercent').innerText = progress + '%';
-                    }, 
-                    (error) => {
-                        throw error;
-                    }, 
-                    async () => {
-                        const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+                // محاولة الحفظ بـ Firestore أو LocalStorage fallback
+                if (isFirebaseValid && db && currentUser) {
+                    await addDoc(collection(db, "products"), {
+                        ...productData,
+                        sellerEmail: currentUser.email,
+                        createdAt: serverTimestamp()
+                    });
+                } else {
+                    const localProducts = JSON.parse(localStorage.getItem('digivault_local_products') || '[]');
+                    localProducts.unshift(productData);
+                    localStorage.setItem('digivault_local_products', JSON.stringify(localProducts));
+                }
 
-                        // 3. حفظ بيانات المنتج في Firestore
-                        await addDoc(collection(db, "products"), {
-                            title,
-                            description,
-                            price,
-                            category,
-                            imageUrl,
-                            downloadUrl,
-                            status: 'pending',
-                            sellerId: currentUser.uid,
-                            sellerEmail: currentUser.email,
-                            createdAt: serverTimestamp()
-                        });
-
-                        showAlert('تم إرسال المنتج بنجاح وهو بانتظار موافقة المدير.', 'bg-emerald-100 text-emerald-800');
-                        document.getElementById('productForm').reset();
-                        document.getElementById('imagePreviewTag').classList.add('hidden');
-                        document.getElementById('imagePreviewContent').classList.remove('hidden');
-                        document.getElementById('progressContainer').classList.add('hidden');
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> نشر المنتج للمراجعة`;
-                    }
-                );
-
+                window.showToast('تم نشر المنتج بنجاح وإضافته للمتجر!');
+                showAlert('تم إرسال ونشر المنتج بنجاح!', 'bg-emerald-100 text-emerald-800');
+                document.getElementById('productForm').reset();
+                document.getElementById('imagePreviewTag').classList.add('hidden');
+                document.getElementById('imagePreviewContent').classList.remove('hidden');
+                document.getElementById('progressContainer').classList.add('hidden');
             } catch (err) {
                 console.error(err);
-                showAlert('حدث خطأ أثناء الرفع: ' + err.message, 'bg-red-100 text-red-800');
+                showAlert('حدث خطأ: ' + err.message, 'bg-red-100 text-red-800');
+            } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> نشر المنتج للمراجعة`;
-                document.getElementById('progressContainer').classList.add('hidden');
             }
         });
-
-        function showAlert(msg, colorClass) {
-            const box = document.getElementById('alertBox');
-            box.className = `mb-6 p-4 rounded-xl text-sm font-medium ${colorClass}`;
-            box.innerText = msg;
-            box.classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
     </script>
 </body>
 </html>
