@@ -6,16 +6,9 @@
     <title>لوحة تحكم DigiVault - إدارة متكاملة</title>
     <style>
         :root {
-            --bg-primary: #0a0b10;
-            --bg-secondary: #12151e;
-            --accent-cyan: #00f0ff;
-            --accent-purple: #7928ca;
-            --text-main: #f0f6fc;
-            --text-sub: #8b949e;
-            --danger-red: #ff3366;
-            --success-green: #00ff66;
-            --warning-orange: #ffab00;
-            --border-color: rgba(255, 255, 255, 0.08);
+            --bg-primary: #0a0b10; --bg-secondary: #12151e; --accent-cyan: #00f0ff; --accent-purple: #7928ca;
+            --text-main: #f0f6fc; --text-sub: #8b949e; --danger-red: #ff3366; --success-green: #00ff66;
+            --warning-orange: #ffab00; --border-color: rgba(255, 255, 255, 0.08);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
         body { background-color: var(--bg-primary); color: var(--text-main); min-height: 100vh; padding: 20px; }
@@ -32,8 +25,10 @@
         .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; display: inline-block; }
         .badge-approved { background: rgba(0,255,102,0.15); color: var(--success-green); border: 1px solid rgba(0,255,102,0.3); }
         .badge-pending { background: rgba(255,171,0,0.15); color: var(--warning-orange); border: 1px solid rgba(255,171,0,0.3); }
+        .badge-rejected { background: rgba(255,51,102,0.15); color: var(--danger-red); border: 1px solid rgba(255,51,102,0.3); cursor: help; }
         .btn-action { padding: 6px 12px; width: auto; margin-left: 5px; font-size: 12px; border-radius: 6px; display: inline-block; }
         .btn-approve { background: rgba(0,255,102,0.2); color: var(--success-green); border: 1px solid var(--success-green); }
+        .btn-reject { background: rgba(255,51,102,0.2); color: var(--danger-red); border: 1px solid var(--danger-red); }
         .btn-edit { background: rgba(0,240,255,0.2); color: var(--accent-cyan); border: 1px solid var(--accent-cyan); }
         .btn-delete { background: rgba(255,51,102,0.2); color: var(--danger-red); border: 1px solid var(--danger-red); }
         .img-preview { width: 45px; height: 45px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color); }
@@ -45,7 +40,6 @@
 </head>
 <body>
 
-    <!-- شاشة تسجيل الدخول -->
     <div id="authScreen" class="card auth-box">
         <h2>🔐 دخول الإدارة / البائع</h2>
         <p style="color:var(--text-sub); margin-bottom:15px; font-size:13px;">أدخل بيانات حسابك للمتابعة</p>
@@ -55,7 +49,6 @@
         <button id="loginBtn">دخول 🚀</button>
     </div>
 
-    <!-- محتوى لوحة التحكم -->
     <div id="dashboardContent" class="container">
         <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
             <div>
@@ -71,7 +64,6 @@
             <div class="stat-card"><span>الرسائل</span><h3 id="statMessages">0</h3></div>
         </div>
 
-        <!-- إدارة المنتجات -->
         <div class="card">
             <h3 id="formTitle">➕ إضافة منتج جديد</h3>
             <form id="productForm">
@@ -79,9 +71,10 @@
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                     <input type="text" id="pTitle" placeholder="عنوان المنتج" required>
                     <select id="pCat">
-                        <option value="books">كتب ودورات</option>
-                        <option value="scripts">أكواد وسكربتات</option>
-                        <option value="accounts">حسابات رقمية</option>
+                        <option value="books">📚 كتب وروايات</option>
+                        <option value="models">🎨 مجسمات 3D/2D</option>
+                        <option value="courses">🎓 دورات تعليمية</option>
+                        <option value="gaming">🎮 ألعاب واشتراكات</option>
                     </select>
                 </div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
@@ -105,6 +98,7 @@
                     <option value="all">كل الحالة</option>
                     <option value="approved">معتمد ومنشور</option>
                     <option value="pending">بانتظار الموافقة</option>
+                    <option value="rejected">مرفوض</option>
                 </select>
             </div>
 
@@ -112,12 +106,7 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>الصورة</th>
-                            <th>العنوان</th>
-                            <th>البائع (Email)</th>
-                            <th>الحالة</th>
-                            <th>السعر</th>
-                            <th>الإجراءات</th>
+                            <th>الصورة</th><th>العنوان</th><th>البائع (Email)</th><th>الحالة</th><th>السعر</th><th>الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -125,38 +114,24 @@
             </div>
         </div>
 
-        <!-- إدارة الطلبات -->
         <div class="card">
             <h3>📦 الطلبات الأخيرة</h3>
             <div style="overflow-x:auto;">
                 <table>
                     <thead>
-                        <tr>
-                            <th>رقم الطلب</th>
-                            <th>المشتري</th>
-                            <th>المنتجات</th>
-                            <th>طريقة الدفع</th>
-                            <th>الحالة</th>
-                            <th>الإجراء</th>
-                        </tr>
+                        <tr><th>رقم الطلب</th><th>المشتري</th><th>المنتجات</th><th>طريقة الدفع</th><th>الحالة</th><th>الإجراء</th></tr>
                     </thead>
                     <tbody id="ordersTableBody"></tbody>
                 </table>
             </div>
         </div>
 
-        <!-- إدارة الرسائل -->
         <div class="card">
             <h3>💬 رسائل التواصل والاستفسارات</h3>
             <div style="overflow-x:auto;">
                 <table>
                     <thead>
-                        <tr>
-                            <th>المرسل</th>
-                            <th>النوع</th>
-                            <th>الرسالة</th>
-                            <th>الرد والتحكم</th>
-                        </tr>
+                        <tr><th>المرسل</th><th>النوع</th><th>الرسالة</th><th>الرد والتحكم</th></tr>
                     </thead>
                     <tbody id="messagesTableBody"></tbody>
                 </table>
@@ -166,7 +141,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc, doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -185,6 +160,7 @@
 
         const SUPER_ADMIN = "ythr2010@gmail.com";
         let productsList = [];
+        let messagesList = [];
         let currentUserObj = null;
 
         window.filterTable = filterTable;
@@ -193,31 +169,39 @@
         window.sendReply = sendReply;
         window.deleteMessage = deleteMessage;
         window.approveProduct = approveProduct;
+        window.rejectProduct = rejectProduct;
         window.startEdit = startEdit;
         window.removeProduct = removeProduct;
 
+        // إرسال إشعار لمستخدم معين (فقط الأدمن يقدر ينشئ إشعارات، حسب قواعد الأمان)
+        async function notifyUser(userEmail, type, title, message, relatedId) {
+            if (!userEmail) return;
+            try {
+                await addDoc(collection(db, "notifications"), {
+                    userEmail, type, title, message,
+                    relatedId: relatedId || null,
+                    read: false,
+                    createdAt: serverTimestamp()
+                });
+            } catch (e) {
+                console.error("تعذر إرسال الإشعار:", e);
+            }
+        }
+
         onAuthStateChanged(auth, async (user) => {
             currentUserObj = user;
-            const errorMsg = document.getElementById("errorMsg");
             if (user) {
                 let isAdmin = user.email === SUPER_ADMIN;
                 if (!isAdmin) {
                     try {
                         const adminSnap = await getDocs(collection(db, "admins"));
                         adminSnap.forEach(d => { if (d.id === user.email) isAdmin = true; });
-                    } catch(e) {
-                        console.error("فشل التحقق من الأدمن الإضافي:", e);
-                    }
+                    } catch(e) { console.error("فشل التحقق من الأدمن الإضافي:", e); }
                 }
-
-                if (isAdmin || user) { // السماح للمستخدمين بالدخول لإدارة منتجاتهم أو لوحة الأدمن الكاملة
-                    document.getElementById("authScreen").style.display = "none";
-                    document.getElementById("dashboardContent").style.display = "block";
-                    document.getElementById("adminEmailDisplay").textContent = `مسجل كـ: ${user.email} ${isAdmin ? '(أدمن)' : '(بائع)'}`;
-                    loadAllData();
-                } else {
-                    await signOut(auth);
-                }
+                document.getElementById("authScreen").style.display = "none";
+                document.getElementById("dashboardContent").style.display = "block";
+                document.getElementById("adminEmailDisplay").textContent = `مسجل كـ: ${user.email} ${isAdmin ? '(أدمن)' : '(بائع)'}`;
+                loadAllData();
             } else {
                 document.getElementById("authScreen").style.display = "block";
                 document.getElementById("dashboardContent").style.display = "none";
@@ -229,7 +213,6 @@
             const pass = document.getElementById("loginPass").value.trim();
             const errorMsg = document.getElementById("errorMsg");
             errorMsg.style.display = "none";
-
             try {
                 await signInWithEmailAndPassword(auth, email, pass);
             } catch (err) {
@@ -238,34 +221,23 @@
             }
         });
 
-        document.getElementById("logoutBtn").addEventListener("click", async () => {
-            await signOut(auth);
-        });
+        document.getElementById("logoutBtn").addEventListener("click", async () => { await signOut(auth); });
 
-        function loadAllData() {
-            loadProducts();
-            loadMessages();
-            loadOrders();
-        }
+        function loadAllData() { loadProducts(); loadMessages(); loadOrders(); }
 
         async function loadProducts() {
             try {
                 const querySnapshot = await getDocs(collection(db, "products"));
                 productsList = [];
-                querySnapshot.forEach((docSnap) => {
-                    productsList.push({ id: docSnap.id, ...docSnap.data() });
-                });
+                querySnapshot.forEach((docSnap) => { productsList.push({ id: docSnap.id, ...docSnap.data() }); });
                 document.getElementById("statProducts").textContent = productsList.length;
                 renderTable(productsList);
-            } catch (error) {
-                console.error("خطأ في جلب المنتجات:", error);
-            }
+            } catch (error) { console.error("خطأ في جلب المنتجات:", error); }
         }
 
         function filterTable() {
             const searchVal = document.getElementById("searchInput").value.toLowerCase();
             const filterStat = document.getElementById("filterStatus").value;
-
             const filtered = productsList.filter(p => {
                 const matchesSearch = (p.title || "").toLowerCase().includes(searchVal);
                 const matchesStat = filterStat === 'all' || p.status === filterStat;
@@ -280,12 +252,11 @@
                 tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-sub);">لا توجد منتجات مطابقة.</td></tr>`;
                 return;
             }
-
             tbody.innerHTML = list.map(p => {
-                const isApproved = p.status === 'approved';
-                const statusBadge = isApproved 
-                    ? `<span class="badge badge-approved">معتمد ومنشور</span>` 
-                    : `<span class="badge badge-pending">بانتظار الموافقة</span>`;
+                let statusBadge;
+                if (p.status === 'approved') statusBadge = `<span class="badge badge-approved">معتمد ومنشور</span>`;
+                else if (p.status === 'rejected') statusBadge = `<span class="badge badge-rejected" title="${(p.rejectionReason || '').replace(/"/g,'&quot;')}">مرفوض ⓘ</span>`;
+                else statusBadge = `<span class="badge badge-pending">بانتظار الموافقة</span>`;
 
                 return `
                     <tr>
@@ -295,7 +266,8 @@
                         <td>${statusBadge}</td>
                         <td style="color:var(--accent-cyan); font-weight:bold;">${p.price}</td>
                         <td>
-                            ${!isApproved ? `<button class="btn-action btn-approve" onclick="window.approveProduct('${p.id}')">قبول ✅</button>` : ''}
+                            ${p.status !== 'approved' ? `<button class="btn-action btn-approve" onclick="window.approveProduct('${p.id}')">قبول ✅</button>` : ''}
+                            ${p.status !== 'rejected' ? `<button class="btn-action btn-reject" onclick="window.rejectProduct('${p.id}')">رفض ❌</button>` : ''}
                             <button class="btn-action btn-edit" onclick="window.startEdit('${p.id}')">تعديل ✏️</button>
                             <button class="btn-action btn-delete" onclick="window.removeProduct('${p.id}')">حذف 🗑️</button>
                         </td>
@@ -306,183 +278,5 @@
 
         async function approveProduct(id) {
             try {
-                await updateDoc(doc(db, "products", id), { status: 'approved' });
-                loadProducts();
-            } catch (error) {
-                alert("خطأ: " + error.message);
-            }
-        }
-
-        document.getElementById("productForm").addEventListener("submit", async function(e) {
-            e.preventDefault();
-            const editId = document.getElementById("editDocId").value;
-            const userEmail = currentUserObj ? currentUserObj.email : SUPER_ADMIN;
-            const isAdmin = userEmail === SUPER_ADMIN;
-
-            const productData = {
-                title: document.getElementById("pTitle").value,
-                cat: document.getElementById("pCat").value,
-                badge: document.getElementById("pBadge").value,
-                price: document.getElementById("pPrice").value,
-                imageUrl: document.getElementById("pImg").value,
-                downloadUrl: document.getElementById("pLink").value,
-                description: document.getElementById("pDesc").value,
-                sellerEmail: userEmail,
-                updatedAt: serverTimestamp()
-            };
-
-            // توافق مع قواعد الأمان: لو مش أدمن، الإضافة الجديدة تكون pending إجبارياً
-            if (!editId) {
-                productData.status = isAdmin ? 'approved' : 'pending';
-                productData.createdAt = serverTimestamp();
-            }
-
-            try {
-                if (editId) {
-                    await updateDoc(doc(db, "products", editId), productData);
-                } else {
-                    await addDoc(collection(db, "products"), productData);
-                }
-                resetFormFields();
-                loadProducts();
-            } catch (error) {
-                alert("حدث خطأ (تأكد من صلاحيات القواعد): " + error.message);
-            }
-        });
-
-        function startEdit(id) {
-            const p = productsList.find(item => item.id === id);
-            if (!p) return;
-
-            document.getElementById("editDocId").value = p.id;
-            document.getElementById("pTitle").value = p.title || "";
-            document.getElementById("pCat").value = p.cat || "books";
-            document.getElementById("pBadge").value = p.badge || "";
-            document.getElementById("pPrice").value = p.price || "";
-            document.getElementById("pImg").value = p.imageUrl || "";
-            document.getElementById("pLink").value = p.downloadUrl || "";
-            document.getElementById("pDesc").value = p.description || "";
-
-            document.getElementById("formTitle").textContent = "✏️ تعديل المنتج";
-            document.getElementById("saveBtn").textContent = "تحديث المنتج 🔄";
-            document.getElementById("cancelBtn").style.display = "inline-block";
-            window.scrollTo({ top: 500, behavior: 'smooth' });
-        }
-
-        document.getElementById("cancelBtn").addEventListener("click", resetFormFields);
-
-        function resetFormFields() {
-            document.getElementById("productForm").reset();
-            document.getElementById("editDocId").value = "";
-            document.getElementById("formTitle").textContent = "➕ إضافة منتج جديد";
-            document.getElementById("saveBtn").textContent = "حفظ ونشر المنتج 💾";
-            document.getElementById("cancelBtn").style.display = "none";
-        }
-
-        async function removeProduct(id) {
-            if (confirm("هل أنت متأكد من حذف هذا المنتج نهائياً؟")) {
-                try {
-                    await deleteDoc(doc(db, "products", id));
-                    loadProducts();
-                } catch (error) {
-                    alert("خطأ أثناء الحذف: " + error.message);
-                }
-            }
-        }
-
-        async function loadOrders() {
-            const tbody = document.getElementById("ordersTableBody");
-            try {
-                const querySnapshot = await getDocs(collection(db, "orders"));
-                document.getElementById("statOrders").textContent = querySnapshot.size;
-                if (querySnapshot.empty) {
-                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-sub);">لا توجد طلبات شراء حالياً.</td></tr>`;
-                    return;
-                }
-                tbody.innerHTML = "";
-                querySnapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const orderId = docSnap.id;
-                    const itemsHtml = (data.items || []).map(i => `${i.title || 'منتج'}`).join('<br>');
-                    const isCompleted = data.status === 'completed';
-                    tbody.insertAdjacentHTML('beforeend', `
-                        <tr>
-                            <td><small>${orderId.slice(0, 8)}...</small></td>
-                            <td><strong>${data.buyerEmail || 'غير معروف'}</strong></td>
-                            <td>${itemsHtml}</td>
-                            <td>${data.paymentMethod || 'الذهبية'}</td>
-                            <td><span class="badge ${isCompleted ? 'badge-approved' : 'badge-pending'}">${data.status || 'قيد المراجعة'}</span></td>
-                            <td>
-                                ${!isCompleted ? `<button class="btn-action btn-approve" onclick="window.completeOrder('${orderId}')">تأكيد ✅</button>` : ''}
-                                <button class="btn-action btn-delete" onclick="window.removeOrder('${orderId}')">حذف 🗑️</button>
-                            </td>
-                        </tr>
-                    `);
-                });
-            } catch (error) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--danger-red);">تعذر تحميل الطلبات.</td></tr>`;
-            }
-        }
-
-        async function completeOrder(id) {
-            try {
-                await updateDoc(doc(db, "orders", id), { status: 'completed' });
-                loadOrders();
-            } catch (error) { alert("خطأ: " + error.message); }
-        }
-
-        async function removeOrder(id) {
-            if (confirm("هل تريد حذف هذا الطلب؟")) {
-                await deleteDoc(doc(db, "orders", id));
-                loadOrders();
-            }
-        }
-
-        async function loadMessages() {
-            const tbody = document.getElementById("messagesTableBody");
-            try {
-                const querySnapshot = await getDocs(collection(db, "contact_messages"));
-                document.getElementById("statMessages").textContent = querySnapshot.size;
-                if (querySnapshot.empty) {
-                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-sub);">لا توجد رسائل حالياً.</td></tr>`;
-                    return;
-                }
-                tbody.innerHTML = "";
-                querySnapshot.forEach((docSnap) => {
-                    const msg = docSnap.data();
-                    const msgId = docSnap.id;
-                    tbody.insertAdjacentHTML('beforeend', `
-                        <tr>
-                            <td><strong>${msg.name || 'مجهول'}</strong><br><small style="color:var(--text-sub);">${msg.email || ''}</small></td>
-                            <td><span class="badge badge-pending">${msg.requestType || 'استفسار'}</span></td>
-                            <td>${msg.message || ''}</td>
-                            <td>
-                                <textarea id="reply_${msgId}" rows="2" placeholder="اكتب ردك..." style="width:100%; margin-bottom:5px;">${msg.adminReply || ''}</textarea>
-                                <button class="btn-action btn-approve" onclick="window.sendReply('${msgId}')">إرسال ✉️</button>
-                                <button class="btn-action btn-delete" onclick="window.deleteMessage('${msgId}')">حذف 🗑️</button>
-                            </td>
-                        </tr>
-                    `);
-                });
-            } catch (error) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--danger-red);">تعذر تحميل الرسائل.</td></tr>`;
-            }
-        }
-
-        async function sendReply(msgId) {
-            const replyText = document.getElementById(`reply_${msgId}`).value.trim();
-            if (!replyText) { alert("اكتب رد أولاً!"); return; }
-            await updateDoc(doc(db, "contact_messages", msgId), { adminReply: replyText, status: 'replied' });
-            alert("تم حفظ الرد!");
-            loadMessages();
-        }
-
-        async function deleteMessage(msgId) {
-            if (confirm("حذف الرسالة؟")) {
-                await deleteDoc(doc(db, "contact_messages", msgId));
-                loadMessages();
-            }
-        }
-    </script>
-</body>
-</html>
+                const p = productsList.find(item => item.id === id);
+                await
