@@ -141,6 +141,11 @@
             margin-right: 6px;
         }
 
+        .badge-status.pending {
+            background: rgba(255, 171, 0, 0.15);
+            color: #ffab00;
+        }
+
         .btn-download {
             background: linear-gradient(135deg, var(--accent-cyan), #8a2be2);
             color: white;
@@ -209,6 +214,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
@@ -221,30 +227,27 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        async function loadPurchasesFromFirebase() {
-            const container = document.getElementById("myPurchasesList");
-            const rawProfile = localStorage.getItem("userProfile");
-            let userProfile = null;
-
-            try {
-                userProfile = rawProfile ? JSON.parse(rawProfile) : null;
-            } catch (e) {
-                console.error("خطأ في قراءة ملف المستخدم من التخزين المحلي:", e);
-            }
-            
-            if (!userProfile || !userProfile.email) {
+        onAuthStateChanged(auth, (user) => {
+            if (user && user.email) {
+                loadPurchasesFromFirebase(user.email);
+            } else {
+                const container = document.getElementById("myPurchasesList");
                 container.innerHTML = `
                     <div style="text-align: center; padding: 20px;">
                         <p style="margin-bottom: 15px;">قم بتسجيل الدخول لعرض مشترياتك وملفاتك الرقمية.</p>
                         <a href="login.html" class="btn-download" style="display:inline-flex;">تسجيل الدخول</a>
                     </div>
                 `;
-                return;
             }
+        });
+
+        async function loadPurchasesFromFirebase(buyerEmail) {
+            const container = document.getElementById("myPurchasesList");
 
             try {
-                const q = query(collection(db, "orders"), where("buyerEmail", "==", userProfile.email));
+                const q = query(collection(db, "orders"), where("buyerEmail", "==", buyerEmail));
                 const querySnapshot = await getDocs(q);
 
                 if (querySnapshot.empty) {
@@ -256,24 +259,26 @@
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     const items = data.items || [];
-                    
+                    const status = data.status || 'pending';
+                    const isCompleted = status === 'completed';
+
                     items.forEach(item => {
                         const fileLink = item.downloadUrl || data.downloadUrl;
-                        const isLinkValid = fileLink && fileLink.startsWith('http');
+                        const isLinkValid = isCompleted && fileLink && fileLink.startsWith('http');
                         const paymentMethod = data.paymentMethod || 'البطاقة الذهبية';
-                        const status = data.status || 'مكتمل';
+                        const statusLabel = isCompleted ? 'مكتمل ✅' : 'قيد المراجعة ⏳';
 
                         html += `
                             <div class="order-item-row">
                                 <div class="order-info">
                                     <strong>${item.name || item.title || 'منتج رقمي'}</strong>
                                     <div class="order-meta">
-                                        <span class="badge-status">${status}</span>
+                                        <span class="badge-status ${isCompleted ? '' : 'pending'}">${statusLabel}</span>
                                         طريقة الدفع: ${paymentMethod}
                                     </div>
                                 </div>
-                                ${isLinkValid 
-                                    ? `<a href="${fileLink}" target="_blank" rel="noopener noreferrer" class="btn-download">تنزيل الملف 📥</a>` 
+                                ${isLinkValid
+                                    ? `<a href="${fileLink}" target="_blank" rel="noopener noreferrer" class="btn-download">تنزيل الملف 📥</a>`
                                     : `<span style="color:var(--text-sub); font-size:0.85rem;">قيد التجهيز من الإدارة</span>`}
                             </div>
                         `;
@@ -281,15 +286,13 @@
                 });
                 html += '</div>';
 
-                container.className = ""; // إزالة كلاس الرسالة الافتراضية
+                container.className = "";
                 container.innerHTML = html;
             } catch (err) {
                 console.error(err);
                 container.innerHTML = "<p style='color:var(--danger-red);'>تعذر تحميل الطلبات الحالية، تحقق من الاتصال بالإنترنت.</p>";
             }
         }
-
-        window.addEventListener("DOMContentLoaded", loadPurchasesFromFirebase);
     </script>
 </body>
 </html>
