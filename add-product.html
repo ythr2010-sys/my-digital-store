@@ -3,271 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إضافة منتج رقمي - DigiVault الخزنة الرقمية</title>
-    <!-- Tailwind CSS للتصميم السريع والحديث -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts - Cairo -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <!-- FontAwesome للأيقونات -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>أضف منتجك للبيع | الخزنة الرقمية</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
-        .preview-box { border: 2px dashed #cbd5e1; transition: all 0.3s ease; }
-        .preview-box:hover { border-color: #3b82f6; background-color: #eff6ff; }
-        /* Toast Notifications */
-        #toast-container { position: fixed; bottom: 20px; left: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { background: #0f172a; color: white; padding: 12px 20px; border-radius: 12px; font-size: 0.85rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease; }
-        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        :root {
+            --bg-main: #0a0a12;
+            --bg-card: #141424;
+            --bg-sidebar: #10101c;
+            --accent-cyan: #00d2ff;
+            --accent-purple: #8a2be2;
+            --accent-green: #00e676;
+            --danger-red: #ff4757;
+            --border-line: rgba(255, 255, 255, 0.08);
+            --text-main: #ffffff;
+            --text-sub: #a0a0c0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg-main); color: var(--text-main); line-height: 1.6; }
+        .page-wrapper { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 260px; background: var(--bg-sidebar); border-left: 1px solid var(--border-line);
+            padding: 25px 15px; display: flex; flex-direction: column; gap: 20px;
+        }
+        .sidebar-menu { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+        .sidebar-menu li a {
+            display: flex; align-items: center; gap: 12px; color: var(--text-sub);
+            text-decoration: none; padding: 12px 16px; border-radius: 10px; font-weight: 600; transition: 0.3s;
+        }
+        .sidebar-menu li a:hover, .sidebar-menu li a.active {
+            background: rgba(0, 210, 255, 0.1); color: var(--accent-cyan); border-right: 3px solid var(--accent-cyan);
+        }
+        .main-content { flex: 1; padding: 30px; max-width: 800px; }
+        .card-box { background: var(--bg-card); border: 1px solid var(--border-line); border-radius: 14px; padding: 30px; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--text-sub); font-size: 0.9rem; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; background: #0a0a12; border: 1px solid var(--border-line); padding: 12px;
+            border-radius: 8px; color: #fff; font-family: inherit; font-size: 0.95rem; outline: none; transition: 0.3s;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--accent-cyan); }
+        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .btn-submit {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            color: #fff; border: none; padding: 14px; border-radius: 10px; font-weight: 800; cursor: pointer;
+            font-family: inherit; font-size: 1.05rem; width: 100%; transition: 0.3s;
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        .btn-submit:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        #authGate { display: none; text-align: center; padding: 60px 20px; color: var(--text-sub); }
+        #authGate a { color: var(--accent-cyan); font-weight: 800; text-decoration: none; }
+        #alertBox { display: none; margin-bottom: 18px; padding: 14px; border-radius: 10px; font-size: 0.9rem; font-weight: 600; }
+        .alert-success { background: rgba(0,230,118,0.1); border: 1px solid var(--accent-green); color: var(--accent-green); }
+        .alert-error { background: rgba(255,71,87,0.1); border: 1px solid var(--danger-red); color: var(--danger-red); }
+        @media (max-width: 768px) {
+            .page-wrapper { flex-direction: column; }
+            .sidebar { width: 100%; }
+            .row-2 { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body>
+    <div class="page-wrapper">
+        <aside class="sidebar">
+            <div class="logo"><a href="index.html" style="font-size:1.5rem; font-weight:900; color:#fff; text-decoration:none;">الخزنة<span style="color:var(--accent-cyan);">الرقمية</span></a></div>
+            <ul class="sidebar-menu">
+                <li><a href="index.html">🏠 الصفحة الرئيسية</a></li>
+                <li><a href="shop.html">🛍️ تسوق الآن (المنتجات)</a></li>
+                <li><a href="add-product.html" class="active">➕ أضف منتجك للبيع</a></li>
+                <li><a href="contact.html">📩 تواصل معنا والأسئلة</a></li>
+                <li><a href="profile.html">🛒 سلة المشتريات / الملف</a></li>
+                <li><a href="privacy.html">🔒 سياسة الخصوصية</a></li>
+            </ul>
+        </aside>
 
-    <!-- Toast Container -->
-    <div id="toast-container"></div>
+        <main class="main-content">
+            <h1 style="margin-bottom: 20px; font-size: 1.8rem;">إضافة منتج رقمي جديد للبيع 📦</h1>
 
-    <!-- Navbar / رأس الصفحة -->
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-            <a href="index.html" class="text-xl font-bold text-blue-600 flex items-center gap-2">
-                <i class="fa-solid fa-vault"></i> DigiVault
-            </a>
-            <div class="flex items-center gap-3">
-                <div id="adminLinkContainer" class="hidden">
-                    <a href="admin.html" class="bg-slate-900 text-white text-sm px-4 py-2 rounded-lg hover:bg-slate-800 transition flex items-center gap-2">
-                        <i class="fa-solid fa-gauge-high"></i> لوحة التحكم
-                    </a>
-                </div>
-                <span id="userEmailBadge" class="text-xs text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full hidden"></span>
-            </div>
-        </div>
-    </header>
-
-    <!-- المحتوى الرئيسي -->
-    <main class="flex-grow max-w-2xl w-full mx-auto p-4 sm:p-6 my-8">
-        <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-slate-100">
-            <div class="mb-6 border-b pb-4">
-                <h1 class="text-2xl font-extrabold text-slate-800">إضافة منتج رقمي جديد</h1>
-                <p class="text-sm text-slate-500 mt-1">املأ بيانات المنتج بدقة ليكون جاهزاً للمرض والنشر.</p>
+            <div id="authGate">
+                <p style="margin-bottom: 15px; font-size: 1.05rem;">🔒 يجب تسجيل الدخول أولاً لتتمكن من إضافة منتج.</p>
+                <a href="login.html">اضغط هنا لتسجيل الدخول</a>
             </div>
 
-            <!-- تنبيهات الحالة -->
-            <div id="alertBox" class="hidden mb-6 p-4 rounded-xl text-sm font-medium"></div>
-
-            <form id="productForm" class="space-y-5">
-                <!-- عنوان المنتج -->
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">عنوان المنتج</label>
-                    <input type="text" id="title" required placeholder="مثال: حزمة تصاميم UI/UX احترافية" 
-                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                </div>
-
-                <!-- الوصف -->
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">وصف المنتج</label>
-                    <textarea id="description" rows="4" required placeholder="اشرح مميزات وما يحصل عليه المشتري بالتحديد..." 
-                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
-                </div>
-
-                <!-- السعر والفئة -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">السعر ($ أو مجاني)</label>
-                        <input type="text" id="price" required placeholder="مجاني أو 5.00" 
-                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+            <div id="formWrapper" class="card-box" style="display:none;">
+                <div id="alertBox"></div>
+                <form id="productForm">
+                    <div class="form-group">
+                        <label>عنوان المنتج</label>
+                        <input type="text" id="title" required placeholder="مثال: حزمة تصاميم UI/UX احترافية">
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">التصنيف</label>
-                        <select id="category" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white">
-                            <option value="design">تصاميم وجرافيك</option>
-                            <option value="code">برمجيات وأكواد</option>
-                            <option value="ebooks">كتب ومراجع</option>
-                            <option value="courses">دورات تعليمية</option>
-                        </select>
+                    <div class="form-group">
+                        <label>وصف المنتج</label>
+                        <textarea id="description" rows="4" required placeholder="اشرح مميزات المنتج وما يحصل عليه المشتري بالتحديد..."></textarea>
                     </div>
-                </div>
-
-                <!-- معاينة ورفع صورة الغلاف (ImgBB أو رابط) -->
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">صورة الغلاف (ملف أو رابط)</label>
-                    <input type="url" id="imageUrlInput" placeholder="https://via.placeholder.com/300x150 (اختياري إن رفعت ملفاً)" class="w-full px-4 py-2 rounded-xl border border-slate-300 mb-2 text-xs">
-                    <div class="preview-box rounded-xl p-4 text-center cursor-pointer relative" onclick="document.getElementById('coverImage').click()">
-                        <input type="file" id="coverImage" accept="image/*" class="hidden" onchange="previewImage(this)">
-                        <div id="imagePreviewContent" class="flex flex-col items-center justify-center py-4">
-                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-blue-500 mb-2"></i>
-                            <span class="text-xs text-slate-600 font-medium">اضغط لاختيار صورة الغلاف أو اسحبها هنا</span>
+                    <div class="row-2">
+                        <div class="form-group">
+                            <label>السعر ($ أو مجاني)</label>
+                            <input type="text" id="price" required placeholder="مجاني أو 5.00">
                         </div>
-                        <img id="imagePreviewTag" src="" alt="Preview" class="hidden max-h-48 mx-auto rounded-lg shadow-md object-contain">
+                        <div class="form-group">
+                            <label>التصنيف</label>
+                            <select id="category" required>
+                                <option value="books">📚 كتب وروايات</option>
+                                <option value="models">🎨 مجسمات 3D/2D</option>
+                                <option value="courses">🎓 دورات تعليمية</option>
+                                <option value="gaming">🎮 ألعاب واشتراكات</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
-
-                <!-- رابط الملف أو الملف المحلي -->
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">رابط التحميل المباشر (Google Drive / Mega / رابط مباشر)</label>
-                    <input type="url" id="downloadUrlInput" required placeholder="https://drive.google.com/..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                </div>
-
-                <!-- شريط التقدم للرفع -->
-                <div id="progressContainer" class="hidden space-y-2">
-                    <div class="flex justify-between text-xs text-slate-600">
-                        <span id="progressText">جاري الرفع...</span>
-                        <span id="progressPercent">0%</span>
+                    <div class="form-group">
+                        <label>رابط صورة الغلاف</label>
+                        <input type="url" id="imageUrlInput" required placeholder="https://example.com/image.jpg">
                     </div>
-                    <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
-                        <div id="progressBar" class="bg-blue-600 h-full w-0 transition-all duration-300"></div>
+                    <div class="form-group">
+                        <label>رابط التحميل المباشر (Google Drive / Mega / رابط مباشر)</label>
+                        <input type="url" id="downloadUrlInput" required placeholder="https://drive.google.com/...">
                     </div>
-                </div>
+                    <button type="submit" id="submitBtn" class="btn-submit">
+                        <span>📨 إرسال المنتج للمراجعة</span>
+                    </button>
+                    <p style="color:var(--text-sub); font-size:0.8rem; margin-top:12px; text-align:center;">
+                        سيظهر منتجك في المتجر بعد موافقة الإدارة، وستصلك إشعار بالنتيجة.
+                    </p>
+                </form>
+            </div>
+        </main>
+    </div>
 
-                <!-- زر الإرسال -->
-                <button type="submit" id="submitBtn" 
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-paper-plane"></i> نشر المنتج للمراجعة
-                </button>
-            </form>
-        </div>
-    </main>
-
-    <!-- Firebase SDKs & App Logic with Hybrid Fallback -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyYOUR_API_KEY_HERE",
-            authDomain: "digivault-app.firebaseapp.com",
-            projectId: "digivault-app",
-            storageBucket: "digivault-app.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef"
+            apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
+            authDomain: "digivault-4c3a3.firebaseapp.com",
+            projectId: "digivault-4c3a3",
+            storageBucket: "digivault-4c3a3.firebasestorage.app",
+            messagingSenderId: "578335534171",
+            appId: "1:578335534171:web:1b108a849c0543f998a37e"
         };
 
-        const IMGBB_API_KEY = "YOUR_IMGBB_API_KEY_HERE";
-        const MAIN_ADMIN_EMAIL = "ythr2010@gmail.com";
-        let currentUser = null;
-        let isFirebaseValid = false;
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        let app, auth, db;
-        try {
-            if (!firebaseConfig.apiKey.includes("YOUR_")) {
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                isFirebaseValid = true;
-                onAuthStateChanged(auth, (user) => {
-                    currentUser = user;
-                    const badge = document.getElementById('userEmailBadge');
-                    if (user) {
-                        badge.innerText = user.email;
-                        badge.classList.remove('hidden');
-                        if (user.email === MAIN_ADMIN_EMAIL) {
-                            document.getElementById('adminLinkContainer').classList.remove('hidden');
-                        }
-                    } else {
-                        badge.classList.add('hidden');
-                    }
-                });
+        let currentUserEmail = null;
+
+        onAuthStateChanged(auth, (user) => {
+            const formWrapper = document.getElementById("formWrapper");
+            const authGate = document.getElementById("authGate");
+            if (user && user.email) {
+                currentUserEmail = user.email;
+                formWrapper.style.display = "block";
+                authGate.style.display = "none";
+            } else {
+                currentUserEmail = null;
+                formWrapper.style.display = "none";
+                authGate.style.display = "block";
             }
-        } catch(e) {
-            console.log("Firebase fallback mode active.");
-        }
+        });
 
-        window.showToast = function(msg) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i><span>${msg}</span>`;
-            container.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
-        }
-
-        function showAlert(msg, colorClass) {
-            const box = document.getElementById('alertBox');
-            box.className = `mb-6 p-4 rounded-xl text-sm font-medium ${colorClass}`;
-            box.innerText = msg;
-            box.classList.remove('hidden');
+        function showAlert(msg, type) {
+            const box = document.getElementById("alertBox");
+            box.className = type === 'success' ? 'alert-success' : 'alert-error';
+            box.style.display = 'block';
+            box.style.padding = '14px';
+            box.style.borderRadius = '10px';
+            box.textContent = msg;
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        window.previewImage = function(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('imagePreviewTag').src = e.target.result;
-                    document.getElementById('imagePreviewTag').classList.remove('hidden');
-                    document.getElementById('imagePreviewContent').classList.add('hidden');
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
-        };
-
-        async function uploadImageToImgBB(file) {
-            const formData = new FormData();
-            formData.append('image', file);
-            const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-                method: 'POST',
-                body: formData
-            });
-            const data = await response.json();
-            if (!data.success) throw new Error('فشل رفع الصورة إلى ImgBB');
-            return data.data.url;
-        }
-
-        document.getElementById('productForm').addEventListener('submit', async (e) => {
+        document.getElementById("productForm").addEventListener("submit", async (e) => {
             e.preventDefault();
-            const submitBtn = document.getElementById('submitBtn');
+            if (!currentUserEmail) {
+                showAlert("يجب تسجيل الدخول أولاً.", "error");
+                return;
+            }
+
+            const submitBtn = document.getElementById("submitBtn");
             submitBtn.disabled = true;
-            submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...`;
+            submitBtn.innerHTML = "<span>جاري الإرسال...</span>";
 
             try {
-                let imageUrl = document.getElementById('imageUrlInput').value.trim() || 'https://via.placeholder.com/300x150';
-                const coverFile = document.getElementById('coverImage').files[0];
-                if (coverFile && IMGBB_API_KEY !== "YOUR_IMGBB_API_KEY_HERE") {
-                    document.getElementById('progressContainer').classList.remove('hidden');
-                    document.getElementById('progressBar').style.width = '50%';
-                    imageUrl = await uploadImageToImgBB(coverFile);
-                } else if (coverFile) {
-                    imageUrl = document.getElementById('imagePreviewTag').src;
-                }
-
                 const productData = {
-                    id: 'prod_' + Date.now(),
-                    title: document.getElementById('title').value.trim(),
-                    description: document.getElementById('description').value.trim(),
-                    price: document.getElementById('price').value.trim(),
-                    category: document.getElementById('category').value,
-                    imageUrl,
-                    downloadUrl: document.getElementById('downloadUrlInput').value.trim(),
-                    status: 'approved',
-                    createdAt: new Date().toISOString()
+                    title: document.getElementById("title").value.trim(),
+                    description: document.getElementById("description").value.trim(),
+                    price: document.getElementById("price").value.trim(),
+                    category: document.getElementById("category").value,
+                    imageUrl: document.getElementById("imageUrlInput").value.trim(),
+                    downloadUrl: document.getElementById("downloadUrlInput").value.trim(),
+                    sellerEmail: currentUserEmail,
+                    status: "pending",
+                    createdAt: serverTimestamp()
                 };
 
-                // محاولة الحفظ بـ Firestore أو LocalStorage fallback
-                if (isFirebaseValid && db && currentUser) {
-                    await addDoc(collection(db, "products"), {
-                        ...productData,
-                        sellerEmail: currentUser.email,
-                        createdAt: serverTimestamp()
-                    });
-                } else {
-                    const localProducts = JSON.parse(localStorage.getItem('digivault_local_products') || '[]');
-                    localProducts.unshift(productData);
-                    localStorage.setItem('digivault_local_products', JSON.stringify(localProducts));
-                }
+                await addDoc(collection(db, "products"), productData);
 
-                window.showToast('تم نشر المنتج بنجاح وإضافته للمتجر!');
-                showAlert('تم إرسال ونشر المنتج بنجاح!', 'bg-emerald-100 text-emerald-800');
-                document.getElementById('productForm').reset();
-                document.getElementById('imagePreviewTag').classList.add('hidden');
-                document.getElementById('imagePreviewContent').classList.remove('hidden');
-                document.getElementById('progressContainer').classList.add('hidden');
+                showAlert("تم إرسال منتجك بنجاح! بانتظار مراجعة الإدارة.", "success");
+                document.getElementById("productForm").reset();
             } catch (err) {
-                console.error(err);
-                showAlert('حدث خطأ: ' + err.message, 'bg-red-100 text-red-800');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> نشر المنتج للمراجعة`;
-            }
-        });
-    </script>
-</body>
-</html>
