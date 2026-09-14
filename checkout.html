@@ -186,7 +186,18 @@
             align-items: center;
         }
 
-        /* Toast Notification */
+        #authGate {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-sub);
+        }
+        #authGate a {
+            color: var(--accent-cyan);
+            font-weight: 800;
+            text-decoration: none;
+        }
+
         #toastContainer {
             position: fixed;
             bottom: 25px;
@@ -244,11 +255,15 @@
 
             <div id="userInfoDisplay" class="user-badge">
                 <span>👤 المشتري: <strong id="buyerEmailText">جاري التحقق...</strong></span>
-                <span id="authStatusText" style="color: var(--accent-cyan);">مسجل</span>
+                <span id="authStatusText" style="color: var(--accent-cyan);">...</span>
             </div>
 
-            <div class="checkout-grid">
-                <!-- قسم خيارات الدفع -->
+            <div id="authGate">
+                <p style="margin-bottom: 15px; font-size: 1.05rem;">🔒 يجب تسجيل الدخول أولاً لإتمام عملية الدفع.</p>
+                <a href="login.html">اضغط هنا لتسجيل الدخول</a>
+            </div>
+
+            <div class="checkout-grid" id="checkoutGrid" style="display:none;">
                 <div class="card-box">
                     <div class="payment-tabs">
                         <button class="tab-btn active" onclick="window.switchTab(event, 'dahabia')">💳 الذهبية / BaridiMob</button>
@@ -256,7 +271,6 @@
                         <button class="tab-btn" onclick="window.switchTab(event, 'visa')">🌐 Visa / Mastercard</button>
                     </div>
 
-                    <!-- 1. لوحة البطاقة الذهبية و BaridiMob -->
                     <div id="dahabia-panel" class="pay-panel active">
                         <div class="account-details">
                             <div class="account-row">
@@ -285,11 +299,10 @@
                                 <input type="text" id="baridiName" placeholder="اسمك الكامل كما هو في التطبيق" required>
                                 <div class="error-msg" id="baridiNameErr">يرجى كتابة الاسم الكامل (أكثر من حرفين)</div>
                             </div>
-                            <button type="submit" class="btn-submit" id="btnDahabia"><span>تأكيد عملية الدفع واستلام المنتجات 🚀</span></button>
+                            <button type="submit" class="btn-submit" id="btnDahabia"><span>تأكيد عملية الدفع وإرسال الطلب للمراجعة 🚀</span></button>
                         </form>
                     </div>
 
-                    <!-- 2. لوحة CCP -->
                     <div id="ccp-panel" class="pay-panel">
                         <div class="account-details">
                             <div class="account-row">
@@ -309,12 +322,14 @@
                                 <input type="text" id="ccpRec" placeholder="أدخل رقم الوصل البريدي" required>
                                 <div class="error-msg" id="ccpRecErr">يرجى إدخال رقم وصل صحيح</div>
                             </div>
-                            <button type="submit" class="btn-submit" id="btnCcp"><span>تأكيد الدفع عبر CCP 🚀</span></button>
+                            <button type="submit" class="btn-submit" id="btnCcp"><span>تأكيد الدفع عبر CCP وإرسال الطلب للمراجعة 🚀</span></button>
                         </form>
                     </div>
 
-                    <!-- 3. لوحة فيزا وماستركارد العالمية -->
                     <div id="visa-panel" class="pay-panel">
+                        <p style="color: var(--text-sub); font-size: 0.85rem; margin-bottom: 15px; padding: 10px; border: 1px dashed var(--danger-red); border-radius: 8px;">
+                            ⚠️ هذه الطريقة قيد الإعداد حاليا (بانتظار ربط بوابة دفع رسمية). الطلب سيُسجل بحالة "قيد المراجعة" ولن يُفعّل تلقائيا.
+                        </p>
                         <form id="visaForm" onsubmit="window.processOrder(event, 'Visa / Mastercard')">
                             <div class="form-group">
                                 <label>الاسم على البطاقة (Cardholder Name):</label>
@@ -338,13 +353,12 @@
                                     <div class="error-msg" id="visaCvvErr">CVV غير صحيح</div>
                                 </div>
                             </div>
-                            <button type="submit" class="btn-submit" id="btnVisa"><span>ادفع الآن أوتوماتيكياً 💳</span></button>
+                            <button type="submit" class="btn-submit" id="btnVisa"><span>إرسال الطلب (قيد المراجعة) 💳</span></button>
                         </form>
                     </div>
 
                 </div>
 
-                <!-- ملخص المشتريات -->
                 <div class="card-box">
                     <h2 style="font-size: 1.2rem; margin-bottom: 15px;">ملخص الطلب 🛍️</h2>
                     <div id="orderItems"></div>
@@ -377,7 +391,7 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        let currentBuyerEmail = "guest@user.com";
+        let currentBuyerEmail = null;
         let calculatedTotalNum = 0;
 
         function showToast(message, type = 'success') {
@@ -394,18 +408,22 @@
         }
 
         onAuthStateChanged(auth, (user) => {
+            const checkoutGrid = document.getElementById("checkoutGrid");
+            const authGate = document.getElementById("authGate");
+
             if (user && user.email) {
                 currentBuyerEmail = user.email;
                 document.getElementById("buyerEmailText").innerText = user.email;
                 document.getElementById("authStatusText").innerText = "متصل ✅";
+                checkoutGrid.style.display = "grid";
+                authGate.style.display = "none";
+                loadSummary();
             } else {
-                const localProfile = JSON.parse(localStorage.getItem("userProfile"));
-                if (localProfile && localProfile.email) {
-                    currentBuyerEmail = localProfile.email;
-                    document.getElementById("buyerEmailText").innerText = localProfile.email;
-                } else {
-                    document.getElementById("buyerEmailText").innerText = "زائر (Guest)";
-                }
+                currentBuyerEmail = null;
+                checkoutGrid.style.display = "none";
+                authGate.style.display = "block";
+                document.getElementById("buyerEmailText").innerText = "غير مسجل";
+                document.getElementById("authStatusText").innerText = "";
             }
         });
 
@@ -506,6 +524,13 @@
 
         window.processOrder = async function(e, method) {
             e.preventDefault();
+
+            if (!currentBuyerEmail) {
+                showToast("يجب تسجيل الدخول أولاً لإتمام الطلب", "error");
+                setTimeout(() => { window.location.href = "login.html"; }, 1200);
+                return;
+            }
+
             const cart = JSON.parse(localStorage.getItem("cart")) || [];
 
             if (cart.length === 0) {
@@ -533,7 +558,11 @@
                 } else if (method.includes('CCP')) {
                     paymentDetails = { receiptNumber: document.getElementById('ccpRec').value.trim() };
                 } else {
-                    paymentDetails = { cardholder: document.getElementById('visaName').value.trim() };
+                    const rawCardNum = document.getElementById('visaCardNum').value.replace(/\s+/g, '');
+                    paymentDetails = {
+                        cardholder: document.getElementById('visaName').value.trim(),
+                        cardLast4: rawCardNum.slice(-4)
+                    };
                 }
 
                 await addDoc(collection(db, "orders"), {
@@ -542,11 +571,11 @@
                     totalAmount: calculatedTotalNum.toFixed(2),
                     paymentMethod: method,
                     paymentDetails: paymentDetails,
-                    status: method.includes("Visa") ? "completed" : "pending",
+                    status: "pending",
                     createdAt: serverTimestamp()
                 });
 
-                showToast(`تم إرسال طلبك بنجاح باستخدام [${method}]!`, "success");
+                showToast(`تم إرسال طلبك بنجاح باستخدام [${method}]! بانتظار تأكيد الإدارة.`, "success");
                 localStorage.removeItem("cart");
                 setTimeout(() => {
                     window.location.href = "profile.html";
@@ -558,8 +587,6 @@
                 submitBtn.innerHTML = originalText;
             }
         };
-
-        document.addEventListener("DOMContentLoaded", loadSummary);
     </script>
 </body>
 </html>
