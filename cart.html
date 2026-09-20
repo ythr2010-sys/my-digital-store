@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سلة المشتريات | الخزنة الرقمية</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-main:#0a0a12; --bg-card:#141424; --accent-cyan:#00d2ff; --accent-purple:#8a2be2; --border-line:rgba(255,255,255,.08); --text-main:#fff; --text-sub:#a0a0c0; --danger-red:#ff4757; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        body { font-family:'Tajawal',sans-serif; background:var(--bg-main); color:var(--text-main); line-height:1.6; min-height:100vh; }
+        .navbar { display:flex; justify-content:space-between; align-items:center; padding:18px 8%; background:var(--bg-card); border-bottom:1px solid var(--border-line); position:sticky; top:0; z-index:100; }
+        .logo a { font-size:1.5rem; font-weight:800; color:var(--text-main); text-decoration:none; }
+        .logo a span { color:var(--accent-cyan); }
+        .nav-link { color:var(--accent-cyan); text-decoration:none; font-weight:500; }
+        .main-wrapper { max-width:800px; margin:40px auto; padding:0 20px; }
+        .container { background:var(--bg-card); border:1px solid var(--border-line); border-radius:16px; padding:30px; }
+        h1 { font-size:1.7rem; margin-bottom:25px; border-right:4px solid var(--accent-cyan); padding-right:12px; }
+        .cart-item { display:flex; justify-content:space-between; align-items:center; gap:15px; padding:16px; border:1px solid var(--border-line); border-radius:10px; margin-bottom:12px; flex-wrap:wrap; }
+        .cart-item-info strong { display:block; font-size:1.05rem; }
+        .cart-item-info span { color:#10b981; font-weight:800; font-size:1.1rem; }
+        .cart-actions { display:flex; gap:10px; align-items:center; }
+        .btn-remove { background:rgba(255,71,87,.15); color:var(--danger-red); border:1px solid var(--danger-red); padding:7px 14px; border-radius:8px; cursor:pointer; font-family:inherit; font-weight:700; }
+        .cart-total { display:flex; justify-content:space-between; align-items:center; margin-top:25px; padding-top:20px; border-top:2px dashed var(--border-line); font-size:1.3rem; font-weight:800; color:var(--accent-cyan); }
+        .btn-checkout { display:block; width:100%; margin-top:20px; background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple)); color:#fff; border:none; padding:15px; border-radius:10px; font-weight:800; font-size:1.1rem; cursor:pointer; font-family:inherit; text-decoration:none; text-align:center; }
+        .btn-checkout:hover { opacity:.9; }
+        .btn-continue { display:block; text-align:center; margin-top:15px; color:var(--text-sub); text-decoration:none; }
+        .empty { text-align:center; padding:50px 20px; color:var(--text-sub); }
+        .empty a { color:var(--accent-cyan); font-weight:800; text-decoration:none; }
+    </style>
+<base target="_blank">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo"><a href="index.html">الخزنة <span>الرقمية</span></a></div>
+        <a href="shop.html" class="nav-link">← متابعة التسوق</a>
+    </header>
+
+    <div class="main-wrapper">
+        <div class="container">
+            <h1>🛒 سلة المشتريات</h1>
+            <div id="cartContent"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getCart, saveCart, esc } from "./firebase-init.js";
+
+        function renderCart() {
+            const cart = getCart();
+            const container = document.getElementById("cartContent");
+
+            if (cart.length === 0) {
+                container.innerHTML = `<div class="empty"><p style="margin-bottom:15px;">سلتك فارغة حالياً 😔</p><a href="shop.html">تصفح المنتجات الآن 🚀</a></div>`;
+                return;
+            }
+
+            let total = 0;
+            let html = '';
+            cart.forEach((item, index) => {
+                const priceNum = parseFloat(String(item.price).replace(/[^0-9.]/g, '')) || 0;
+                total += priceNum;
+                html += `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <strong>${esc(item.title || item.name)}</strong>
+                            <span>${esc(item.price)}</span>
+                        </div>
+                        <div class="cart-actions">
+                            <button class="btn-remove" data-index="${index}">🗑️ إزالة</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                <div class="cart-total">
+                    <span>المجموع الكلي:</span>
+                    <span>${total.toFixed(2)} $</span>
+                </div>
+                <a href="checkout.html" class="btn-checkout">إتمام الدفع 💳</a>
+                <a href="shop.html" class="btn-continue">← متابعة التسوق</a>
+            `;
+            container.innerHTML = html;
+
+            container.querySelectorAll('.btn-remove').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const cartArr = getCart();
+                    cartArr.splice(parseInt(btn.dataset.index), 1);
+                    saveCart(cartArr);
+                    renderCart();
+                });
+            });
+        }
+
+        renderCart();
+    </script>
+</body>
+</html>
