@@ -48,7 +48,6 @@
         @keyframes slideIn { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
         @media (max-width:768px){ .page-wrapper{flex-direction:column} .sidebar{width:100%} .checkout-grid{grid-template-columns:1fr} }
     </style>
-<base target="_blank">
 </head>
 <body>
     <div class="page-wrapper">
@@ -354,5 +353,6 @@
             form.addEventListener('submit', (e) => processOrder(e, form.dataset.method));
         });
     </script>
+    <script type="module" src="./site-enhance.js"></script>
 </body>
 </html>
