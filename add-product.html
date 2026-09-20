@@ -8,82 +8,53 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-main: #0a0a12;
-            --bg-card: #141424;
-            --bg-sidebar: #10101c;
-            --accent-cyan: #00d2ff;
-            --accent-purple: #8a2be2;
-            --accent-green: #00e676;
-            --danger-red: #ff4757;
-            --border-line: rgba(255, 255, 255, 0.08);
-            --text-main: #ffffff;
-            --text-sub: #a0a0c0;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg-main); color: var(--text-main); line-height: 1.6; }
-        .page-wrapper { display: flex; min-height: 100vh; }
-        .sidebar {
-            width: 260px; background: var(--bg-sidebar); border-left: 1px solid var(--border-line);
-            padding: 25px 15px; display: flex; flex-direction: column; gap: 20px;
-        }
-        .sidebar-menu { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-        .sidebar-menu li a {
-            display: flex; align-items: center; gap: 12px; color: var(--text-sub);
-            text-decoration: none; padding: 12px 16px; border-radius: 10px; font-weight: 600; transition: 0.3s;
-        }
-        .sidebar-menu li a:hover, .sidebar-menu li a.active {
-            background: rgba(0, 210, 255, 0.1); color: var(--accent-cyan); border-right: 3px solid var(--accent-cyan);
-        }
-        .main-content { flex: 1; padding: 30px; max-width: 800px; }
-        .card-box { background: var(--bg-card); border: 1px solid var(--border-line); border-radius: 14px; padding: 30px; }
-        .form-group { margin-bottom: 18px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--text-sub); font-size: 0.9rem; }
-        .form-group input, .form-group textarea, .form-group select {
-            width: 100%; background: #0a0a12; border: 1px solid var(--border-line); padding: 12px;
-            border-radius: 8px; color: #fff; font-family: inherit; font-size: 0.95rem; outline: none; transition: 0.3s;
-        }
-        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--accent-cyan); }
-        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .btn-submit {
-            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-            color: #fff; border: none; padding: 14px; border-radius: 10px; font-weight: 800; cursor: pointer;
-            font-family: inherit; font-size: 1.05rem; width: 100%; transition: 0.3s;
-            display: flex; justify-content: center; align-items: center; gap: 8px;
-        }
-        .btn-submit:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
-        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
-        #authGate { display: none; text-align: center; padding: 60px 20px; color: var(--text-sub); }
-        #authGate a { color: var(--accent-cyan); font-weight: 800; text-decoration: none; }
-        #alertBox { display: none; margin-bottom: 18px; padding: 14px; border-radius: 10px; font-size: 0.9rem; font-weight: 600; }
-        .alert-success { background: rgba(0,230,118,0.1); border: 1px solid var(--accent-green); color: var(--accent-green); }
-        .alert-error { background: rgba(255,71,87,0.1); border: 1px solid var(--danger-red); color: var(--danger-red); }
-        @media (max-width: 768px) {
-            .page-wrapper { flex-direction: column; }
-            .sidebar { width: 100%; }
-            .row-2 { grid-template-columns: 1fr; }
-        }
+        :root { --bg-main:#0a0a12; --bg-card:#141424; --bg-sidebar:#10101c; --accent-cyan:#00d2ff; --accent-purple:#8a2be2; --accent-green:#00e676; --danger-red:#ff4757; --border-line:rgba(255,255,255,.08); --text-main:#fff; --text-sub:#a0a0c0; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        body { font-family:'Tajawal',sans-serif; background:var(--bg-main); color:var(--text-main); line-height:1.6; }
+        .page-wrapper { display:flex; min-height:100vh; }
+        .sidebar { width:260px; background:var(--bg-sidebar); border-left:1px solid var(--border-line); padding:25px 15px; display:flex; flex-direction:column; gap:20px; }
+        .sidebar-menu { list-style:none; display:flex; flex-direction:column; gap:10px; }
+        .sidebar-menu li a { display:flex; align-items:center; gap:12px; color:var(--text-sub); text-decoration:none; padding:12px 16px; border-radius:10px; font-weight:600; transition:.3s; }
+        .sidebar-menu li a:hover, .sidebar-menu li a.active { background:rgba(0,210,255,.1); color:var(--accent-cyan); border-right:3px solid var(--accent-cyan); }
+        .main-content { flex:1; padding:30px; max-width:800px; }
+        .card-box { background:var(--bg-card); border:1px solid var(--border-line); border-radius:14px; padding:30px; }
+        .form-group { margin-bottom:18px; }
+        .form-group label { display:block; margin-bottom:8px; font-weight:700; color:var(--text-sub); font-size:.9rem; }
+        .form-group input, .form-group textarea, .form-group select { width:100%; background:#0a0a12; border:1px solid var(--border-line); padding:12px; border-radius:8px; color:#fff; font-family:inherit; font-size:.95rem; outline:none; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color:var(--accent-cyan); }
+        .row-2 { display:grid; grid-template-columns:1fr 1fr; gap:15px; }
+        .btn-submit { background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple)); color:#fff; border:none; padding:14px; border-radius:10px; font-weight:800; cursor:pointer; font-family:inherit; font-size:1.05rem; width:100%; transition:.3s; }
+        .btn-submit:hover:not(:disabled) { opacity:.9; transform:translateY(-2px); }
+        .btn-submit:disabled { opacity:.6; cursor:not-allowed; }
+        #authGate { display:none; text-align:center; padding:60px 20px; color:var(--text-sub); }
+        #authGate a { color:var(--accent-cyan); font-weight:800; text-decoration:none; }
+        #alertBox { display:none; margin-bottom:18px; padding:14px; border-radius:10px; font-size:.9rem; font-weight:600; }
+        .alert-success { background:rgba(0,230,118,.1); border:1px solid var(--accent-green); color:var(--accent-green); display:block!important; }
+        .alert-error { background:rgba(255,71,87,.1); border:1px solid var(--danger-red); color:var(--danger-red); display:block!important; }
+        @media (max-width:768px){ .page-wrapper{flex-direction:column} .sidebar{width:100%} .row-2{grid-template-columns:1fr} }
     </style>
+<base target="_blank">
 </head>
 <body>
     <div class="page-wrapper">
         <aside class="sidebar">
-            <div class="logo"><a href="index.html" style="font-size:1.5rem; font-weight:900; color:#fff; text-decoration:none;">الخزنة<span style="color:var(--accent-cyan);">الرقمية</span></a></div>
+            <div class="logo"><a href="index.html" style="font-size:1.5rem;font-weight:900;color:#fff;text-decoration:none;">الخزنة<span style="color:var(--accent-cyan);">الرقمية</span></a></div>
             <ul class="sidebar-menu">
                 <li><a href="index.html">🏠 الصفحة الرئيسية</a></li>
                 <li><a href="shop.html">🛍️ تسوق الآن (المنتجات)</a></li>
                 <li><a href="add-product.html" class="active">➕ أضف منتجك للبيع</a></li>
+                <li><a href="cart.html">🛒 سلة المشتريات</a></li>
                 <li><a href="contact.html">📩 تواصل معنا والأسئلة</a></li>
-                <li><a href="profile.html">🛒 سلة المشتريات / الملف</a></li>
+                <li><a href="profile.html">📦 مشترياتي</a></li>
                 <li><a href="privacy.html">🔒 سياسة الخصوصية</a></li>
             </ul>
         </aside>
 
         <main class="main-content">
-            <h1 style="margin-bottom: 20px; font-size: 1.8rem;">إضافة منتج رقمي جديد للبيع 📦</h1>
+            <h1 style="margin-bottom:20px;font-size:1.8rem;">إضافة منتج رقمي جديد للبيع 📦</h1>
 
             <div id="authGate">
-                <p style="margin-bottom: 15px; font-size: 1.05rem;">🔒 يجب تسجيل الدخول أولاً لتتمكن من إضافة منتج.</p>
+                <p style="margin-bottom:15px;font-size:1.05rem;">🔒 يجب تسجيل الدخول أولاً لتتمكن من إضافة منتج.</p>
                 <a href="login.html">اضغط هنا لتسجيل الدخول</a>
             </div>
 
@@ -96,7 +67,7 @@
                     </div>
                     <div class="form-group">
                         <label>وصف المنتج</label>
-                        <textarea id="description" rows="4" required placeholder="اشرح مميزات المنتج وما يحصل عليه المشتري بالتحديد..."></textarea>
+                        <textarea id="description" rows="4" required placeholder="اشرح مميزات المنتج وما يحصل عليه المشتري..."></textarea>
                     </div>
                     <div class="row-2">
                         <div class="form-group">
@@ -120,12 +91,11 @@
                     <div class="form-group">
                         <label>رابط التحميل المباشر (Google Drive / Mega / رابط مباشر)</label>
                         <input type="url" id="downloadUrlInput" required placeholder="https://drive.google.com/...">
+                        <small style="color:var(--text-sub);font-size:.75rem;">🔒 هذا الرابط لا يظهر للزوار أبداً - يُخزن في مكان آمن ويُسلم للمشتري فقط بعد الدفع.</small>
                     </div>
-                    <button type="submit" id="submitBtn" class="btn-submit">
-                        <span>📨 إرسال المنتج للمراجعة</span>
-                    </button>
-                    <p style="color:var(--text-sub); font-size:0.8rem; margin-top:12px; text-align:center;">
-                        سيظهر منتجك في المتجر بعد موافقة الإدارة، وستصلك إشعار بالنتيجة.
+                    <button type="submit" id="submitBtn" class="btn-submit">📨 إرسال المنتج للمراجعة</button>
+                    <p style="color:var(--text-sub);font-size:.8rem;margin-top:12px;text-align:center;">
+                        سيظهر منتجك في المتجر بعد موافقة الإدارة، وستصلك رسالة بالنتيجة.
                     </p>
                 </form>
             </div>
@@ -133,45 +103,27 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
-            authDomain: "digivault-4c3a3.firebaseapp.com",
-            projectId: "digivault-4c3a3",
-            storageBucket: "digivault-4c3a3.firebasestorage.app",
-            messagingSenderId: "578335534171",
-            appId: "1:578335534171:web:1b108a849c0543f998a37e"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        import { auth, db } from "./firebase-init.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { collection, addDoc, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         let currentUserEmail = null;
 
         onAuthStateChanged(auth, (user) => {
-            const formWrapper = document.getElementById("formWrapper");
-            const authGate = document.getElementById("authGate");
             if (user && user.email) {
                 currentUserEmail = user.email;
-                formWrapper.style.display = "block";
-                authGate.style.display = "none";
+                document.getElementById("formWrapper").style.display = "block";
+                document.getElementById("authGate").style.display = "none";
             } else {
                 currentUserEmail = null;
-                formWrapper.style.display = "none";
-                authGate.style.display = "block";
+                document.getElementById("formWrapper").style.display = "none";
+                document.getElementById("authGate").style.display = "block";
             }
         });
 
         function showAlert(msg, type) {
             const box = document.getElementById("alertBox");
             box.className = type === 'success' ? 'alert-success' : 'alert-error';
-            box.style.display = 'block';
-            box.style.padding = '14px';
-            box.style.borderRadius = '10px';
             box.textContent = msg;
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -183,25 +135,46 @@
                 return;
             }
 
+            const price = document.getElementById("price").value.trim();
+            if (price !== "مجاني" && (isNaN(parseFloat(price)) || parseFloat(price) < 0)) {
+                showAlert("السعر يجب أن يكون رقماً أو كلمة 'مجاني'.", "error");
+                return;
+            }
+
             const submitBtn = document.getElementById("submitBtn");
             submitBtn.disabled = true;
-            submitBtn.innerHTML = "<span>جاري الإرسال...</span>";
+            submitBtn.textContent = "جاري الإرسال...";
 
             try {
+                // 1) المنتج العام - بدون رابط التحميل أبداً
                 const productData = {
                     title: document.getElementById("title").value.trim(),
                     description: document.getElementById("description").value.trim(),
-                    price: document.getElementById("price").value.trim(),
+                    price: price,
                     category: document.getElementById("category").value,
                     imageUrl: document.getElementById("imageUrlInput").value.trim(),
-                    downloadUrl: document.getElementById("downloadUrlInput").value.trim(),
                     sellerEmail: currentUserEmail,
                     status: "pending",
                     createdAt: serverTimestamp()
                 };
+                const docRef = await addDoc(collection(db, "products"), productData);
 
-                await addDoc(collection(db, "products"), productData);
+                // 2) رابط التحميل في مجموعة خاصة آمنة
+                await setDoc(doc(db, "product_files", docRef.id), {
+                    downloadUrl: document.getElementById("downloadUrlInput").value.trim(),
+                    sellerEmail: currentUserEmail
+                });
 
                 showAlert("تم إرسال منتجك بنجاح! بانتظار مراجعة الإدارة.", "success");
                 document.getElementById("productForm").reset();
             } catch (err) {
+                console.error(err);
+                showAlert("حدث خطأ أثناء الإرسال: " + err.message, "error");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = "📨 إرسال المنتج للمراجعة";
+            }
+        });
+    </script>
+</body>
+</html>
