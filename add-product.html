@@ -31,6 +31,18 @@
         #alertBox { display:none; margin-bottom:18px; padding:14px; border-radius:10px; font-size:.9rem; font-weight:600; }
         .alert-success { background:rgba(0,230,118,.1); border:1px solid var(--accent-green); color:var(--accent-green); display:block!important; }
         .alert-error { background:rgba(255,71,87,.1); border:1px solid var(--danger-red); color:var(--danger-red); display:block!important; }
+        /* منطقة رفع الملفات */
+        .upload-zone { border:2px dashed rgba(0,210,255,.4); border-radius:12px; padding:35px 20px; text-align:center; cursor:pointer; transition:.3s; background:rgba(0,210,255,.03); }
+        .upload-zone:hover, .upload-zone.dragover { border-color:var(--accent-cyan); background:rgba(0,210,255,.07); }
+        .upload-zone .icon { font-size:2.6rem; margin-bottom:10px; }
+        .upload-zone p { color:var(--text-sub); font-size:.9rem; }
+        .upload-zone .file-name { color:var(--accent-green); font-weight:800; margin-top:10px; display:none; }
+        #progressWrap { display:none; margin-top:12px; }
+        #progressBar { height:8px; background:rgba(255,255,255,.08); border-radius:6px; overflow:hidden; }
+        #progressFill { height:100%; width:0%; background:linear-gradient(90deg,var(--accent-cyan),var(--accent-purple)); transition:width .2s; }
+        #progressText { font-size:.8rem; color:var(--text-sub); margin-top:6px; text-align:center; }
+        .or-divider { display:flex; align-items:center; gap:12px; color:var(--text-sub); font-size:.8rem; margin:18px 0; }
+        .or-divider::before, .or-divider::after { content:''; flex:1; height:1px; background:var(--border-line); }
         @media (max-width:768px){ .page-wrapper{flex-direction:column} .sidebar{width:100%} .row-2{grid-template-columns:1fr} }
     </style>
 <base target="_blank">
@@ -44,9 +56,8 @@
                 <li><a href="shop.html">🛍️ تسوق الآن (المنتجات)</a></li>
                 <li><a href="add-product.html" class="active">➕ أضف منتجك للبيع</a></li>
                 <li><a href="cart.html">🛒 سلة المشتريات</a></li>
-                <li><a href="contact.html">📩 تواصل معنا والأسئلة</a></li>
-                <li><a href="profile.html">📦 مشترياتي</a></li>
-                <li><a href="privacy.html">🔒 سياسة الخصوصية</a></li>
+                <li><a href="notifications.html">🔔 إشعاراتي</a></li>
+                <li><a href="contact.html">📩 تواصل معنا</a></li>
             </ul>
         </aside>
 
@@ -85,17 +96,34 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>رابط صورة الغلاف</label>
+                        <label>صورة الغلاف (رابط)</label>
                         <input type="url" id="imageUrlInput" required placeholder="https://example.com/image.jpg">
                     </div>
+
                     <div class="form-group">
-                        <label>رابط التحميل المباشر (Google Drive / Mega / رابط مباشر)</label>
-                        <input type="url" id="downloadUrlInput" required placeholder="https://drive.google.com/...">
-                        <small style="color:var(--text-sub);font-size:.75rem;">🔒 هذا الرابط لا يظهر للزوار أبداً - يُخزن في مكان آمن ويُسلم للمشتري فقط بعد الدفع.</small>
+                        <label>ملف المنتج 📂 (من حاسوبك مباشرة)</label>
+                        <div class="upload-zone" id="uploadZone">
+                            <div class="icon">📤</div>
+                            <p>اسحب الملف هنا أو اضغط للاختيار</p>
+                            <p style="font-size:.75rem;">ZIP / PDF / MP4 / أي نوع — بحد أقصى 500MB</p>
+                            <input type="file" id="fileInput" style="display:none;">
+                            <div class="file-name" id="fileNameDisplay"></div>
+                        </div>
+                        <div id="progressWrap">
+                            <div id="progressBar"><div id="progressFill"></div></div>
+                            <div id="progressText">0%</div>
+                        </div>
                     </div>
+
+                    <div class="or-divider"><span>أو استخدم رابط تحميل خارجي</span></div>
+                    <div class="form-group">
+                        <label>رابط التحميل (Google Drive / Mega...) - اختياري إذا رفعت ملفاً</label>
+                        <input type="url" id="downloadUrlInput" placeholder="https://drive.google.com/...">
+                    </div>
+
                     <button type="submit" id="submitBtn" class="btn-submit">📨 إرسال المنتج للمراجعة</button>
                     <p style="color:var(--text-sub);font-size:.8rem;margin-top:12px;text-align:center;">
-                        سيظهر منتجك في المتجر بعد موافقة الإدارة، وستصلك رسالة بالنتيجة.
+                        سيظهر منتجك في المتجر بعد موافقة الإدارة، وستصلك إشعار بالنتيجة 🔔
                     </p>
                 </form>
             </div>
@@ -103,11 +131,13 @@
     </div>
 
     <script type="module">
-        import { auth, db } from "./firebase-init.js";
+        import { auth, db, storage } from "./firebase-init.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { collection, addDoc, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         let currentUserEmail = null;
+        let selectedFile = null;
 
         onAuthStateChanged(auth, (user) => {
             if (user && user.email) {
@@ -121,6 +151,32 @@
             }
         });
 
+        // ===== اختيار الملف =====
+        const uploadZone = document.getElementById("uploadZone");
+        const fileInput = document.getElementById("fileInput");
+        const fileNameDisplay = document.getElementById("fileNameDisplay");
+
+        uploadZone.addEventListener("click", () => fileInput.click());
+        fileInput.addEventListener("change", () => handleFile(fileInput.files[0]));
+        uploadZone.addEventListener("dragover", (e) => { e.preventDefault(); uploadZone.classList.add("dragover"); });
+        uploadZone.addEventListener("dragleave", () => uploadZone.classList.remove("dragover"));
+        uploadZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove("dragover");
+            handleFile(e.dataTransfer.files[0]);
+        });
+
+        function handleFile(file) {
+            if (!file) return;
+            if (file.size > 500 * 1024 * 1024) {
+                showAlert("الملف أكبر من 500MB - قسّمه أو استخدم رابطاً خارجياً.", "error");
+                return;
+            }
+            selectedFile = file;
+            fileNameDisplay.textContent = "📎 " + file.name + " (" + (file.size / 1024 / 1024).toFixed(1) + " MB)";
+            fileNameDisplay.style.display = "block";
+        }
+
         function showAlert(msg, type) {
             const box = document.getElementById("alertBox");
             box.className = type === 'success' ? 'alert-success' : 'alert-error';
@@ -128,16 +184,24 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        function setProgress(percent) {
+            document.getElementById("progressWrap").style.display = "block";
+            document.getElementById("progressFill").style.width = percent + "%";
+            document.getElementById("progressText").textContent = percent + "%";
+        }
+
         document.getElementById("productForm").addEventListener("submit", async (e) => {
             e.preventDefault();
-            if (!currentUserEmail) {
-                showAlert("يجب تسجيل الدخول أولاً.", "error");
-                return;
-            }
+            if (!currentUserEmail) { showAlert("يجب تسجيل الدخول أولاً.", "error"); return; }
 
             const price = document.getElementById("price").value.trim();
             if (price !== "مجاني" && (isNaN(parseFloat(price)) || parseFloat(price) < 0)) {
                 showAlert("السعر يجب أن يكون رقماً أو كلمة 'مجاني'.", "error");
+                return;
+            }
+            const externalLink = document.getElementById("downloadUrlInput").value.trim();
+            if (!selectedFile && !externalLink) {
+                showAlert("ارفع ملفاً من حاسوبك أو أدخل رابط تحميل خارجياً.", "error");
                 return;
             }
 
@@ -146,7 +210,7 @@
             submitBtn.textContent = "جاري الإرسال...";
 
             try {
-                // 1) المنتج العام - بدون رابط التحميل أبداً
+                // 1) إنشاء المنتج العام
                 const productData = {
                     title: document.getElementById("title").value.trim(),
                     description: document.getElementById("description").value.trim(),
@@ -159,14 +223,37 @@
                 };
                 const docRef = await addDoc(collection(db, "products"), productData);
 
-                // 2) رابط التحميل في مجموعة خاصة آمنة
-                await setDoc(doc(db, "product_files", docRef.id), {
-                    downloadUrl: document.getElementById("downloadUrlInput").value.trim(),
-                    sellerEmail: currentUserEmail
-                });
+                // 2) رفع الملف من الحاسوب إلى Storage الآمن
+                if (selectedFile) {
+                    const safeName = selectedFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                    const storageRef = ref(storage, `products/${docRef.id}/${Date.now()}_${safeName}`);
+                    const uploadTask = uploadBytesResumable(storageRef, selectedFile);
 
-                showAlert("تم إرسال منتجك بنجاح! بانتظار مراجعة الإدارة.", "success");
+                    await new Promise((resolve, reject) => {
+                        uploadTask.on('state_changed',
+                            (snap) => setProgress(Math.round((snap.bytesTransferred / snap.totalBytes) * 100)),
+                            (err) => reject(err),
+                            () => resolve()
+                        );
+                    });
+
+                    await setDoc(doc(db, "product_files", docRef.id), {
+                        storagePath: storageRef.fullPath,
+                        fileName: selectedFile.name,
+                        sellerEmail: currentUserEmail
+                    });
+                } else {
+                    await setDoc(doc(db, "product_files", docRef.id), {
+                        downloadUrl: externalLink,
+                        sellerEmail: currentUserEmail
+                    });
+                }
+
+                showAlert("تم إرسال منتجك بنجاح! بانتظار مراجعة الإدارة. ستصلك إشعار 🔔", "success");
                 document.getElementById("productForm").reset();
+                selectedFile = null;
+                fileNameDisplay.style.display = "none";
+                document.getElementById("progressWrap").style.display = "none";
             } catch (err) {
                 console.error(err);
                 showAlert("حدث خطأ أثناء الإرسال: " + err.message, "error");
@@ -176,5 +263,6 @@
             }
         });
     </script>
+    <script type="module" src="./site-enhance.js"></script>
 </body>
 </html>
