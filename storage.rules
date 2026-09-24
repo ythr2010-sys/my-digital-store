@@ -1,0 +1,108 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userEmail() {
+      return request.auth.token.email;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && (
+          userEmail() == 'ythr2010@gmail.com' ||
+          firestore.exists(
+            /databases/(default)/documents/admins/$(userEmail())
+          )
+        );
+    }
+
+    function isProductOwner(productId) {
+      return isSignedIn()
+        && firestore.exists(
+          /databases/(default)/documents/products/$(productId)
+        )
+        && firestore.get(
+          /databases/(default)/documents/products/$(productId)
+        ).data.sellerEmail == userEmail();
+    }
+
+    function isPendingProduct(productId) {
+      return firestore.exists(
+          /databases/(default)/documents/products/$(productId)
+        )
+        && firestore.get(
+          /databases/(default)/documents/products/$(productId)
+        ).data.status == 'pending';
+    }
+
+    function isImage() {
+      return request.resource != null
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    function imageSizeOk() {
+      return request.resource != null
+        && request.resource.size <= 5 * 1024 * 1024;
+    }
+
+    function productFileSizeOk() {
+      return request.resource != null
+        && request.resource.size <= 500 * 1024 * 1024;
+    }
+
+    function isFreePrice(value) {
+      return value == 'مجاني' || value == 'مجانية' || value == '0' || value == '0.0' || value == '0.00' || value == '$0' || value == '$0.0' || value == '$0.00' || value == '0$' || value == '0.0$' || value == '0.00$' || value == 0;
+    }
+
+    function isApprovedFreeProduct(productId) {
+      return firestore.exists(/databases/(default)/documents/products/$(productId))
+        && firestore.get(/databases/(default)/documents/products/$(productId)).data.status == 'approved'
+        && isFreePrice(firestore.get(/databases/(default)/documents/products/$(productId)).data.price);
+    }
+
+    /*
+     * DigiVault image path used by add-product.html:
+     * product-images/{productId}/{fileName}
+     */
+    match /product-images/{productId}/{fileName} {
+      allow read: if true;
+
+      allow write: if isSignedIn()
+        && isImage()
+        && imageSizeOk()
+        && (
+          isAdmin()
+          || (isProductOwner(productId) && isPendingProduct(productId))
+        );
+
+      allow delete: if isAdmin()
+        || (isProductOwner(productId) && isPendingProduct(productId));
+    }
+
+    /*
+     * DigiVault product file path used by add-product.html:
+     * products/{productId}/{fileName}
+     */
+    match /products/{productId}/{fileName} {
+      allow read: if isAdmin() || isProductOwner(productId) || (isSignedIn() && isApprovedFreeProduct(productId));
+
+      allow write: if isSignedIn()
+        && productFileSizeOk()
+        && (
+          isAdmin()
+          || (isProductOwner(productId) && isPendingProduct(productId))
+        );
+
+      allow delete: if isAdmin();
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

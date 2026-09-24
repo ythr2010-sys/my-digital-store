@@ -1,0 +1,15 @@
+# Firebase local files
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# Local secrets / deployment files
+.env
+.env.*
+*.local
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/

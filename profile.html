@@ -48,7 +48,9 @@
     <script type="module">
         import { auth, db, esc } from "./firebase-init.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+        import { storage } from "./firebase-init.js";
 
         onAuthStateChanged(auth, (user) => {
             if (user && user.email) loadPurchasesFromFirebase(user.email);
@@ -62,47 +64,32 @@
         async function loadPurchasesFromFirebase(buyerEmail) {
             const container = document.getElementById("myPurchasesList");
             try {
-                const q = query(collection(db, "orders"), where("buyerEmail", "==", buyerEmail));
-                const snap = await getDocs(q);
-                if (snap.empty) {
-                    container.innerHTML = "<p>لا توجد طلبات سابقة لهذا الحساب حتى الآن.</p>";
-                    return;
-                }
+                const [ordersSnap, freeSnap] = await Promise.all([
+                    getDocs(query(collection(db, "orders"), where("buyerEmail", "==", buyerEmail))),
+                    getDocs(query(collection(db, "free_purchases"), where("buyerEmail", "==", buyerEmail)))
+                ]);
+                let cards = [];
+                ordersSnap.forEach(d => cards.push({kind:'order', id:d.id, data:d.data()}));
+                for (const d of freeSnap.docs) cards.push({kind:'free', id:d.id, data:d.data()});
+                if (!cards.length) { container.innerHTML = "<p>لا توجد مشتريات سابقة لهذا الحساب حتى الآن.</p>"; return; }
+                cards.sort((a,b)=>(b.data.createdAt?.toMillis?.()||0)-(a.data.createdAt?.toMillis?.()||0));
                 let html = '<div class="orders-list">';
-                snap.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const items = data.items || [];
-                    const status = data.status || 'pending';
-                    const isCompleted = status === 'completed';
-                    const dateStr = data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().toLocaleDateString('ar-DZ') : '';
-                    html += `<div class="order-card">
-                        <div class="order-head">
-                            <div>
-                                <strong>طلب #${esc(docSnap.id.slice(0, 6))}</strong>
-                                <div class="order-meta">${esc(dateStr)} • ${esc(data.paymentMethod || '')} • المجموع: ${esc(data.totalAmount || '0')} $</div>
-                            </div>
-                            <span class="badge-status ${isCompleted ? 'done' : ''}">${isCompleted ? 'مكتمل ✅' : 'قيد المراجعة ⏳'}</span>
-                        </div>`;
-                    const links = data.deliveryLinks || [];
-                    items.forEach(item => {
-                        const itemName = item.title || item.name || 'منتج رقمي';
-                        const linkObj = links.find(l => l.productId === item.id) || null;
-                        html += `<div class="order-item-row">
-                            <div><strong>${esc(itemName)}</strong></div>
-                            ${isCompleted && linkObj && linkObj.url
-                                ? `<a href="${esc(linkObj.url)}" target="_blank" rel="noopener noreferrer" class="btn-download">تنزيل الملف 📥</a>`
-                                : `<span style="color:var(--text-sub);font-size:.85rem;">${isCompleted ? 'التسليم جاري من الإدارة' : 'بانتظار تأكيد الدفع'}</span>`}
-                        </div>`;
-                    });
+                for (const card of cards) {
+                    if (card.kind === 'free') {
+                        const d=card.data; let url=d.downloadUrl||'';
+                        if (!url && d.storagePath) { try { url=await getDownloadURL(ref(storage,d.storagePath)); } catch(e){} }
+                        html += `<div class="order-card"><div class="order-head"><div><strong>🎁 ${esc(d.title||'منتج مجاني')}</strong><div class="order-meta">تمت الإضافة مجاناً • بدون دفع</div></div><span class="badge-status done">مملوك ✅</span></div><div class="order-item-row"><div><strong>ملف المنتج</strong></div>${url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="btn-download">تنزيل الملف 📥</a>`:'<span class="order-meta">ملف التنزيل غير متاح حالياً</span>'}</div></div>`;
+                        continue;
+                    }
+                    const data=card.data, items=data.items||[], status=data.status||'pending', done=status==='completed';
+                    const dateStr=data.createdAt?.toDate?data.createdAt.toDate().toLocaleDateString('ar-DZ'):'';
+                    html += `<div class="order-card"><div class="order-head"><div><strong>طلب #${esc(card.id.slice(0,6))}</strong><div class="order-meta">${esc(dateStr)} • ${esc(data.paymentMethod||'')} • المجموع: ${esc(data.totalAmount||'0')} $</div></div><span class="badge-status ${done?'done':''}">${done?'مكتمل ✅':'قيد المراجعة ⏳'}</span></div>`;
+                    const links=data.deliveryLinks||[];
+                    items.forEach(item=>{ const link=links.find(l=>l.productId===item.id); html += `<div class="order-item-row"><div><strong>${esc(item.title||item.name||'منتج رقمي')}</strong></div>${done&&link?.url?`<a href="${esc(link.url)}" target="_blank" rel="noopener noreferrer" class="btn-download">تنزيل الملف 📥</a>`:`<span class="order-meta">${done?'التسليم جاري من الإدارة':'بانتظار تأكيد الدفع'}</span>`}</div>`; });
                     html += '</div>';
-                });
-                html += '</div>';
-                container.className = "";
-                container.innerHTML = html;
-            } catch (err) {
-                console.error(err);
-                container.innerHTML = "<p style='color:var(--danger-red);'>تعذر تحميل الطلبات، تحقق من الاتصال بالإنترنت.</p>";
-            }
+                }
+                html += '</div>'; container.className=""; container.innerHTML=html;
+            } catch (err) { console.error(err); container.innerHTML = "<p style='color:var(--danger-red);'>تعذر تحميل المشتريات، تحقق من الاتصال وقواعد Firebase.</p>"; }
         }
     </script>
     <script type="module" src="./site-enhance.js"></script>

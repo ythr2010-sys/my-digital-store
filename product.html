@@ -78,7 +78,7 @@
     <script type="module">
         import { auth, db, checkIsAdmin, getCart, saveCart, esc } from "./firebase-init.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const productId = new URLSearchParams(window.location.search).get('id');
         const main = document.getElementById('productMain');
@@ -87,6 +87,7 @@
         let product = null;
         let hasPurchased = false;
         let myRating = 0;
+        let isFreeProduct = false;
 
         function showToast(msg) {
             const t = document.createElement('div');
@@ -120,6 +121,7 @@
             }
 
             // 2) هل اشترى المستخدم هذا المنتج؟ (للتقييم)
+            isFreeProduct = isFreePrice(product.price);
             hasPurchased = false;
             if (currentUser?.email) {
                 const ordersSnap = await getDocs(query(collection(db, "orders"), where("buyerEmail", "==", currentUser.email)));
@@ -127,6 +129,8 @@
                     const o = d.data();
                     if (o.status === 'completed' && (o.items || []).some(i => i.id === productId)) hasPurchased = true;
                 });
+                const freeSnap = await getDocs(query(collection(db, "free_purchases"), where("buyerEmail", "==", currentUser.email)));
+                freeSnap.forEach(d => { if (d.data().productId === productId) hasPurchased = true; });
             }
 
             render();
@@ -134,9 +138,13 @@
             loadComments();
         }
 
+        function isFreePrice(value) {
+            const p = String(value ?? '').trim().toLowerCase().replace(/\s+/g, '');
+            return p === 'مجاني' || p === 'مجانية' || p === '0' || p === '0.0' || p === '0.00' || p === '$0' || p === '$0.0' || p === '$0.00' || p === '0$' || p === '0.0$' || p === '0.00$';
+        }
         function priceFormatted() {
             const p = String(product.price || '');
-            return p.includes('$') || p === 'مجاني' ? p : '$' + p;
+            return isFreePrice(p) ? 'مجاني 🎁' : (p.includes('$') ? p : '$' + p);
         }
 
         function render() {
@@ -161,7 +169,7 @@
                         </div>
                         <div class="price-big">${esc(priceFormatted())}</div>
                         <div class="desc-box">${esc(product.description || 'لا يوجد وصف.')}</div>
-                        <button class="btn-add-big" id="addToCartBtn">أضف إلى السلة 🛒</button>
+                        <button class="btn-add-big" id="addToCartBtn">${isFreeProduct ? "امتلكه مجاناً الآن 🎁" : "أضف إلى السلة 🛒"}</button>
                     </div>
                 </div>
 
@@ -186,9 +194,26 @@
             });
 
             // إضافة للسلة
-            document.getElementById('addToCartBtn').addEventListener('click', () => {
+            document.getElementById('addToCartBtn').addEventListener('click', async () => {
+                if (isFreeProduct) {
+                    if (!currentUser?.email) { window.location.href = 'login.html'; return; }
+                    try {
+                        const claimId = `${currentUser.uid}_${product.id}`;
+                        const existing = await getDoc(doc(db, 'free_purchases', claimId));
+                        if (!existing.exists()) {
+                            const fileSnap = await getDoc(doc(db, 'product_files', product.id));
+                            const fileData = fileSnap.exists() ? fileSnap.data() : {};
+                            await setDoc(doc(db, 'free_purchases', claimId), { buyerEmail: currentUser.email, productId: product.id, title: product.title, createdAt: serverTimestamp(), downloadUrl: fileData.downloadUrl || '', storagePath: fileData.storagePath || '' });
+                            await addDoc(collection(db, 'notifications'), { userEmail: currentUser.email, type: 'free_purchase', title: 'تمت إضافة منتج مجاني 🎁', message: `تمت إضافة "${product.title}" إلى مشترياتك ويمكنك تنزيله الآن.`, read: false, createdAt: serverTimestamp() });
+                            hasPurchased = true;
+                        }
+                        showToast('تمت إضافة المنتج المجاني إلى مشترياتك');
+                        setTimeout(() => { window.location.href = 'profile.html'; }, 700);
+                    } catch (e) { showToast('تعذر استلام المنتج المجاني: ' + (e.message || 'خطأ'), true); }
+                    return;
+                }
                 const cart = getCart();
-                cart.push({ id: product.id, title: product.title, price: product.price });
+                if (!cart.some(i => i.id === product.id)) cart.push({ id: product.id, title: product.title, price: product.price });
                 saveCart(cart);
                 showToast(`تمت إضافة "${product.title}" إلى السلة`);
             });

@@ -188,7 +188,7 @@
     <script type="module">
         import { auth, db, getCart, esc } from "./firebase-init.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, addDoc, setDoc, getDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         let currentBuyerEmail = null;
         let calculatedTotalNum = 0;
@@ -239,24 +239,43 @@
             });
         });
 
-        function loadSummary() {
-            const cart = getCart();
-            const container = document.getElementById("orderItems");
-            calculatedTotalNum = 0;
+        function isFreePrice(value) {
+            const p=String(value??'').trim().toLowerCase().replace(/\s+/g,'');
+            return p==='مجاني'||p==='مجانية'||p==='0'||p==='0.0'||p==='0.00'||p==='$0'||p==='$0.0'||p==='$0.00'||p==='0$'||p==='0.0$'||p==='0.00$';
+        }
 
-            if (cart.length === 0) {
-                container.innerHTML = "<p style='color:var(--text-sub);'>السلة فارغة. <a href='shop.html' style='color:var(--accent-cyan);'>تصفح المنتجات</a></p>";
-                document.getElementById("orderTotal").innerText = "0.00 $";
+        async function claimFreeItems(cart) {
+            const paid=[];
+            for (const item of cart) {
+                if (!isFreePrice(item.price)) { paid.push(item); continue; }
+                try {
+                    const claimId=`${auth.currentUser.uid}_${item.id}`;
+                    const existing=await getDoc(doc(db,'free_purchases',claimId));
+                    if (!existing.exists()) {
+                        await setDoc(doc(db,'free_purchases',claimId),{buyerEmail:currentBuyerEmail,productId:item.id,title:item.title||'منتج مجاني',createdAt:serverTimestamp()});
+                        await addDoc(collection(db,'notifications'),{userEmail:currentBuyerEmail,type:'free_purchase',title:'تمت إضافة منتج مجاني 🎁',message:`تمت إضافة "${item.title||'المنتج'}" إلى مشترياتك دون الحاجة إلى الدفع.`,read:false,createdAt:serverTimestamp()});
+                    }
+                } catch(e) { paid.push(item); }
+            }
+            const old=getCart();
+            if (paid.length !== old.length) { localStorage.setItem('digivaultCart', JSON.stringify(paid)); }
+            return paid;
+        }
+
+        async function loadSummary() {
+            let cart=getCart();
+            const container=document.getElementById("orderItems");
+            calculatedTotalNum=0;
+            if (!cart.length) { container.innerHTML="<p style='color:var(--text-sub);'>السلة فارغة. <a href='shop.html' style='color:var(--accent-cyan);'>تصفح المنتجات</a></p>"; document.getElementById("orderTotal").innerText="0.00 $"; return; }
+            cart=await claimFreeItems(cart);
+            if (!cart.length) {
+                container.innerHTML="<div style='text-align:center;padding:20px;color:var(--accent-green);font-weight:800;'>تم استلام المنتجات المجانية وإضافتها إلى مشترياتك 🎁</div>";
+                document.getElementById("orderTotal").innerText="0.00 $";
+                setTimeout(()=>window.location.href='profile.html',700);
                 return;
             }
-
-            container.innerHTML = cart.map(item => {
-                const priceNum = parseFloat(String(item.price).replace(/[^0-9.]/g, '')) || 0;
-                calculatedTotalNum += priceNum;
-                return `<div class="summary-item"><span>${esc(item.title || item.name || 'منتج')}</span><span style="color:var(--accent-cyan);font-weight:bold;">${esc(item.price)}</span></div>`;
-            }).join('');
-
-            document.getElementById("orderTotal").innerText = calculatedTotalNum.toFixed(2) + " $";
+            container.innerHTML=cart.map(item=>{ const priceNum=parseFloat(String(item.price).replace(/[^0-9.]/g,''))||0; calculatedTotalNum+=priceNum; return `<div class="summary-item"><span>${esc(item.title||item.name||'منتج')}</span><span style="color:var(--accent-cyan);font-weight:bold;">${esc(item.price)}</span></div>`; }).join('');
+            document.getElementById("orderTotal").innerText=calculatedTotalNum.toFixed(2)+" $";
         }
 
         function validateFields(method) {

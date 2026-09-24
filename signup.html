@@ -221,23 +221,10 @@
 
     <!-- كود الربط بـ Firebase (Auth + Firestore) وإدارة المصادقة -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { auth, db } from "./firebase-init.js";
+        import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
-            authDomain: "digivault-4c3a3.firebaseapp.com",
-            projectId: "digivault-4c3a3",
-            storageBucket: "digivault-4c3a3.firebasestorage.app",
-            messagingSenderId: "578335534171",
-            appId: "1:578335534171:web:1b108a849c0543f998a37e",
-            measurementId: "G-SZCB59ZZDN"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
         const googleProvider = new GoogleAuthProvider();
 
         const SUPER_ADMIN_EMAIL = "ythr2010@gmail.com";

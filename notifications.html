@@ -22,6 +22,7 @@
         .notif-item .msg { color:var(--text-sub); font-size:.93rem; }
         .notif-item .time { color:#7a7a95; font-size:.78rem; margin-top:8px; }
         .empty { text-align:center; padding:50px; color:var(--text-sub); }
+        .dv-delete-notification{border:0;border-radius:8px;padding:7px 10px;background:rgba(255,71,87,.12);color:#ff6b78;cursor:pointer;font-family:inherit;font-weight:700;white-space:nowrap}.dv-delete-notification:hover{background:rgba(255,71,87,.22)}
     </style>
 </head>
 <body>
@@ -57,9 +58,10 @@
             }
             list.innerHTML = notifs.map(n => `
                 <div class="notif-item ${n.read ? '' : 'unread'}" data-id="${n.id}">
-                    <div class="t">${esc(n.title)}</div>
-                    <div class="msg">${esc(n.message)}</div>
-                    <div class="time">${n.createdAt?.toDate ? n.createdAt.toDate().toLocaleString('ar-DZ') : ''}</div>
+                    <div style="display:flex;gap:10px;align-items:flex-start;">
+                      <div style="flex:1"><div class="t">${esc(n.title)}</div><div class="msg">${esc(n.message)}</div><div class="time">${n.createdAt?.toDate ? n.createdAt.toDate().toLocaleString('ar-DZ') : ''}</div></div>
+                      <button type="button" class="dv-delete-notification" title="حذف الإشعار">حذف 🗑️</button>
+                    </div>
                 </div>`).join('');
 
             list.querySelectorAll('.notif-item').forEach(item => {
@@ -67,58 +69,19 @@
                     try { await updateDoc(doc(db, "notifications", item.dataset.id), { read: true }); item.classList.remove("unread"); window.dispatchEvent(new Event("dv:notifications-refresh")); } catch(e){}
                 });
             });
+            list.querySelectorAll('.dv-delete-notification').forEach(btn => {
+                btn.addEventListener('click', async (ev) => {
+                    ev.stopPropagation();
+                    const item = btn.closest('.notif-item');
+                    if (!item || !confirm('حذف هذا الإشعار؟')) return;
+                    try { await deleteDoc(doc(db, 'notifications', item.dataset.id)); item.remove(); window.dispatchEvent(new Event('dv:notifications-refresh')); }
+                    catch(e) { alert('تعذر حذف الإشعار.'); }
+                });
+            });
         });
     </script>
     <script type="module" src="./site-enhance.js"></script>
 
-<script type="module" id="dvNotificationDelete">
-import { db } from "./firebase-init.js";
-import { doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-document.addEventListener("DOMContentLoaded", () => {
-  const list = document.getElementById("notificationsList") || document.querySelector(".notifications-list") || document.querySelector("main");
-  if (!list) return;
-
-  const style = document.createElement("style");
-  style.textContent = `
-    .dv-delete-notification{margin-inline-start:auto;border:0;border-radius:8px;padding:6px 9px;
-    background:rgba(255,71,87,.12);color:#ff6b78;cursor:pointer;font-size:12px}
-    .dv-delete-notification:hover{background:rgba(255,71,87,.22)}
-    .dv-notification-actions{display:flex;gap:8px;align-items:center;margin-top:8px}
-  `;
-  document.head.appendChild(style);
-
-  const decorate = () => {
-    list.querySelectorAll("[data-id]").forEach(item => {
-      if (item.querySelector(".dv-delete-notification")) return;
-      const id = item.dataset.id;
-      if (!id) return;
-      const btn = document.createElement("button");
-      btn.className = "dv-delete-notification";
-      btn.type = "button";
-      btn.textContent = "حذف";
-      btn.addEventListener("click", async ev => {
-        ev.stopPropagation();
-        if (!confirm("هل تريد حذف هذا الإشعار؟")) return;
-        try {
-          await deleteDoc(doc(db, "notifications", id));
-          item.remove();
-          window.dispatchEvent(new Event("dv:notifications-refresh"));
-        } catch (e) {
-          alert("تعذر حذف الإشعار. تحقق من قواعد Firestore.");
-        }
-      });
-      const actions = document.createElement("div");
-      actions.className = "dv-notification-actions";
-      actions.appendChild(btn);
-      item.appendChild(actions);
-    });
-  };
-
-  decorate();
-  new MutationObserver(decorate).observe(list, {childList:true,subtree:true});
-});
-</script>
 
 </body>
 </html>

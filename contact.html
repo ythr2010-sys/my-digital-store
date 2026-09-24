@@ -260,22 +260,11 @@
     <div id="toastContainer"></div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { db, auth } from "./firebase-init.js";
+        import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
-            authDomain: "digivault-4c3a3.firebaseapp.com",
-            projectId: "digivault-4c3a3",
-            storageBucket: "digivault-4c3a3.firebasestorage.app",
-            messagingSenderId: "578335534171",
-            appId: "1:578335534171:web:1b108a849c0543f998a37e"
-        };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
 
         window.toggleFaq = function(item) {
             item.classList.toggle('open');
