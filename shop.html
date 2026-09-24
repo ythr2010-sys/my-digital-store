@@ -44,7 +44,7 @@
         .toast-notification { position:fixed; bottom:20px; left:20px; background:var(--accent-cyan); color:#000; padding:12px 20px; border-radius:8px; font-weight:bold; display:none; z-index:3000; }
         @media (max-width:768px){ .page-wrapper{flex-direction:column} .sidebar{width:100%;height:auto;position:static} }
     </style>
-<base target="_blank">
+
 </head>
 <body>
     <div class="page-wrapper">
@@ -220,5 +220,6 @@
             if (categoryParam) window.filterCategory(categoryParam);
         });
     </script>
+    <script type="module" src="./site-enhance.js"></script>
 </body>
 </html>

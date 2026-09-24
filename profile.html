@@ -29,7 +29,6 @@
         .status-message { text-align:center; padding:30px; color:var(--text-sub); font-size:.95rem; }
         footer { text-align:center; padding:25px; border-top:1px solid var(--border-line); color:var(--text-sub); font-size:.9rem; background:var(--bg-card); }
     </style>
-<base target="_blank">
 </head>
 <body>
     <header class="navbar">
@@ -39,33 +38,25 @@
             <a href="index.html" class="nav-link">الرئيسية</a>
         </div>
     </header>
-
     <div class="main-wrapper">
         <div class="container">
             <h2>📦 مشترياتي وملفاتي الرقمية</h2>
             <div id="myPurchasesList" class="status-message">جاري تحميل المشتريات...</div>
         </div>
     </div>
-
-    <footer>
-        <p>جميع الحقوق محفوظة © 2026 الخزنة الرقمية (DigiVault)</p>
-    </footer>
-
+    <footer><p>جميع الحقوق محفوظة © 2026 الخزنة الرقمية (DigiVault)</p></footer>
     <script type="module">
         import { auth, db, esc } from "./firebase-init.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         onAuthStateChanged(auth, (user) => {
-            if (user && user.email) {
-                loadPurchasesFromFirebase(user.email);
-            } else {
-                document.getElementById("myPurchasesList").innerHTML = `
-                    <div style="text-align:center;padding:20px;">
-                        <p style="margin-bottom:15px;">قم بتسجيل الدخول لعرض مشترياتك وملفاتك الرقمية.</p>
-                        <a href="login.html" class="btn-download" style="display:inline-flex;">تسجيل الدخول</a>
-                    </div>`;
-            }
+            if (user && user.email) loadPurchasesFromFirebase(user.email);
+            else document.getElementById("myPurchasesList").innerHTML = `
+                <div style="text-align:center;padding:20px;">
+                    <p style="margin-bottom:15px;">قم بتسجيل الدخول لعرض مشترياتك وملفاتك الرقمية.</p>
+                    <a href="login.html" class="btn-download" style="display:inline-flex;">تسجيل الدخول</a>
+                </div>`;
         });
 
         async function loadPurchasesFromFirebase(buyerEmail) {
@@ -73,50 +64,39 @@
             try {
                 const q = query(collection(db, "orders"), where("buyerEmail", "==", buyerEmail));
                 const snap = await getDocs(q);
-
                 if (snap.empty) {
                     container.innerHTML = "<p>لا توجد طلبات سابقة لهذا الحساب حتى الآن.</p>";
                     return;
                 }
-
                 let html = '<div class="orders-list">';
                 snap.forEach((docSnap) => {
                     const data = docSnap.data();
                     const items = data.items || [];
                     const status = data.status || 'pending';
                     const isCompleted = status === 'completed';
-                    const dateStr = data.createdAt && data.createdAt.toDate
-                        ? data.createdAt.toDate().toLocaleDateString('ar-DZ')
-                        : '';
-
-                    html += `
-                        <div class="order-card">
-                            <div class="order-head">
-                                <div>
-                                    <strong>طلب #${esc(docSnap.id.slice(0, 6))}</strong>
-                                    <div class="order-meta">${esc(dateStr)} • ${esc(data.paymentMethod || '')} • المجموع: ${esc(data.totalAmount || '0')} $</div>
-                                </div>
-                                <span class="badge-status ${isCompleted ? 'done' : ''}">${isCompleted ? 'مكتمل ✅' : 'قيد المراجعة ⏳'}</span>
-                            </div>`;
-
-                    // ✅ روابط التسليم تأتي فقط من deliveryLinks التي يضيفها الأدمن
+                    const dateStr = data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().toLocaleDateString('ar-DZ') : '';
+                    html += `<div class="order-card">
+                        <div class="order-head">
+                            <div>
+                                <strong>طلب #${esc(docSnap.id.slice(0, 6))}</strong>
+                                <div class="order-meta">${esc(dateStr)} • ${esc(data.paymentMethod || '')} • المجموع: ${esc(data.totalAmount || '0')} $</div>
+                            </div>
+                            <span class="badge-status ${isCompleted ? 'done' : ''}">${isCompleted ? 'مكتمل ✅' : 'قيد المراجعة ⏳'}</span>
+                        </div>`;
                     const links = data.deliveryLinks || [];
                     items.forEach(item => {
                         const itemName = item.title || item.name || 'منتج رقمي';
                         const linkObj = links.find(l => l.productId === item.id) || null;
-                        html += `
-                            <div class="order-item-row">
-                                <div><strong>${esc(itemName)}</strong></div>
-                                ${isCompleted && linkObj && linkObj.url
-                                    ? `<a href="${esc(linkObj.url)}" target="_blank" rel="noopener noreferrer" class="btn-download">تنزيل الملف 📥</a>`
-                                    : `<span style="color:var(--text-sub);font-size:.85rem;">${isCompleted ? 'التسليم جاري من الإدارة' : 'بانتظار تأكيد الدفع'}</span>`}
-                            </div>`;
+                        html += `<div class="order-item-row">
+                            <div><strong>${esc(itemName)}</strong></div>
+                            ${isCompleted && linkObj && linkObj.url
+                                ? `<a href="${esc(linkObj.url)}" target="_blank" rel="noopener noreferrer" class="btn-download">تنزيل الملف 📥</a>`
+                                : `<span style="color:var(--text-sub);font-size:.85rem;">${isCompleted ? 'التسليم جاري من الإدارة' : 'بانتظار تأكيد الدفع'}</span>`}
+                        </div>`;
                     });
-
                     html += '</div>';
                 });
                 html += '</div>';
-
                 container.className = "";
                 container.innerHTML = html;
             } catch (err) {
@@ -125,5 +105,6 @@
             }
         }
     </script>
+    <script type="module" src="./site-enhance.js"></script>
 </body>
 </html>

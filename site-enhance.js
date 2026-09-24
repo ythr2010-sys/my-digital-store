@@ -1,9 +1,7 @@
 // DigiVault shared UI enhancements
 import { auth, db } from "./firebase-init.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import {
-  collection, getDocs, query, where
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const STYLE = `
 #dvNotificationBell{
@@ -63,7 +61,6 @@ async function refreshUnread(user) {
       badge.style.display = "none";
     }
   } catch (err) {
-    // The bell remains visible even if Firestore rules prevent reading the count.
     badge.style.display = "none";
   }
 }
