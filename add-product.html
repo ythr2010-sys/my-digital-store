@@ -72,6 +72,15 @@
             <div id="formWrapper" class="card-box" style="display:none;">
                 <div id="alertBox"></div>
                 <form id="productForm">
+        <div class="form-group">
+          <label for="productImage">صورة المنتج</label>
+          <input type="file" id="productImage" name="productImage" accept="image/png,image/jpeg,image/webp,image/gif">
+          <small>اختر صورة من جهازك (PNG/JPG/WEBP/GIF). ستظهر معاينة قبل الإرسال.</small>
+          <div id="productImagePreview" style="display:none;margin-top:12px;">
+            <img id="productImagePreviewImg" alt="معاينة صورة المنتج" style="max-width:240px;max-height:180px;border-radius:14px;object-fit:cover;border:1px solid rgba(0,210,255,.3);">
+          </div>
+        </div>
+
                     <div class="form-group">
                         <label>عنوان المنتج</label>
                         <input type="text" id="title" required placeholder="مثال: حزمة تصاميم UI/UX احترافية">
@@ -264,5 +273,45 @@
         });
     </script>
     <script type="module" src="./site-enhance.js"></script>
+
+<script type="module" id="dvProductImageHandler">
+document.addEventListener("DOMContentLoaded", () => {
+  const input = document.getElementById("productImage");
+  const preview = document.getElementById("productImagePreview");
+  const img = document.getElementById("productImagePreviewImg");
+  if (!input || !preview || !img) return;
+  input.addEventListener("change", () => {
+    const file = input.files?.[0];
+    if (!file) { preview.style.display="none"; return; }
+    if (!file.type.startsWith("image/")) { input.value=""; preview.style.display="none"; return; }
+    if (file.size > 5 * 1024 * 1024) {
+      alert("حجم الصورة كبير جدًا. اختر صورة أقل من 5MB.");
+      input.value=""; preview.style.display="none"; return;
+    }
+    const url = URL.createObjectURL(file);
+    img.src = url;
+    preview.style.display = "block";
+    img.onload = () => URL.revokeObjectURL(url);
+  });
+});
+</script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.querySelector("form");
+  if (!form) return;
+  form.addEventListener("submit", () => {
+    setTimeout(() => {
+      if (window.dvToast) {
+        window.dvToast("تم إرسال المنتج بنجاح. انتظر رد الإدارة والموافقة قبل نشره.");
+      } else {
+        alert("تم إرسال المنتج بنجاح. انتظر رد الإدارة والموافقة قبل نشره.");
+      }
+    }, 250);
+  }, true);
+});
+</script>
+
 </body>
 </html>

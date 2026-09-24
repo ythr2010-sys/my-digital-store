@@ -36,7 +36,7 @@
     <script type="module">
         import { auth, db, esc } from "./firebase-init.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         onAuthStateChanged(auth, async (user) => {
             const list = document.getElementById("notifList");
@@ -70,5 +70,55 @@
         });
     </script>
     <script type="module" src="./site-enhance.js"></script>
+
+<script type="module" id="dvNotificationDelete">
+import { db } from "./firebase-init.js";
+import { doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+document.addEventListener("DOMContentLoaded", () => {
+  const list = document.getElementById("notificationsList") || document.querySelector(".notifications-list") || document.querySelector("main");
+  if (!list) return;
+
+  const style = document.createElement("style");
+  style.textContent = `
+    .dv-delete-notification{margin-inline-start:auto;border:0;border-radius:8px;padding:6px 9px;
+    background:rgba(255,71,87,.12);color:#ff6b78;cursor:pointer;font-size:12px}
+    .dv-delete-notification:hover{background:rgba(255,71,87,.22)}
+    .dv-notification-actions{display:flex;gap:8px;align-items:center;margin-top:8px}
+  `;
+  document.head.appendChild(style);
+
+  const decorate = () => {
+    list.querySelectorAll("[data-id]").forEach(item => {
+      if (item.querySelector(".dv-delete-notification")) return;
+      const id = item.dataset.id;
+      if (!id) return;
+      const btn = document.createElement("button");
+      btn.className = "dv-delete-notification";
+      btn.type = "button";
+      btn.textContent = "حذف";
+      btn.addEventListener("click", async ev => {
+        ev.stopPropagation();
+        if (!confirm("هل تريد حذف هذا الإشعار؟")) return;
+        try {
+          await deleteDoc(doc(db, "notifications", id));
+          item.remove();
+          window.dispatchEvent(new Event("dv:notifications-refresh"));
+        } catch (e) {
+          alert("تعذر حذف الإشعار. تحقق من قواعد Firestore.");
+        }
+      });
+      const actions = document.createElement("div");
+      actions.className = "dv-notification-actions";
+      actions.appendChild(btn);
+      item.appendChild(actions);
+    });
+  };
+
+  decorate();
+  new MutationObserver(decorate).observe(list, {childList:true,subtree:true});
+});
+</script>
+
 </body>
 </html>
