@@ -57,6 +57,7 @@
                 <li><a href="add-product.html" class="active">➕ أضف منتجك للبيع</a></li>
                 <li><a href="cart.html">🛒 سلة المشتريات</a></li>
                 <li><a href="notifications.html">🔔 إشعاراتي</a></li>
+                <li><a href="my-products.html">📦 منتجاتي وحالتها</a></li>
                 <li><a href="contact.html">📩 تواصل معنا</a></li>
             </ul>
         </aside>
@@ -73,7 +74,7 @@
                 <div id="alertBox"></div>
                 <form id="productForm">
         <div class="form-group">
-          <label for="productImage">صورة المنتج</label>
+          <label for="productImage">صورة المنتج <span style="color:#00e676;font-weight:700;">(اختياري)</span></label>
           <input type="file" id="productImage" name="productImage" accept="image/png,image/jpeg,image/webp,image/gif">
           <small>اختر صورة من جهازك (PNG/JPG/WEBP/GIF). ستظهر معاينة قبل الإرسال.</small>
           <div id="productImagePreview" style="display:none;margin-top:12px;">
@@ -105,8 +106,8 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>صورة الغلاف (رابط)</label>
-                        <input type="url" id="imageUrlInput" required placeholder="https://example.com/image.jpg">
+                        <label>صورة الغلاف <span style="color:#00e676;font-weight:700;">(اختياري)</span></label>
+                        <input type="url" id="imageUrlInput" placeholder="رابط صورة خارجي — اختياري">
                     </div>
 
                     <div class="form-group">
@@ -140,178 +141,20 @@
     </div>
 
     <script type="module">
-        import { auth, db, storage } from "./firebase-init.js";
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { collection, addDoc, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-
-        let currentUserEmail = null;
-        let selectedFile = null;
-
-        onAuthStateChanged(auth, (user) => {
-            if (user && user.email) {
-                currentUserEmail = user.email;
-                document.getElementById("formWrapper").style.display = "block";
-                document.getElementById("authGate").style.display = "none";
-            } else {
-                currentUserEmail = null;
-                document.getElementById("formWrapper").style.display = "none";
-                document.getElementById("authGate").style.display = "block";
-            }
-        });
-
-        // ===== اختيار الملف =====
-        const uploadZone = document.getElementById("uploadZone");
-        const fileInput = document.getElementById("fileInput");
-        const fileNameDisplay = document.getElementById("fileNameDisplay");
-
-        uploadZone.addEventListener("click", () => fileInput.click());
-        fileInput.addEventListener("change", () => handleFile(fileInput.files[0]));
-        uploadZone.addEventListener("dragover", (e) => { e.preventDefault(); uploadZone.classList.add("dragover"); });
-        uploadZone.addEventListener("dragleave", () => uploadZone.classList.remove("dragover"));
-        uploadZone.addEventListener("drop", (e) => {
-            e.preventDefault();
-            uploadZone.classList.remove("dragover");
-            handleFile(e.dataTransfer.files[0]);
-        });
-
-        function handleFile(file) {
-            if (!file) return;
-            if (file.size > 500 * 1024 * 1024) {
-                showAlert("الملف أكبر من 500MB - قسّمه أو استخدم رابطاً خارجياً.", "error");
-                return;
-            }
-            selectedFile = file;
-            fileNameDisplay.textContent = "📎 " + file.name + " (" + (file.size / 1024 / 1024).toFixed(1) + " MB)";
-            fileNameDisplay.style.display = "block";
-        }
-
-        function showAlert(msg, type) {
-            const box = document.getElementById("alertBox");
-            box.className = type === 'success' ? 'alert-success' : 'alert-error';
-            box.textContent = msg;
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function setProgress(percent) {
-            document.getElementById("progressWrap").style.display = "block";
-            document.getElementById("progressFill").style.width = percent + "%";
-            document.getElementById("progressText").textContent = percent + "%";
-        }
-
-        document.getElementById("productForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            if (!currentUserEmail) { showAlert("يجب تسجيل الدخول أولاً.", "error"); return; }
-
-            const price = document.getElementById("price").value.trim();
-            if (price !== "مجاني" && (isNaN(parseFloat(price)) || parseFloat(price) < 0)) {
-                showAlert("السعر يجب أن يكون رقماً أو كلمة 'مجاني'.", "error");
-                return;
-            }
-            const externalLink = document.getElementById("downloadUrlInput").value.trim();
-            if (!selectedFile && !externalLink) {
-                showAlert("ارفع ملفاً من حاسوبك أو أدخل رابط تحميل خارجياً.", "error");
-                return;
-            }
-
-            const submitBtn = document.getElementById("submitBtn");
-            submitBtn.disabled = true;
-            submitBtn.textContent = "جاري الإرسال...";
-
-            try {
-                // 1) إنشاء المنتج العام
-                const productData = {
-                    title: document.getElementById("title").value.trim(),
-                    description: document.getElementById("description").value.trim(),
-                    price: price,
-                    category: document.getElementById("category").value,
-                    imageUrl: document.getElementById("imageUrlInput").value.trim(),
-                    sellerEmail: currentUserEmail,
-                    status: "pending",
-                    createdAt: serverTimestamp()
-                };
-                const docRef = await addDoc(collection(db, "products"), productData);
-
-                // 2) رفع الملف من الحاسوب إلى Storage الآمن
-                if (selectedFile) {
-                    const safeName = selectedFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-                    const storageRef = ref(storage, `products/${docRef.id}/${Date.now()}_${safeName}`);
-                    const uploadTask = uploadBytesResumable(storageRef, selectedFile);
-
-                    await new Promise((resolve, reject) => {
-                        uploadTask.on('state_changed',
-                            (snap) => setProgress(Math.round((snap.bytesTransferred / snap.totalBytes) * 100)),
-                            (err) => reject(err),
-                            () => resolve()
-                        );
-                    });
-
-                    await setDoc(doc(db, "product_files", docRef.id), {
-                        storagePath: storageRef.fullPath,
-                        fileName: selectedFile.name,
-                        sellerEmail: currentUserEmail
-                    });
-                } else {
-                    await setDoc(doc(db, "product_files", docRef.id), {
-                        downloadUrl: externalLink,
-                        sellerEmail: currentUserEmail
-                    });
-                }
-
-                showAlert("تم إرسال منتجك بنجاح! بانتظار مراجعة الإدارة. ستصلك إشعار 🔔", "success");
-                document.getElementById("productForm").reset();
-                selectedFile = null;
-                fileNameDisplay.style.display = "none";
-                document.getElementById("progressWrap").style.display = "none";
-            } catch (err) {
-                console.error(err);
-                showAlert("حدث خطأ أثناء الإرسال: " + err.message, "error");
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = "📨 إرسال المنتج للمراجعة";
-            }
-        });
-    </script>
+import { auth, db, storage } from "./firebase-init.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { collection, addDoc, doc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+let currentUserEmail=null,selectedFile=null,selectedImage=null;
+onAuthStateChanged(auth,u=>{currentUserEmail=u?.email||null;document.getElementById("formWrapper").style.display=u?"block":"none";document.getElementById("authGate").style.display=u?"none":"block";});
+const uploadZone=document.getElementById("uploadZone"),fileInput=document.getElementById("fileInput"),fileNameDisplay=document.getElementById("fileNameDisplay"),imageInput=document.getElementById("productImage"),imagePreview=document.getElementById("productImagePreview"),imagePreviewImg=document.getElementById("productImagePreviewImg");
+uploadZone.addEventListener("click",()=>fileInput.click());fileInput.addEventListener("change",()=>handleProductFile(fileInput.files[0]));uploadZone.addEventListener("dragover",e=>{e.preventDefault();uploadZone.classList.add("dragover")});uploadZone.addEventListener("dragleave",()=>uploadZone.classList.remove("dragover"));uploadZone.addEventListener("drop",e=>{e.preventDefault();uploadZone.classList.remove("dragover");handleProductFile(e.dataTransfer.files[0])});
+function handleProductFile(f){if(!f)return;if(f.size>500*1024*1024)return showAlert("الملف أكبر من 500MB. اختر ملفاً أصغر أو استخدم رابط تحميل خارجي.","error");selectedFile=f;fileNameDisplay.textContent="📎 "+f.name+" ("+(f.size/1024/1024).toFixed(1)+" MB)";fileNameDisplay.style.display="block"}
+imageInput.addEventListener("change",()=>{const f=imageInput.files?.[0];selectedImage=null;if(!f){imagePreview.style.display="none";return}if(!f.type.startsWith("image/")){imageInput.value="";imagePreview.style.display="none";return showAlert("اختر ملف صورة صالحاً.","error")}if(f.size>5*1024*1024){imageInput.value="";imagePreview.style.display="none";return showAlert("حجم الصورة يجب ألا يتجاوز 5MB.","error")}selectedImage=f;imagePreviewImg.src=URL.createObjectURL(f);imagePreview.style.display="block"});
+function showAlert(msg,type){const b=document.getElementById("alertBox");b.className=type==="success"?"alert-success":"alert-error";b.textContent=msg;window.scrollTo({top:0,behavior:"smooth"})}function setProgress(n){document.getElementById("progressWrap").style.display="block";document.getElementById("progressFill").style.width=n+"%";document.getElementById("progressText").textContent=n+"%"}function resetProductForm(){document.getElementById("productForm").reset();selectedFile=null;selectedImage=null;fileNameDisplay.style.display="none";imagePreview.style.display="none";document.getElementById("progressWrap").style.display="none";document.getElementById("progressFill").style.width="0%";document.getElementById("progressText").textContent="0%"}
+document.getElementById("productForm").addEventListener("submit",async e=>{e.preventDefault();if(!currentUserEmail)return showAlert("يجب تسجيل الدخول أولاً.","error");const price=document.getElementById("price").value.trim();if(price!=="مجاني"&&(isNaN(parseFloat(price))||parseFloat(price)<0))return showAlert("السعر يجب أن يكون رقماً أو كلمة 'مجاني'.","error");const externalLink=document.getElementById("downloadUrlInput").value.trim();if(!selectedFile&&!externalLink)return showAlert("أضف ملف المنتج من جهازك أو رابط تحميل خارجي واحداً على الأقل.","error");const btn=document.getElementById("submitBtn");btn.disabled=true;btn.textContent="جاري إرسال المنتج للمراجعة...";try{const data={title:document.getElementById("title").value.trim(),description:document.getElementById("description").value.trim(),price,category:document.getElementById("category").value,imageUrl:document.getElementById("imageUrlInput").value.trim()||"",sellerEmail:currentUserEmail,status:"pending",createdAt:serverTimestamp()};const productRef=await addDoc(collection(db,"products"),data);if(selectedFile){const safe=selectedFile.name.replace(/[^a-zA-Z0-9._-]/g,"_");const sr=ref(storage,`products/${productRef.id}/${Date.now()}_${safe}`);const task=uploadBytesResumable(sr,selectedFile);await new Promise((resolve,reject)=>task.on("state_changed",snap=>setProgress(Math.round(snap.bytesTransferred/snap.totalBytes*100)),reject,resolve));await setDoc(doc(db,"product_files",productRef.id),{storagePath:sr.fullPath,fileName:selectedFile.name,sellerEmail:currentUserEmail})}else await setDoc(doc(db,"product_files",productRef.id),{downloadUrl:externalLink,sellerEmail:currentUserEmail});if(selectedImage){const safe=selectedImage.name.replace(/[^a-zA-Z0-9._-]/g,"_");const ir=ref(storage,`product-images/${productRef.id}/${Date.now()}_${safe}`);await uploadBytesResumable(ir,selectedImage);await updateDoc(doc(db,"products",productRef.id),{imageUrl:await getDownloadURL(ir)})}resetProductForm();showAlert("تم إرسال المنتج بنجاح. أصبح الآن قيد المراجعة. سيبقى محفوظاً في حسابك حتى يتم قبوله أو رفضه، وستصلك النتيجة عبر الإشعارات. 🔔","success");btn.textContent="✅ تم الإرسال — أرسل منتجاً آخر"}catch(err){console.error(err);showAlert("تعذر إرسال المنتج: "+(err?.message||"خطأ غير معروف"),"error")}finally{btn.disabled=false;if(!btn.textContent.includes("تم الإرسال"))btn.textContent="📨 إرسال المنتج للمراجعة"}});
+</script>
     <script type="module" src="./site-enhance.js"></script>
-
-<script type="module" id="dvProductImageHandler">
-document.addEventListener("DOMContentLoaded", () => {
-  const input = document.getElementById("productImage");
-  const preview = document.getElementById("productImagePreview");
-  const img = document.getElementById("productImagePreviewImg");
-  if (!input || !preview || !img) return;
-  input.addEventListener("change", () => {
-    const file = input.files?.[0];
-    if (!file) { preview.style.display="none"; return; }
-    if (!file.type.startsWith("image/")) { input.value=""; preview.style.display="none"; return; }
-    if (file.size > 5 * 1024 * 1024) {
-      alert("حجم الصورة كبير جدًا. اختر صورة أقل من 5MB.");
-      input.value=""; preview.style.display="none"; return;
-    }
-    const url = URL.createObjectURL(file);
-    img.src = url;
-    preview.style.display = "block";
-    img.onload = () => URL.revokeObjectURL(url);
-  });
-});
-</script>
-
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const form = document.querySelector("form");
-  if (!form) return;
-  form.addEventListener("submit", () => {
-    setTimeout(() => {
-      if (window.dvToast) {
-        window.dvToast("تم إرسال المنتج بنجاح. انتظر رد الإدارة والموافقة قبل نشره.");
-      } else {
-        alert("تم إرسال المنتج بنجاح. انتظر رد الإدارة والموافقة قبل نشره.");
-      }
-    }, 250);
-  }, true);
-});
-</script>
 
 </body>
 </html>
