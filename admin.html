@@ -75,8 +75,14 @@
 
         <div class="grid-stats">
             <div class="stat-card"><span>إجمالي المنتجات</span><h3 id="statProducts">0</h3></div>
+            <div class="stat-card"><span>بانتظار الموافقة</span><h3 id="statPending">0</h3></div>
+            <div class="stat-card"><span>منتجات منشورة</span><h3 id="statApproved">0</h3></div>
             <div class="stat-card"><span>الطلبات</span><h3 id="statOrders">0</h3></div>
+            <div class="stat-card"><span>الإيرادات المكتملة</span><h3 id="statRevenue">0.00 $</h3></div>
             <div class="stat-card"><span>الرسائل</span><h3 id="statMessages">0</h3></div>
+            <div class="stat-card"><span>المستخدمون</span><h3 id="statUsers">0</h3></div>
+            <div class="stat-card"><span>الزيارات المسجلة</span><h3 id="statVisitors">0</h3></div>
+            <div class="stat-card"><span>إشعارات غير مقروءة</span><h3 id="statUnread">0</h3></div>
         </div>
 
         <div class="card">
@@ -124,6 +130,12 @@
                     <tbody id="tableBody"></tbody>
                 </table>
             </div>
+        </div>
+
+        <div class="card">
+            <h3>👥 أحدث المستخدمين</h3>
+            <div style="overflow-x:auto;"><table><thead><tr><th>الاسم</th><th>البريد</th><th>الدور</th><th>تاريخ الإنشاء</th></tr></thead>
+            <tbody id="usersTableBody"><tr><td colspan="4" style="text-align:center;color:var(--text-sub);">جاري التحميل...</td></tr></tbody></table></div>
         </div>
 
         <div class="card">
@@ -200,7 +212,21 @@
         document.getElementById("loginPass").addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById("loginBtn").click(); });
         document.getElementById("logoutBtn").addEventListener("click", async () => { await signOut(auth); });
 
-        function loadAllData() { loadProducts(); loadOrders(); loadMessages(); }
+        function loadAllData() { loadProducts(); loadOrders(); loadMessages(); loadUsers(); loadVisitors(); loadUnreadNotifications(); }
+
+        // ============ الإحصاءات والمستخدمون ============
+        async function loadUsers(){
+          const tbody=document.getElementById("usersTableBody");
+          try{
+            const snap=await getDocs(collection(db,"users")), users=[];
+            snap.forEach(d=>users.push(d.data()));
+            users.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+            document.getElementById("statUsers").textContent=users.length;
+            tbody.innerHTML=users.slice(0,20).map(u=>`<tr><td>${esc(u.name||"—")}</td><td><small>${esc(u.email||"—")}</small></td><td>${esc(u.role||"user")}</td><td><small>${u.createdAt?.toDate?u.createdAt.toDate().toLocaleString("ar-DZ"):"—"}</small></td></tr>`).join("")||'<tr><td colspan="4" style="text-align:center;color:var(--text-sub);">لا يوجد مستخدمون بعد.</td></tr>';
+          }catch(e){document.getElementById("statUsers").textContent="—";tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--text-sub);">تعذر قراءة المستخدمين حسب قواعد Firestore.</td></tr>';}
+        }
+        async function loadVisitors(){try{document.getElementById("statVisitors").textContent=(await getDocs(collection(db,"visits"))).size}catch(e){document.getElementById("statVisitors").textContent="—"}}
+        async function loadUnreadNotifications(){try{const s=await getDocs(collection(db,"notifications"));let n=0;s.forEach(d=>{if(d.data().read!==true)n++});document.getElementById("statUnread").textContent=n}catch(e){document.getElementById("statUnread").textContent="—"}}
 
         // ============ المنتجات ============
         async function loadProducts() {
@@ -399,6 +425,8 @@
                 snap.forEach(d => orders.push({ id: d.id, ...d.data() }));
                 orders.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
                 document.getElementById("statOrders").textContent = orders.length;
+                const revenue=orders.filter(o=>o.status==="completed").reduce((sum,o)=>{const n=parseFloat(String(o.totalAmount??0).replace(/[^0-9.-]/g,""));return sum+(Number.isFinite(n)?n:0)},0);
+                document.getElementById("statRevenue").textContent=revenue.toFixed(2)+" $";
                 renderOrders(orders);
             } catch (e) { console.error("خطأ في جلب الطلبات:", e); }
         }

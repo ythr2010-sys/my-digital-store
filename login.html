@@ -274,158 +274,68 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { 
-            getAuth, 
-            signInWithEmailAndPassword, 
-            createUserWithEmailAndPassword, 
-            GoogleAuthProvider, 
-            signInWithPopup, 
-            updateProfile 
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { auth, db } from "./firebase-init.js";
+        import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8",
-            authDomain: "digivault-4c3a3.firebaseapp.com",
-            projectId: "digivault-4c3a3",
-            storageBucket: "digivault-4c3a3.firebasestorage.app",
-            messagingSenderId: "578335534171",
-            appId: "1:578335534171:web:1b108a849c0543f998a37e",
-            measurementId: "G-SZCB59ZZDN"
-        };
+        let isSignUp=false;
+        const authForm=document.getElementById('authForm'), nameGroup=document.getElementById('nameGroup'),
+              btnSubmit=document.getElementById('btnSubmit'), btnGoogle=document.getElementById('btnGoogle'),
+              formSubtitle=document.getElementById('formSubtitle'), toggleBtn=document.getElementById('toggleBtn'),
+              toggleText=document.getElementById('toggleText'), alertBox=document.getElementById('alertBox'),
+              togglePasswordBtn=document.getElementById('togglePasswordBtn'), userPasswordInput=document.getElementById('userPassword');
+        const provider=new GoogleAuthProvider();
+        provider.setCustomParameters({prompt:'select_account'});
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
+        function showAlert(msg,isError=true){alertBox.textContent=msg;alertBox.className=`alert-message ${isError?'alert-error':'alert-success'}`;alertBox.style.display='block';}
+        function setLoading(v){btnSubmit.disabled=v;btnGoogle.disabled=v;btnSubmit.textContent=v?'جاري المعالجة...':(isSignUp?'إنشاء الحساب':'تسجيل الدخول');}
+        async function saveUser(user){
+          if(!user?.uid)return;
+          await setDoc(doc(db,"users",user.uid),{uid:user.uid,name:user.displayName||user.email?.split('@')[0]||"مستخدم",email:user.email||"",role:"user",photoURL:user.photoURL||"",lastLoginAt:serverTimestamp()},{merge:true});
+        }
+        function localUser(user){
+          localStorage.setItem("userProfile",JSON.stringify({uid:user.uid,name:user.displayName||user.email.split('@')[0],email:user.email,picture:user.photoURL||`https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName||user.email)}&background=00d2ff&color=fff`}));
+          localStorage.setItem("isLoggedIn","true");
+        }
+        function finish(user){localUser(user);saveUser(user).catch(()=>{});showAlert("تم تسجيل الدخول بنجاح! جاري تحويلك...",false);setTimeout(()=>location.href="index.html",700);}
 
-        let isSignUp = false;
-
-        const authForm = document.getElementById('authForm');
-        const nameGroup = document.getElementById('nameGroup');
-        const btnSubmit = document.getElementById('btnSubmit');
-        const btnGoogle = document.getElementById('btnGoogle');
-        const formSubtitle = document.getElementById('formSubtitle');
-        const toggleBtn = document.getElementById('toggleBtn');
-        const toggleText = document.getElementById('toggleText');
-        const alertBox = document.getElementById('alertBox');
-        const togglePasswordBtn = document.getElementById('togglePasswordBtn');
-        const userPasswordInput = document.getElementById('userPassword');
-
-        function showAlert(msg, isError = true) {
-            alertBox.textContent = msg;
-            alertBox.className = `alert-message ${isError ? 'alert-error' : 'alert-success'}`;
-            alertBox.style.display = 'block';
+        async function googleLogin(){
+          setLoading(true); alertBox.style.display='none';
+          try{finish((await signInWithPopup(auth,provider)).user);}
+          catch(e){
+            console.error(e);
+            if(e.code==='auth/popup-blocked'||e.code==='auth/popup-closed-by-user'){
+              try{await signInWithRedirect(auth,provider);return;}catch(_){}
+            }
+            if(e.code==='auth/unauthorized-domain')showAlert("هذا النطاق غير مضاف في Firebase Authentication > Authorized domains.");
+            else if(e.code==='auth/operation-not-allowed')showAlert("تسجيل Google غير مفعّل في Firebase Authentication > Sign-in method.");
+            else if(e.code==='auth/network-request-failed')showAlert("تعذر الاتصال بـ Firebase/Google. تحقق من الإنترنت.");
+            else showAlert("تعذر تسجيل الدخول بواسطة Google. رمز الخطأ: "+(e.code||"غير معروف"));
+            setLoading(false);
+          }
         }
 
-        function setloading(isLoading) {
-            btnSubmit.disabled = isLoading;
-            btnGoogle.disabled = isLoading;
-            btnSubmit.textContent = isLoading ? 'جاري المعالجة...' : (isSignUp ? 'إنشاء الحساب' : 'تسجيل الدخول');
-        }
+        getRedirectResult(auth).then(r=>{if(r?.user)finish(r.user)}).catch(e=>{if(e?.code)console.error(e)});
 
-        togglePasswordBtn.addEventListener('click', () => {
-            const isPassword = userPasswordInput.type === 'password';
-            userPasswordInput.type = isPassword ? 'text' : 'password';
-            togglePasswordBtn.textContent = isPassword ? 'إخفاء' : 'إظهار';
+        togglePasswordBtn.addEventListener('click',()=>{const p=userPasswordInput.type==='password';userPasswordInput.type=p?'text':'password';togglePasswordBtn.textContent=p?'إخفاء':'إظهار';});
+        toggleBtn.addEventListener('click',e=>{e.preventDefault();isSignUp=!isSignUp;alertBox.style.display='none';nameGroup.style.display=isSignUp?'block':'none';btnSubmit.textContent=isSignUp?'إنشاء الحساب':'تسجيل الدخول';formSubtitle.textContent=isSignUp?'أنشئ حسابك لبدء استخدام الخزنة الرقمية':'أدخل بياناتك للدخول إلى حسابك';toggleText.textContent=isSignUp?'لديك حساب بالفعل؟':'ليس لديك حساب؟';toggleBtn.textContent=isSignUp?'تسجيل الدخول':'إنشاء حساب جديد';});
+
+        authForm.addEventListener('submit',async e=>{
+          e.preventDefault();
+          const email=document.getElementById('userEmail').value.trim(),password=userPasswordInput.value,name=document.getElementById('userName').value.trim();
+          if(!email||!password||(isSignUp&&!name)){showAlert("يرجى ملء جميع الحقول المطلوبة.");return;}
+          setLoading(true);alertBox.style.display='none';
+          try{
+            let user;
+            if(isSignUp){user=(await createUserWithEmailAndPassword(auth,email,password)).user;await updateProfile(user,{displayName:name});}
+            else user=(await signInWithEmailAndPassword(auth,email,password)).user;
+            await saveUser(user);finish(user);
+          }catch(e){
+            const m={'auth/email-already-in-use':'هذا البريد الإلكتروني مستخدم بالفعل.','auth/wrong-password':'البريد الإلكتروني أو كلمة المرور غير صحيحة.','auth/invalid-credential':'البريد الإلكتروني أو كلمة المرور غير صحيحة.','auth/weak-password':'كلمة المرور ضعيفة، يجب أن تكون 6 أحرف على الأقل.','auth/invalid-email':'صيغة البريد الإلكتروني غير صالحة.'};
+            showAlert(m[e.code]||("حدث خطأ: "+(e.message||"غير معروف")));setLoading(false);
+          }
         });
-
-        function saveToLocal(user) {
-            const userProfile = {
-                uid: user.uid,
-                name: user.displayName || user.email.split('@')[0],
-                email: user.email,
-                picture: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || user.email)}&background=00d2ff&color=fff`
-            };
-            localStorage.setItem("userProfile", JSON.stringify(userProfile));
-            localStorage.setItem("isLoggedIn", "true");
-        }
-
-        toggleBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            isSignUp = !isSignUp;
-            alertBox.style.display = 'none';
-
-            if (isSignUp) {
-                nameGroup.style.display = 'block';
-                btnSubmit.textContent = 'إنشاء الحساب';
-                formSubtitle.textContent = 'أنشئ حسابك لبدء استخدام الخزنة الرقمية';
-                toggleText.textContent = 'لديك حساب بالفعل؟';
-                toggleBtn.textContent = 'تسجيل الدخول';
-            } else {
-                nameGroup.style.display = 'none';
-                btnSubmit.textContent = 'تسجيل الدخول';
-                formSubtitle.textContent = 'أدخل بياناتك للدخول إلى حسابك';
-                toggleText.textContent = 'ليس لديك حساب؟';
-                toggleBtn.textContent = 'إنشاء حساب جديد';
-            }
-        });
-
-        authForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('userEmail').value.trim();
-            const password = userPasswordInput.value;
-            const name = document.getElementById('userName').value.trim();
-
-            if (!email || !password || (isSignUp && !name)) {
-                showAlert('يرجى ملء جميع الحقول المطلوبة.');
-                return;
-            }
-
-            setloading(true);
-            alertBox.style.display = 'none';
-
-            try {
-                if (isSignUp) {
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    await updateProfile(userCredential.user, { displayName: name });
-                    saveToLocal(userCredential.user);
-                    showAlert('تم إنشاء الحساب بنجاح! جاري تحويلك...', false);
-                } else {
-                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                    saveToLocal(userCredential.user);
-                    showAlert('تم تسجيل الدخول بنجاح! جاري تحويلك...', false);
-                }
-
-                setTimeout(() => { window.location.href = 'index.html'; }, 1200);
-
-            } catch (error) {
-                console.error(error);
-                let message = 'حدث خطأ غير متوقع.';
-                switch (error.code) {
-                    case 'auth/email-already-in-use':
-                        message = 'هذا البريد الإلكتروني مستخدم بالفعل.';
-                        break;
-                    case 'auth/wrong-password':
-                    case 'auth/invalid-credential':
-                        message = 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
-                        break;
-                    case 'auth/weak-password':
-                        message = 'كلمة المرور ضعيفة، يجب أن تكون 6 أحرف على الأقل.';
-                        break;
-                    case 'auth/invalid-email':
-                        message = 'صيغة البريد الإلكتروني غير صالحة.';
-                        break;
-                }
-                showAlert(message);
-            } finally {
-                setloading(false);
-            }
-        });
-
-        btnGoogle.addEventListener('click', async () => {
-            setloading(true);
-            alertBox.style.display = 'none';
-            try {
-                const result = await signInWithPopup(auth, provider);
-                saveToLocal(result.user);
-                showAlert('تم تسجيل الدخول بنجاح عبر Google!', false);
-                setTimeout(() => { window.location.href = 'index.html'; }, 1200);
-            } catch (error) {
-                console.error(error);
-                showAlert('فشل أو تم إلغاء تسجيل الدخول عبر Google.');
-                setloading(false);
-            }
-        });
+        btnGoogle.addEventListener('click',googleLogin);
     </script>
     <script type="module" src="./site-enhance.js"></script>
 </body>

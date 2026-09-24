@@ -44,7 +44,9 @@
                 list.innerHTML = '<div class="empty">قم بتسجيل الدخول لعرض إشعاراتك.</div>';
                 return;
             }
-            const snap = await getDocs(query(collection(db, "notifications"), where("userEmail", "==", user.email)));
+            let snap;
+            try { snap = await getDocs(query(collection(db, "notifications"), where("userEmail", "==", user.email))); }
+            catch (e) { list.innerHTML = '<div class="empty">تعذر تحميل الإشعارات. تحقق من Firebase وقواعد Firestore.</div>'; return; }
             let notifs = [];
             snap.forEach(d => notifs.push({ id: d.id, ...d.data() }));
             notifs.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
@@ -62,7 +64,7 @@
 
             list.querySelectorAll('.notif-item').forEach(item => {
                 item.addEventListener('click', async () => {
-                    try { await updateDoc(doc(db, "notifications", item.dataset.id), { read: true }); item.classList.remove('unread'); } catch(e){}
+                    try { await updateDoc(doc(db, "notifications", item.dataset.id), { read: true }); item.classList.remove("unread"); window.dispatchEvent(new Event("dv:notifications-refresh")); } catch(e){}
                 });
             });
         });

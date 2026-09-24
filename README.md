@@ -1,35 +1,18 @@
-# DigiVault — النسخة النهائية المدمجة
+DigiVault Pro Final
 
-هذه حزمة المشروع المدمجة بعد جمع الملفات المتاحة وإضافة الصفحات التي تم تزويدها لاحقاً.
+الإصلاحات:
+- استعادة firebase-init.js وstyle.css وsite-enhance.js التي كانت مفقودة من الحزمة السابقة.
+- تحسين تسجيل Google مع popup/redirect ورسائل أخطاء واضحة.
+- حفظ جلسة Firebase محلياً.
+- إصلاح ظهور نموذج إضافة المنتج بعد تسجيل الدخول.
+- جرس إشعارات عام + عداد غير المقروء.
+- لوحة الإدارة: قبول/رفض/تعديل/حذف المنتجات، الطلبات والتسليم، الرد على الرسائل، الإيرادات، المستخدمون، الزيارات، والإشعارات.
+- تسجيل زيارة واحدة لكل جلسة متصفح في مجموعة visits.
+- إزالة base target=_blank للملاحة الداخلية.
+- تحسين التفاعل ورسائل الخطأ.
 
-## الملفات
-
-- `index.html`
-- `shop.html`
-- `product.html`
-- `login.html`
-- `signup.html`
-- `add-product.html`
-- `admin.html`
-- `cart.html`
-- `checkout.html`
-- `contact.html`
-- `notifications.html`
-- `privacy.html`
-- `profile.html`
-- `terms.html`
-- `firebase-init.js`
-- `site-enhance.js`
-- `style.css`
-- `README.md`
-- `README.txt`
-
-## التحسينات
-
-- إزالة `base target="_blank"` من صفحات التنقل الداخلية.
-- إضافة جرس إشعارات موحد مع عداد الإشعارات غير المقروءة.
-- ربط الجرس بصفحة `notifications.html`.
-- إضافة صفحات الخصوصية وشروط الخدمة وصفحة المشتريات/الملفات الرقمية.
-- الإبقاء على روابط تنزيل الملفات الخارجية في تبويب جديد عند الحاجة.
-
-> `README.md` في هذه الحزمة هو ملف توثيق مُنشأ أثناء الدمج؛ إذا كان لديك ملف README.md الأصلي الخاص بالمشروع فيمكن استبداله به دون التأثير على بقية الملفات.
+مهم لإكمال Google:
+1) Firebase Console > Authentication > Sign-in method > فعّل Google.
+2) Authentication > Settings > Authorized domains > أضف نطاق موقعك.
+3) شغّل الموقع عبر HTTP/HTTPS وليس file://.
+4) صلاحيات Firestore/Storage يجب أن تسمح بالعمليات المطلوبة؛ الواجهة لا تتجاوز قواعد الأمان.
