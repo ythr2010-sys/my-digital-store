@@ -76,9 +76,8 @@
     <div id="toastContainer"></div>
 
     <script type="module">
-        import { auth, db, storage, checkIsAdmin, getCart, saveCart, esc } from "./firebase-init.js";
+        import { auth, db, checkIsAdmin, getCart, saveCart, esc } from "./firebase-init.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getDownloadURL, ref as storageRef } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
         import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const productId = new URLSearchParams(window.location.search).get('id');
@@ -126,13 +125,12 @@
             isFreeProduct = isFreePrice(product.price);
             hasPurchased = false;
             if (currentUser?.email) {
-                const ordersSnap = await getDocs(query(collection(db, "orders"), where("buyerEmail", "==", currentUser.email)));
-                ordersSnap.forEach(d => {
-                    const o = d.data();
-                    if (o.status === 'completed' && (o.items || []).some(i => i.id === productId)) hasPurchased = true;
-                });
-                const freeSnap = await getDocs(query(collection(db, "free_purchases"), where("buyerEmail", "==", currentUser.email)));
-                freeSnap.forEach(d => { if (d.data().productId === productId) hasPurchased = true; });
+                try {
+                    const ordersSnap = await getDocs(query(collection(db, "orders"), where("buyerEmail", "==", currentUser.email)));
+                    ordersSnap.forEach(d => { const o = d.data(); if (o.status === 'completed' && (o.items || []).some(i => i.id === productId)) hasPurchased = true; });
+                    const freeSnap = await getDocs(query(collection(db, "free_purchases"), where("buyerEmail", "==", currentUser.email)));
+                    freeSnap.forEach(d => { if (d.data().productId === productId) hasPurchased = true; });
+                } catch (e) { console.warn('purchase history unavailable:', e); }
             }
 
             await render();
@@ -156,9 +154,6 @@
             const catLabels = { books: '📚 كتب وروايات', models: '🎨 مجسمات 3D/2D', courses: '🎓 دورات تعليمية', gaming: '🎮 ألعاب واشتراكات' };
             const promoImages = product.promoImages || [];
             let mainImage = product.imageUrl || '';
-            if (!mainImage && product.imagePath) {
-                try { mainImage = await getDownloadURL(storageRef(storage, product.imagePath)); } catch (e) { console.warn('imagePath URL error', e); }
-            }
             const allImages = [mainImage, ...promoImages].filter(Boolean);
 
             main.innerHTML = `
@@ -197,15 +192,9 @@
 
             const galleryMain = document.getElementById('galleryMain');
             if (galleryMain) {
-                galleryMain.addEventListener('error', async () => {
-                    if (product.imagePath) {
-                        try {
-                            galleryMain.src = await getDownloadURL(storageRef(storage, product.imagePath));
-                            return;
-                        } catch (e) {}
-                    }
+                galleryMain.addEventListener('error', () => {
                     const box = document.getElementById('mainImageBox');
-                    if (box) box.innerHTML = '<div style="color:var(--text-sub);text-align:center;padding:30px">🖼️ تعذر تحميل صورة المنتج</div>';
+                    if (box) box.innerHTML = '<div style="color:var(--text-sub);text-align:center;padding:30px">🖼️ تعذر عرض صورة المنتج</div>';
                 }, { once: true });
             }
 
@@ -228,7 +217,7 @@
                         if (!existing.exists()) {
                             const fileSnap = await getDoc(doc(db, 'product_files', product.id));
                             const fileData = fileSnap.exists() ? fileSnap.data() : {};
-                            await setDoc(doc(db, 'free_purchases', claimId), { buyerEmail: currentUser.email, productId: product.id, title: product.title, createdAt: serverTimestamp(), downloadUrl: fileData.downloadUrl || '', storagePath: fileData.storagePath || '' });
+                            await setDoc(doc(db, 'free_purchases', claimId), { buyerEmail: currentUser.email, productId: product.id, title: product.title, createdAt: serverTimestamp(), downloadUrl: fileData.downloadUrl || '' });
                             await addDoc(collection(db, 'notifications'), { userEmail: currentUser.email, type: 'free_purchase', title: 'تمت إضافة منتج مجاني 🎁', message: `تمت إضافة "${product.title}" إلى مشترياتك ويمكنك تنزيله الآن.`, read: false, createdAt: serverTimestamp() });
                             hasPurchased = true;
                         }
@@ -395,10 +384,9 @@
 
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
+            if (user) { try { isAdmin = await checkIsAdmin(user); } catch (e) { isAdmin = false; } }
+            else isAdmin = false;
             loadAll();
-            if (user) {
-                try { isAdmin = await checkIsAdmin(user); } catch (e) { isAdmin = false; }
-            }
         });
     </script>
     <script type="module" src="./site-enhance.js"></script>

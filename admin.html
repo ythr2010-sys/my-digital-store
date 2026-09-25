@@ -160,10 +160,9 @@
     </div>
 
     <script type="module">
-        import { auth, db, storage, checkIsAdmin, esc } from "./firebase-init.js";
+        import { auth, db, checkIsAdmin, esc } from "./firebase-init.js";
         import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { collection, getDocs, addDoc, doc, setDoc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         let productsList = [];
         let currentUserObj = null;
@@ -301,11 +300,8 @@
                 const snap = await getDoc(doc(db, "product_files", productId));
                 if (!snap.exists()) { alert("لا يوجد ملف مرتبط بهذا المنتج."); return; }
                 const data = snap.data();
-                if (data.storagePath) {
-                    const url = await getDownloadURL(ref(storage, data.storagePath));
-                    window.open(url, '_blank');
-                } else if (data.downloadUrl) {
-                    window.open(data.downloadUrl, '_blank');
+                if (data.downloadUrl) {
+                    window.open(data.downloadUrl, '_blank', 'noopener,noreferrer');
                 } else {
                     alert("لا يوجد ملف.");
                 }
@@ -480,9 +476,6 @@
                     if (!fileSnap.exists()) continue;
                     const fdata = fileSnap.data();
                     let url = fdata.downloadUrl || null;
-                    if (!url && fdata.storagePath) {
-                        url = await getDownloadURL(ref(storage, fdata.storagePath));
-                    }
                     if (url) {
                         deliveryLinks.push({ productId: item.id, name: item.title || item.name, url });
                     }

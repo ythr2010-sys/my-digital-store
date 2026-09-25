@@ -49,8 +49,6 @@
         import { auth, db, esc } from "./firebase-init.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-        import { storage } from "./firebase-init.js";
 
         onAuthStateChanged(auth, (user) => {
             if (user && user.email) loadPurchasesFromFirebase(user.email);
@@ -77,7 +75,6 @@
                 for (const card of cards) {
                     if (card.kind === 'free') {
                         const d=card.data; let url=d.downloadUrl||'';
-                        if (!url && d.storagePath) { try { url=await getDownloadURL(ref(storage,d.storagePath)); } catch(e){} }
                         html += `<div class="order-card"><div class="order-head"><div><strong>🎁 ${esc(d.title||'منتج مجاني')}</strong><div class="order-meta">تمت الإضافة مجاناً • بدون دفع</div></div><span class="badge-status done">مملوك ✅</span></div><div class="order-item-row"><div><strong>ملف المنتج</strong></div>${url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="btn-download">تنزيل الملف 📥</a>`:'<span class="order-meta">ملف التنزيل غير متاح حالياً</span>'}</div></div>`;
                         continue;
                     }

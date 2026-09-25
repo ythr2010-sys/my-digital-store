@@ -16,3 +16,10 @@ DigiVault Pro Final
 2) Authentication > Settings > Authorized domains > أضف نطاق موقعك.
 3) شغّل الموقع عبر HTTP/HTTPS وليس file://.
 4) صلاحيات Firestore/Storage يجب أن تسمح بالعمليات المطلوبة؛ الواجهة لا تتجاوز قواعد الأمان.
+
+
+## DigiVault v4 - بدون Firebase Storage
+
+هذه النسخة لا تعتمد على Cloud Storage. يمكن للبائع اختيار صورة من الكمبيوتر/الهاتف مباشرة (حتى 700KB) وتُحفظ كبيانات داخل Firestore، كما يمكنه رفع ملف منتج صغير من الجهاز حتى 700KB. للملفات الأكبر، يستخدم رابط تحميل خارجي.
+
+لذلك لا تحتاج إلى تفعيل Firebase Storage أو ترقية Blaze حتى تعمل وظائف الصور والمنتجات الأساسية في هذه النسخة. يجب نشر `firestore.rules` من Firebase Console.
