@@ -76,8 +76,9 @@
     <div id="toastContainer"></div>
 
     <script type="module">
-        import { auth, db, checkIsAdmin, getCart, saveCart, esc } from "./firebase-init.js";
+        import { auth, db, storage, checkIsAdmin, getCart, saveCart, esc } from "./firebase-init.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDownloadURL, ref as storageRef } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
         import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const productId = new URLSearchParams(window.location.search).get('id');
@@ -103,6 +104,7 @@
         }
 
         async function loadAll() {
+            try {
             // 1) المنتج
             const snap = await getDoc(doc(db, "products", productId));
             if (!snap.exists()) {
@@ -133,9 +135,12 @@
                 freeSnap.forEach(d => { if (d.data().productId === productId) hasPurchased = true; });
             }
 
-            render();
-            loadReviews();
-            loadComments();
+            await render();
+            Promise.allSettled([loadReviews(), loadComments()]);
+            } catch (err) {
+                console.error('DigiVault product load error:', err);
+                main.innerHTML = `<div style="text-align:center;padding:50px"><h2>تعذر تحميل المنتج</h2><p style="color:var(--text-sub);margin-top:10px">${esc(err?.message || 'خطأ غير معروف')}</p><button onclick="location.reload()" style="margin-top:18px;padding:12px 20px;border:0;border-radius:10px;cursor:pointer">إعادة المحاولة</button></div>`;
+            }
         }
 
         function isFreePrice(value) {
@@ -147,15 +152,21 @@
             return isFreePrice(p) ? 'مجاني 🎁' : (p.includes('$') ? p : '$' + p);
         }
 
-        function render() {
+        async function render() {
             const catLabels = { books: '📚 كتب وروايات', models: '🎨 مجسمات 3D/2D', courses: '🎓 دورات تعليمية', gaming: '🎮 ألعاب واشتراكات' };
             const promoImages = product.promoImages || [];
-            const allImages = [product.imageUrl, ...promoImages].filter(Boolean);
+            let mainImage = product.imageUrl || '';
+            if (!mainImage && product.imagePath) {
+                try { mainImage = await getDownloadURL(storageRef(storage, product.imagePath)); } catch (e) { console.warn('imagePath URL error', e); }
+            }
+            const allImages = [mainImage, ...promoImages].filter(Boolean);
 
             main.innerHTML = `
                 <div class="product-layout">
                     <div>
-                        <img class="gallery-main" id="galleryMain" src="${esc(product.imageUrl || '')}" alt="${esc(product.title)}" onerror="this.src='https://via.placeholder.com/600x340?text=DigiVault'">
+                        <div id="mainImageBox" style="width:100%;height:340px;border-radius:14px;border:1px solid var(--border-line);background:#1e1e24;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                          ${mainImage ? `<img class="gallery-main" id="galleryMain" src="${esc(mainImage)}" alt="${esc(product.title)}">` : `<div style="color:var(--text-sub);text-align:center;padding:30px">📦<br>لا توجد صورة لهذا المنتج</div>`}
+                        </div>
                         ${allImages.length > 1 ? `<div class="gallery-thumbs" id="galleryThumbs">
                             ${allImages.map((img, i) => `<img src="${esc(img)}" data-src="${esc(img)}" class="${i === 0 ? 'active' : ''}" onerror="this.remove()">`).join('')}
                         </div>` : ''}
@@ -169,7 +180,7 @@
                         </div>
                         <div class="price-big">${esc(priceFormatted())}</div>
                         <div class="desc-box">${esc(product.description || 'لا يوجد وصف.')}</div>
-                        <button class="btn-add-big" id="addToCartBtn">${isFreeProduct ? "امتلكه مجاناً الآن 🎁" : "أضف إلى السلة 🛒"}</button>
+                        <button class="btn-add-big" id="addToCartBtn">${isFreeProduct ? (hasPurchased ? "موجود في مشترياتي 📦" : "امتلكه مجاناً الآن 🎁") : "أضف إلى السلة 🛒"}</button>
                     </div>
                 </div>
 
@@ -183,6 +194,20 @@
                     <div id="commentsList"><p style="color:var(--text-sub);font-size:.88rem;">جاري تحميل التعليقات...</p></div>
                     <div id="commentFormArea" style="margin-top:20px;"></div>
                 </div>`;
+
+            const galleryMain = document.getElementById('galleryMain');
+            if (galleryMain) {
+                galleryMain.addEventListener('error', async () => {
+                    if (product.imagePath) {
+                        try {
+                            galleryMain.src = await getDownloadURL(storageRef(storage, product.imagePath));
+                            return;
+                        } catch (e) {}
+                    }
+                    const box = document.getElementById('mainImageBox');
+                    if (box) box.innerHTML = '<div style="color:var(--text-sub);text-align:center;padding:30px">🖼️ تعذر تحميل صورة المنتج</div>';
+                }, { once: true });
+            }
 
             // المعرض
             document.querySelectorAll('#galleryThumbs img').forEach(img => {
@@ -207,8 +232,8 @@
                             await addDoc(collection(db, 'notifications'), { userEmail: currentUser.email, type: 'free_purchase', title: 'تمت إضافة منتج مجاني 🎁', message: `تمت إضافة "${product.title}" إلى مشترياتك ويمكنك تنزيله الآن.`, read: false, createdAt: serverTimestamp() });
                             hasPurchased = true;
                         }
-                        showToast('تمت إضافة المنتج المجاني إلى مشترياتك');
-                        setTimeout(() => { window.location.href = 'profile.html'; }, 700);
+                        showToast(hasPurchased && existing.exists() ? 'المنتج موجود بالفعل في مشترياتك' : 'تمت إضافة المنتج المجاني إلى مشترياتك');
+                        setTimeout(() => { window.location.href = 'profile.html'; }, 500);
                     } catch (e) { showToast('تعذر استلام المنتج المجاني: ' + (e.message || 'خطأ'), true); }
                     return;
                 }
@@ -370,8 +395,10 @@
 
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
-            isAdmin = user ? await checkIsAdmin(user) : false;
             loadAll();
+            if (user) {
+                try { isAdmin = await checkIsAdmin(user); } catch (e) { isAdmin = false; }
+            }
         });
     </script>
     <script type="module" src="./site-enhance.js"></script>
