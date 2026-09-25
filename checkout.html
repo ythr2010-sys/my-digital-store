@@ -252,7 +252,7 @@
                     const claimId=`${auth.currentUser.uid}_${item.id}`;
                     const existing=await getDoc(doc(db,'free_purchases',claimId));
                     if (!existing.exists()) {
-                        await setDoc(doc(db,'free_purchases',claimId),{buyerEmail:currentBuyerEmail,productId:item.id,title:item.title||'منتج مجاني',createdAt:serverTimestamp()});
+                        await setDoc(doc(db,'free_purchases',claimId),{buyerUid:user.uid,buyerEmail:currentBuyerEmail,productId:item.id,title:item.title||'منتج مجاني',createdAt:serverTimestamp()});
                         await addDoc(collection(db,'notifications'),{userEmail:currentBuyerEmail,type:'free_purchase',title:'تمت إضافة منتج مجاني 🎁',message:`تمت إضافة "${item.title||'المنتج'}" إلى مشترياتك دون الحاجة إلى الدفع.`,read:false,createdAt:serverTimestamp()});
                     }
                 } catch(e) { paid.push(item); }
@@ -349,6 +349,7 @@
                 const safeItems = cart.map(({ downloadUrl, fileUrl, ...rest }) => rest);
 
                 await addDoc(collection(db, "orders"), {
+                    buyerUid: user.uid,
                     buyerEmail: currentBuyerEmail,
                     items: safeItems,
                     totalAmount: calculatedTotalNum.toFixed(2),

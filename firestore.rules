@@ -72,9 +72,10 @@ service cloud.firestore {
 
     match /orders/{orderId} {
       allow read: if isAdmin()
-        || (isSignedIn() && resource.data.buyerEmail == userEmail());
+        || (isSignedIn() && (resource.data.buyerUid == request.auth.uid || resource.data.buyerEmail == userEmail()));
 
       allow create: if isSignedIn()
+        && request.resource.data.buyerUid == request.auth.uid
         && request.resource.data.buyerEmail == userEmail()
         && request.resource.data.status == 'pending';
 
@@ -83,9 +84,10 @@ service cloud.firestore {
 
     match /free_purchases/{purchaseId} {
       allow read: if isAdmin()
-        || (isSignedIn() && resource.data.buyerEmail == userEmail());
+        || (isSignedIn() && (resource.data.buyerUid == request.auth.uid || resource.data.buyerEmail == userEmail()));
 
       allow create: if isSignedIn()
+        && request.resource.data.buyerUid == request.auth.uid
         && request.resource.data.buyerEmail == userEmail()
         && request.resource.data.productId is string
         && isApprovedFreeProduct(request.resource.data.productId)
