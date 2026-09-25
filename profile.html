@@ -51,7 +51,7 @@
         import { collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         onAuthStateChanged(auth, (user) => {
-            if (user && user.email) loadPurchasesFromFirebase(user.email);
+            if (user && user.email) loadPurchasesFromFirebase(user.email, user.uid);
             else document.getElementById("myPurchasesList").innerHTML = `
                 <div style="text-align:center;padding:20px;">
                     <p style="margin-bottom:15px;">قم بتسجيل الدخول لعرض مشترياتك وملفاتك الرقمية.</p>
@@ -59,34 +59,58 @@
                 </div>`;
         });
 
-        async function loadPurchasesFromFirebase(buyerEmail) {
+        async function loadPurchasesFromFirebase(buyerEmail, uid) {
             const container = document.getElementById("myPurchasesList");
-            try {
-                const [ordersSnap, freeSnap] = await Promise.all([
-                    getDocs(query(collection(db, "orders"), where("buyerEmail", "==", buyerEmail))),
-                    getDocs(query(collection(db, "free_purchases"), where("buyerEmail", "==", buyerEmail)))
-                ]);
-                let cards = [];
-                ordersSnap.forEach(d => cards.push({kind:'order', id:d.id, data:d.data()}));
-                for (const d of freeSnap.docs) cards.push({kind:'free', id:d.id, data:d.data()});
-                if (!cards.length) { container.innerHTML = "<p>لا توجد مشتريات سابقة لهذا الحساب حتى الآن.</p>"; return; }
-                cards.sort((a,b)=>(b.data.createdAt?.toMillis?.()||0)-(a.data.createdAt?.toMillis?.()||0));
-                let html = '<div class="orders-list">';
-                for (const card of cards) {
-                    if (card.kind === 'free') {
-                        const d=card.data; let url=d.downloadUrl||'';
-                        html += `<div class="order-card"><div class="order-head"><div><strong>🎁 ${esc(d.title||'منتج مجاني')}</strong><div class="order-meta">تمت الإضافة مجاناً • بدون دفع</div></div><span class="badge-status done">مملوك ✅</span></div><div class="order-item-row"><div><strong>ملف المنتج</strong></div>${url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="btn-download">تنزيل الملف 📥</a>`:'<span class="order-meta">ملف التنزيل غير متاح حالياً</span>'}</div></div>`;
-                        continue;
-                    }
-                    const data=card.data, items=data.items||[], status=data.status||'pending', done=status==='completed';
-                    const dateStr=data.createdAt?.toDate?data.createdAt.toDate().toLocaleDateString('ar-DZ'):'';
-                    html += `<div class="order-card"><div class="order-head"><div><strong>طلب #${esc(card.id.slice(0,6))}</strong><div class="order-meta">${esc(dateStr)} • ${esc(data.paymentMethod||'')} • المجموع: ${esc(data.totalAmount||'0')} $</div></div><span class="badge-status ${done?'done':''}">${done?'مكتمل ✅':'قيد المراجعة ⏳'}</span></div>`;
-                    const links=data.deliveryLinks||[];
-                    items.forEach(item=>{ const link=links.find(l=>l.productId===item.id); html += `<div class="order-item-row"><div><strong>${esc(item.title||item.name||'منتج رقمي')}</strong></div>${done&&link?.url?`<a href="${esc(link.url)}" target="_blank" rel="noopener noreferrer" class="btn-download">تنزيل الملف 📥</a>`:`<span class="order-meta">${done?'التسليم جاري من الإدارة':'بانتظار تأكيد الدفع'}</span>`}</div>`; });
-                    html += '</div>';
+            container.innerHTML = '<p style="text-align:center;padding:20px;">جاري تحميل مشترياتك…</p>';
+            const cards = [];
+            const errors = [];
+
+            async function readCollection(name, field, value, kind) {
+                try {
+                    const snap = await getDocs(query(collection(db, name), where(field, "==", value)));
+                    snap.forEach(d => cards.push({kind, id:d.id, data:d.data()}));
+                    return snap.size;
+                } catch (err) {
+                    errors.push({name, err});
+                    return 0;
                 }
-                html += '</div>'; container.className=""; container.innerHTML=html;
-            } catch (err) { console.error(err); container.innerHTML = "<p style='color:var(--danger-red);'>تعذر تحميل المشتريات، تحقق من الاتصال وقواعد Firebase.</p>"; }
+            }
+
+            // UID is the primary owner key for new purchases; email is retained for older records.
+            let orderCount = await readCollection("orders", "buyerUid", uid, "order");
+            let freeCount = await readCollection("free_purchases", "buyerUid", uid, "free");
+            if (!orderCount) await readCollection("orders", "buyerEmail", buyerEmail, "order");
+            if (!freeCount) await readCollection("free_purchases", "buyerEmail", buyerEmail, "free");
+
+            // Remove duplicates when a record exists in both the UID and legacy email queries.
+            const unique = new Map();
+            cards.forEach(c => unique.set(c.kind + ':' + c.id, c));
+            const list = [...unique.values()];
+
+            if (!list.length && errors.length === 2) {
+                console.error("Purchase loading errors:", errors);
+                const codes = errors.map(x => x.err?.code).filter(Boolean).join(', ');
+                container.innerHTML = `<div style="text-align:center;padding:24px;"><p style="color:var(--danger-red);font-weight:800;">تعذر تحميل المشتريات.</p><p style="margin-top:8px;color:var(--text-sub);">تأكد من نشر ملف firestore.rules وتسجيل الدخول بالحساب نفسه المستخدم عند الشراء.</p>${codes?`<small style="opacity:.7;display:block;margin-top:8px;">${esc(codes)}</small>`:''}<button onclick="location.reload()" style="margin-top:15px;padding:10px 16px;border:0;border-radius:9px;cursor:pointer;">إعادة المحاولة</button></div>`;
+                return;
+            }
+
+            if (!list.length) { container.innerHTML = "<p>لا توجد مشتريات سابقة لهذا الحساب حتى الآن.</p>"; return; }
+            list.sort((a,b)=>(b.data.createdAt?.toMillis?.()||0)-(a.data.createdAt?.toMillis?.()||0));
+            let html = '<div class="orders-list">';
+            for (const card of list) {
+                if (card.kind === 'free') {
+                    const d=card.data; let url=d.downloadUrl||'';
+                    html += `<div class="order-card"><div class="order-head"><div><strong>🎁 ${esc(d.title||'منتج مجاني')}</strong><div class="order-meta">تمت الإضافة مجاناً • بدون دفع</div></div><span class="badge-status done">مملوك ✅</span></div><div class="order-item-row"><div><strong>ملف المنتج</strong></div>${url?`<a href="${esc(url)}" download="" target="_blank" rel="noopener noreferrer" class="btn-download">تنزيل الملف 📥</a>`:'<span class="order-meta">ملف التنزيل غير متاح حالياً</span>'}</div></div>`;
+                    continue;
+                }
+                const data=card.data, items=data.items||[], status=data.status||'pending', done=status==='completed';
+                const dateStr=data.createdAt?.toDate?data.createdAt.toDate().toLocaleDateString('ar-DZ'):'';
+                html += `<div class="order-card"><div class="order-head"><div><strong>طلب #${esc(card.id.slice(0,6))}</strong><div class="order-meta">${esc(dateStr)} • ${esc(data.paymentMethod||'')} • المجموع: ${esc(data.totalAmount||'0')} $</div></div><span class="badge-status ${done?'done':''}">${done?'مكتمل ✅':'قيد المراجعة ⏳'}</span></div>`;
+                const links=data.deliveryLinks||[];
+                items.forEach(item=>{ const link=links.find(l=>l.productId===item.id); html += `<div class="order-item-row"><div><strong>${esc(item.title||item.name||'منتج رقمي')}</strong></div>${done&&link?.url?`<a href="${esc(link.url)}" download="" target="_blank" rel="noopener noreferrer" class="btn-download">تنزيل الملف 📥</a>`:`<span class="order-meta">${done?'التسليم جاري من الإدارة':'بانتظار تأكيد الدفع'}</span>`}</div>`; });
+                html += '</div>';
+            }
+            html += '</div>'; container.className=""; container.innerHTML=html;
         }
     </script>
     <script type="module" src="./site-enhance.js"></script>
