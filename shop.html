@@ -127,7 +127,7 @@
                         badge: data.badge || 'منتج رقمي',
                         desc: data.description || "لا يوجد وصف.",
                         price: data.price || "مجاني",
-                        imgUrl: data.imageUrl || "https://via.placeholder.com/300x160?text=DigiVault"
+                        imgUrl: (data.imageUrls && data.imageUrls[0]) || data.imageUrl || "https://via.placeholder.com/300x160?text=DigiVault"
                     });
                 });
                 allProductsCache = list;

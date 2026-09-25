@@ -153,8 +153,9 @@
         async function render() {
             const catLabels = { books: '📚 كتب وروايات', models: '🎨 مجسمات 3D/2D', courses: '🎓 دورات تعليمية', gaming: '🎮 ألعاب واشتراكات' };
             const promoImages = product.promoImages || [];
-            let mainImage = product.imageUrl || '';
-            const allImages = [mainImage, ...promoImages].filter(Boolean);
+            const storedImages = product.imageUrls || [];
+            let mainImage = product.imageUrl || storedImages[0] || '';
+            const allImages = [...storedImages, ...promoImages, mainImage].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i);
 
             main.innerHTML = `
                 <div class="product-layout">

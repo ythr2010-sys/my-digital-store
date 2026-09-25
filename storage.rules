@@ -37,7 +37,7 @@ service firebase.storage {
         )
         && firestore.get(
           /databases/(default)/documents/products/$(productId)
-        ).data.status == 'pending';
+        ).data.status in ['pending', 'rejected'];
     }
 
     function isImage() {

@@ -88,6 +88,7 @@
         <div class="card">
             <h3 id="formTitle">➕ إضافة منتج جديد</h3>
             <form id="productForm">
+                <div id="editHint" style="display:none;background:rgba(0,210,255,.08);border:1px solid rgba(0,210,255,.25);padding:10px;border-radius:8px;margin-bottom:12px;">وضع تعديل المدير: يمكنك تغيير <strong>التصنيف فقط</strong>. استخدم زر الملف لمعاينة/تنزيل المنتج قبل القرار.</div>
                 <input type="hidden" id="editDocId">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                     <input type="text" id="pTitle" placeholder="عنوان المنتج" required>
@@ -300,11 +301,12 @@
                 const snap = await getDoc(doc(db, "product_files", productId));
                 if (!snap.exists()) { alert("لا يوجد ملف مرتبط بهذا المنتج."); return; }
                 const data = snap.data();
-                if (data.downloadUrl) {
-                    window.open(data.downloadUrl, '_blank', 'noopener,noreferrer');
-                } else {
-                    alert("لا يوجد ملف.");
-                }
+                if (!data.downloadUrl) { alert("لا يوجد رابط تنزيل للملف."); return; }
+                const w = window.open("about:blank", "_blank");
+                if (!w) { alert("اسمح بفتح نافذة الملف من المتصفح."); return; }
+                const safeName = String(data.fileName || "product-file").replace(/[<>]/g, "");
+                w.document.write(`<html lang="ar" dir="rtl"><head><title>فحص ملف المنتج</title><style>body{font-family:Arial;background:#111;color:#fff;padding:30px;text-align:center}a{display:inline-block;margin:10px;padding:12px 18px;border-radius:8px;background:#00d2ff;color:#000;text-decoration:none;font-weight:bold}iframe{width:95%;height:70vh;border:1px solid #333;border-radius:10px;margin-top:20px}</style></head><body><h2>📦 ${safeName}</h2><a href="${data.downloadUrl}" download="${safeName}">تنزيل الملف</a><a href="${data.downloadUrl}" target="_blank">فتح الملف</a><iframe src="${data.downloadUrl}" title="معاينة"></iframe></body></html>`);
+                w.document.close();
             } catch (e) { alert("خطأ في فتح الملف: " + e.message); }
         }
 
@@ -344,8 +346,10 @@
             document.getElementById("pPromo").value = (p.promoImages || []).join(', ');
             document.getElementById("pDesc").value = p.description || "";
             document.getElementById("pLink").value = "";
-            document.getElementById("formTitle").textContent = "✏️ تعديل: " + p.title;
-            document.getElementById("saveBtn").textContent = "حفظ التعديلات 💾";
+            ["pTitle","pBadge","pPrice","pImg","pPromo","pLink","pDesc"].forEach(id=>document.getElementById(id).disabled=true);
+            document.getElementById("editHint").style.display="block";
+            document.getElementById("formTitle").textContent = "✏️ تعديل تصنيف: " + p.title;
+            document.getElementById("saveBtn").textContent = "حفظ التصنيف 💾";
             document.getElementById("cancelBtn").style.display = "inline-block";
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -358,6 +362,8 @@
             document.getElementById("formTitle").textContent = "➕ إضافة منتج جديد";
             document.getElementById("saveBtn").textContent = "حفظ ونشر المنتج 💾";
             document.getElementById("cancelBtn").style.display = "none";
+            document.getElementById("editHint").style.display = "none";
+            ["pTitle","pBadge","pPrice","pImg","pPromo","pLink","pDesc"].forEach(id=>document.getElementById(id).disabled=false);
         }
 
         async function removeProduct(id) {
@@ -389,10 +395,7 @@
 
             try {
                 if (editId) {
-                    await updateDoc(doc(db, "products", editId), data);
-                    if (newLink) {
-                        await updateDoc(doc(db, "product_files", editId), { downloadUrl: newLink });
-                    }
+                    await updateDoc(doc(db, "products", editId), { category: document.getElementById("pCat").value });
                 } else {
                     data.sellerEmail = currentUserObj.email;
                     data.status = "approved";
