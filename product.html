@@ -217,7 +217,7 @@
                         if (!existing.exists()) {
                             const fileSnap = await getDoc(doc(db, 'product_files', product.id));
                             const fileData = fileSnap.exists() ? fileSnap.data() : {};
-                            await setDoc(doc(db, 'free_purchases', claimId), { buyerEmail: currentUser.email, productId: product.id, title: product.title, createdAt: serverTimestamp(), downloadUrl: fileData.downloadUrl || '' });
+                            await setDoc(doc(db, 'free_purchases', claimId), { buyerUid: currentUser.uid, buyerEmail: currentUser.email, productId: product.id, title: product.title, createdAt: serverTimestamp(), downloadUrl: fileData.downloadUrl || '' });
                             await addDoc(collection(db, 'notifications'), { userEmail: currentUser.email, type: 'free_purchase', title: 'تمت إضافة منتج مجاني 🎁', message: `تمت إضافة "${product.title}" إلى مشترياتك ويمكنك تنزيله الآن.`, read: false, createdAt: serverTimestamp() });
                             hasPurchased = true;
                         }
