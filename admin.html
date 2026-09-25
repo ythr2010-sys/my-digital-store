@@ -301,11 +301,11 @@
                 const snap = await getDoc(doc(db, "product_files", productId));
                 if (!snap.exists()) { alert("لا يوجد ملف مرتبط بهذا المنتج."); return; }
                 const data = snap.data();
-                if (!data.downloadUrl) { alert("لا يوجد رابط تنزيل للملف."); return; }
+                if (!data.downloadUrl) { alert("لا يوجد رابط تنزيل محفوظ لهذا المنتج. اطلب من البائع إضافة الملف أو رابط التحميل."); return; }
                 const w = window.open("about:blank", "_blank");
                 if (!w) { alert("اسمح بفتح نافذة الملف من المتصفح."); return; }
                 const safeName = String(data.fileName || "product-file").replace(/[<>]/g, "");
-                w.document.write(`<html lang="ar" dir="rtl"><head><title>فحص ملف المنتج</title><style>body{font-family:Arial;background:#111;color:#fff;padding:30px;text-align:center}a{display:inline-block;margin:10px;padding:12px 18px;border-radius:8px;background:#00d2ff;color:#000;text-decoration:none;font-weight:bold}iframe{width:95%;height:70vh;border:1px solid #333;border-radius:10px;margin-top:20px}</style></head><body><h2>📦 ${safeName}</h2><a href="${data.downloadUrl}" download="${safeName}">تنزيل الملف</a><a href="${data.downloadUrl}" target="_blank">فتح الملف</a><iframe src="${data.downloadUrl}" title="معاينة"></iframe></body></html>`);
+                w.document.write(`<html lang="ar" dir="rtl"><head><title>فحص ملف المنتج</title><style>body{font-family:Arial;background:#111;color:#fff;padding:30px;text-align:center}a{display:inline-block;margin:10px;padding:12px 18px;border-radius:8px;background:#00d2ff;color:#000;text-decoration:none;font-weight:bold}iframe{width:95%;height:70vh;border:1px solid #333;border-radius:10px;margin-top:20px}</style></head><body><h2>📦 ${safeName}</h2><p>النوع: ${String(data.contentType||'غير معروف')} · الحجم: ${data.sourceSize?((data.sourceSize/1024/1024).toFixed(2)+' MB'):'غير معروف'} · الطريقة: ${String(data.deliveryType||'غير معروف')}</p><a href="${data.downloadUrl}" download="${safeName}" rel="noopener">⬇️ تنزيل الملف</a><a href="${data.downloadUrl}" target="_blank" rel="noopener">🔗 فتح الرابط</a><iframe src="${data.downloadUrl}" title="معاينة"></iframe></body></html>`);
                 w.document.close();
             } catch (e) { alert("خطأ في فتح الملف: " + e.message); }
         }
