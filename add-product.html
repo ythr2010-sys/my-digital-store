@@ -74,58 +74,16 @@
                 <div id="alertBox"></div>
                 <form id="productForm">
         <div class="form-group">
-          <label for="productImage">صورة المنتج <span style="color:#00e676;font-weight:700;">(اختياري)</span></label>
-          <div id="imagePicker" style="border:2px dashed rgba(0,210,255,.35);border-radius:14px;padding:16px;text-align:center;cursor:pointer;background:rgba(0,210,255,.03)">
-            <strong>🖼️ اختر عدة صور</strong><br><span style="color:#a0a0c0">يمكنك اختيار 2 أو 5 أو 10 صور دفعة واحدة، أو إضافتها على دفعات.</span>
-            <input type="file" id="productImage" name="productImage" accept="image/png,image/jpeg,image/webp,image/gif" multiple style="display:none">
-          </div>
-          <div id="imageCount" style="margin-top:8px;color:#00d2ff;font-weight:700"></div>
-          <div id="productImagePreview" style="display:none;margin-top:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:10px;"></div>
+          <label for="imageUrls">روابط صور المنتج (اختياري)</label>
+          <textarea id="imageUrls" rows="5" placeholder="ضع رابط صورة واحداً في كل سطر\nhttps://example.com/image-1.jpg\nhttps://example.com/image-2.jpg"></textarea>
+          <p style="color:var(--text-sub);font-size:.82rem;margin-top:7px">يمكنك وضع عدة روابط. استخدم روابط صور عامة تعمل مباشرة عبر HTTPS.</p>
         </div>
 
-                    <div class="form-group">
-                        <label>عنوان المنتج</label>
-                        <input type="text" id="title" required placeholder="مثال: حزمة تصاميم UI/UX احترافية">
-                    </div>
-                    <div class="form-group">
-                        <label>وصف المنتج</label>
-                        <textarea id="description" rows="4" required placeholder="اشرح مميزات المنتج وما يحصل عليه المشتري..."></textarea>
-                    </div>
-                    <div class="row-2">
-                        <div class="form-group">
-                            <label>السعر ($ أو مجاني)</label>
-                            <input type="text" id="price" required placeholder="مجاني أو 5.00">
-                        </div>
-                        <div class="form-group">
-                            <label>التصنيف</label>
-                            <select id="category" required>
-                                <option value="books">📚 كتب وروايات</option>
-                                <option value="models">🎨 مجسمات 3D/2D</option>
-                                <option value="courses">🎓 دورات تعليمية</option>
-                                <option value="gaming">🎮 ألعاب واشتراكات</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>ملف المنتج 📂</label><p style="color:var(--text-sub);font-size:.85rem;line-height:1.6;margin:6px 0 10px">يمكن رفع ملف كبير جداً عبر Firebase Cloud Storage (حتى 5 TiB للملف الواحد). إذا لم تفعّل Storage، استخدم رابط تحميل خارجي مثل رابط ملف مستضاف لديك.</p>
-                        <div class="upload-zone" id="uploadZone">
-                            <div class="icon">📤</div>
-                            <p>اختر ملفاً صغيراً من حاسوبك/هاتفك، أو استخدم رابط تحميل خارجي.</p>
-                            <p style="font-size:.75rem;">بدون Storage: الملفات الصغيرة فقط تُحفظ داخل Firestore. مع Storage يمكن رفع الملفات الكبيرة وإنشاء رابط تنزيل تلقائياً.</p>
-                            <input type="file" id="fileInput" style="display:none;">
-                            <div class="file-name" id="fileNameDisplay"></div>
-                        </div>
-                        <div id="progressWrap">
-                            <div id="progressBar"><div id="progressFill"></div></div>
-                            <div id="progressText">0%</div>
-                        </div>
-                    </div>
-
-                    <div class="or-divider"><span>أو استخدم رابط تحميل خارجي</span></div>
-                    <div class="form-group">
-                        <label>رابط التحميل الخارجي (بديل إذا لم يتوفر Storage)</label>
-                        <input type="url" id="downloadUrlInput" placeholder="https://drive.google.com/...">
-                    </div>
+        <div class="form-group">
+          <label for="downloadUrlInput">رابط ملف المنتج <span style="color:#ffcc66">(مطلوب)</span></label>
+          <input type="url" id="downloadUrlInput" required placeholder="https://.../your-product.zip">
+          <p style="color:var(--text-sub);font-size:.82rem;margin-top:7px">هذه النسخة لا ترفع الملفات إلى Firebase Storage. ارفع الملف إلى R2 أو B2 أو خدمة تخزين خارجية، ثم ضع رابط التحميل هنا.</p>
+        </div>
 
                     <button type="submit" id="submitBtn" class="btn-submit">📨 إرسال المنتج للمراجعة</button>
                     <p style="color:var(--text-sub);font-size:.8rem;margin-top:12px;text-align:center;">
@@ -137,49 +95,69 @@
     </div>
 
     <script type="module">
-import { auth, db, storage } from "./firebase-init.js";
+import { auth, db } from "./firebase-init.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { collection, addDoc, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { ref as storageRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-let currentUserEmail=null, selectedFile=null, selectedImages=[];
-const MAX_EMBED_FILE=700*1024, MAX_EMBED_IMAGE=120*1024, MAX_EMBED_IMAGES_TOTAL=600*1024;
-const MAX_STORAGE_FILE=5*1024*1024*1024*1024;
-onAuthStateChanged(auth,u=>{currentUserEmail=u?.email||null;document.getElementById("formWrapper").style.display=u?"block":"none";document.getElementById("authGate").style.display=u?"none":"block";});
-const uploadZone=document.getElementById("uploadZone"),fileInput=document.getElementById("fileInput"),fileNameDisplay=document.getElementById("fileNameDisplay"),imageInput=document.getElementById("productImage"),imagePreview=document.getElementById("productImagePreview");
-uploadZone.addEventListener("click",()=>fileInput.click());
-fileInput.addEventListener("change",()=>handleProductFile(fileInput.files[0]));
-uploadZone.addEventListener("dragover",e=>{e.preventDefault();uploadZone.classList.add("dragover")});
-uploadZone.addEventListener("dragleave",()=>uploadZone.classList.remove("dragover"));
-uploadZone.addEventListener("drop",e=>{e.preventDefault();uploadZone.classList.remove("dragover");handleProductFile(e.dataTransfer.files[0])});
-function handleProductFile(f){if(!f)return;selectedFile=f;fileNameDisplay.textContent="📎 "+f.name+" ("+(f.size/1024/1024).toFixed(2)+" MB)";fileNameDisplay.style.display="block";if(f.size>MAX_STORAGE_FILE)showAlert("حجم الملف يتجاوز الحد الأقصى المسموح به في Cloud Storage (5 TiB).","error")}
-async function optimizeImage(file){if(!file.type.startsWith('image/')||file.type==='image/gif'||file.size<900*1024)return file;return await new Promise(resolve=>{const img=new Image();const u=URL.createObjectURL(file);img.onload=()=>{const max=1800,scale=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>{URL.revokeObjectURL(u);resolve(b?new File([b],file.name.replace(/\.[^.]+$/i,'.jpg'),{type:'image/jpeg'}):file)},'image/jpeg',.82)};img.onerror=()=>{URL.revokeObjectURL(u);resolve(file)};img.src=u})}
-function uploadToStorage(path,file){return new Promise((resolve,reject)=>{const task=uploadBytesResumable(storage,storageRef(storage,path),file);task.on('state_changed',snap=>{const pct=Math.round(snap.bytesTransferred/snap.totalBytes*100);setProgress(pct)},reject,async()=>{try{resolve(await getDownloadURL(task.snapshot.ref))}catch(e){reject(e)}})})}
-const imagePicker=document.getElementById('imagePicker');
-function syncImageInput(){const dt=new DataTransfer();selectedImages.forEach(f=>dt.items.add(f));imageInput.files=dt.files;}
-function renderSelectedImages(){imagePreview.innerHTML='';imagePreview.style.display=selectedImages.length?'grid':'none';document.getElementById('imageCount').textContent=selectedImages.length?`تم اختيار ${selectedImages.length} صورة — يمكنك إضافة المزيد أو حذف أي صورة.`:'';selectedImages.forEach((f,i)=>{const box=document.createElement('div');box.style.cssText='position:relative;border:1px solid rgba(0,210,255,.25);border-radius:12px;padding:6px;background:#10101b';const img=document.createElement('img');img.src=URL.createObjectURL(f);img.style.cssText='width:100%;height:95px;object-fit:cover;border-radius:8px;display:block';const b=document.createElement('button');b.type='button';b.textContent='✕ حذف';b.style.cssText='margin-top:6px;width:100%;padding:6px;border:0;border-radius:7px;background:#3d1118;color:#ff9aaa;cursor:pointer;font-weight:700';b.onclick=()=>{selectedImages.splice(i,1);syncImageInput();renderSelectedImages()};box.append(img,b);imagePreview.appendChild(box)})}
-imagePicker.addEventListener('click',()=>imageInput.click());
-imagePicker.addEventListener('dragover',e=>{e.preventDefault();imagePicker.style.borderColor='#00d2ff'});
-imagePicker.addEventListener('dragleave',()=>imagePicker.style.borderColor='rgba(0,210,255,.35)');
-imagePicker.addEventListener('drop',e=>{e.preventDefault();imagePicker.style.borderColor='rgba(0,210,255,.35)';addImages(e.dataTransfer.files)});
-function addImages(list){const incoming=Array.from(list||[]).filter(f=>f.type.startsWith('image/'));const seen=new Set(selectedImages.map(f=>f.name+'|'+f.size));for(const f of incoming){const key=f.name+'|'+f.size;if(!seen.has(key)){selectedImages.push(f);seen.add(key)}}syncImageInput();renderSelectedImages()}
-imageInput.addEventListener('change',()=>addImages(imageInput.files));
-function showAlert(msg,type){const b=document.getElementById("alertBox");b.className=type==="success"?"alert-success":"alert-error";b.textContent=msg;window.scrollTo({top:0,behavior:"smooth"})}
-function setProgress(n){document.getElementById("progressWrap").style.display="block";document.getElementById("progressFill").style.width=n+"%";document.getElementById("progressText").textContent=n+"%"}
-function resetProductForm(){document.getElementById("productForm").reset();selectedFile=null;selectedImages=[];fileNameDisplay.style.display="none";imagePreview.innerHTML="";imagePreview.style.display="none";document.getElementById("imageCount").textContent="";document.getElementById("progressWrap").style.display="none";document.getElementById("progressFill").style.width="0%";document.getElementById("progressText").textContent="0%"}
-async function prepareImages(productId){
-  if(!selectedImages.length)return [];
-  const urls=[];
-  for(let i=0;i<selectedImages.length;i++){
-    const optimized=await optimizeImage(selectedImages[i]);
-    try{
-      urls.push(await uploadToStorage(`product-images/${productId}/${Date.now()}_${i}_${optimized.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`,optimized));
-    }catch(storageErr){
-      throw new Error("تعذر رفع الصورة إلى Firebase Storage. فعّل Cloud Storage ثم أعد المحاولة، أو استخدم رابط صورة خارجي. لن يتم تخزين الصور داخل Firestore.");
-    }
-  }
-  return urls;
+
+let currentUserEmail = null;
+const $ = id => document.getElementById(id);
+
+function isHttpUrl(value) {
+  try { const u = new URL(String(value).trim()); return u.protocol === 'https:' || u.protocol === 'http:'; }
+  catch { return false; }
 }
-document.getElementById("productForm").addEventListener("submit",async e=>{e.preventDefault();if(!currentUserEmail)return showAlert("يجب تسجيل الدخول أولاً.","error");if(selectedFile&&selectedFile.size>MAX_STORAGE_FILE)return showAlert("حجم الملف يتجاوز 5 TiB، وهو الحد الأقصى لملف واحد في Firebase Cloud Storage.","error");const rawPrice=document.getElementById("price").value.trim();const price=/^(مجاني|مجانية|0+(?:[.,]0+)?)\$?$|^\$0+(?:[.,]0+)?$/i.test(rawPrice.replace(/\s+/g,''))?'مجاني':rawPrice;if(price!=='مجاني'&&(isNaN(parseFloat(price))||parseFloat(price)<0))return showAlert("السعر يجب أن يكون رقماً أو كلمة 'مجاني'.","error");const externalLink=document.getElementById("downloadUrlInput").value.trim();if(!selectedFile&&!externalLink)return showAlert("أضف ملف المنتج أو ضع رابط تحميل خارجي.","error");const btn=document.getElementById("submitBtn");btn.disabled=true;btn.textContent="جاري تجهيز المنتج...";try{const title=document.getElementById("title").value.trim();const productRef=doc(collection(db,"products"));const imageUrls=await prepareImages(productRef.id);const data={title,description:document.getElementById("description").value.trim(),price,category:document.getElementById("category").value,imageUrl:imageUrls[0]||"",imageUrls,sellerEmail:currentUserEmail,status:"pending",createdAt:serverTimestamp()};await setDoc(productRef,data);let downloadUrl=externalLink,deliveryType="external",fileName="ملف خارجي";if(selectedFile){fileName=selectedFile.name;try{downloadUrl=await uploadToStorage(`products/${productRef.id}/${Date.now()}_${selectedFile.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`,selectedFile);deliveryType="storage"}catch(storageErr){throw new Error("تعذر رفع ملف المنتج إلى Firebase Storage. فعّل Cloud Storage أو استخدم رابط تحميل خارجي. لن يتم تخزين الملف داخل Firestore.");}}await setDoc(doc(db,"product_files",productRef.id),{downloadUrl,fileName,sellerEmail:currentUserEmail,deliveryType,sourceSize:selectedFile?.size||null,createdAt:serverTimestamp()});await addDoc(collection(db,"notifications"),{userEmail:currentUserEmail,type:"product_submission",title:"تم إرسال منتجك 📦",message:`تم استلام منتج "${title}" بنجاح. انتظر رد الإدارة في الإشعارات.`,read:false,createdAt:serverTimestamp()});resetProductForm();showAlert("تم إرسال المنتج بنجاح. تم إنشاء رابط تحميل تلقائي للملف عبر التخزين، ويمكن للملفات الكبيرة جدًا استخدام Cloud Storage. 🔔","success");btn.textContent="✅ تم الإرسال — أرسل منتجاً آخر"}catch(err){console.error(err);showAlert("تعذر إرسال المنتج: "+(err?.message||"خطأ غير معروف"),"error")}finally{btn.disabled=false;if(!btn.textContent.includes("تم الإرسال"))btn.textContent="📨 إرسال المنتج للمراجعة"}});
+function parseUrls(value) {
+  return String(value || '').split(/\r?\n|,/).map(x => x.trim()).filter(Boolean);
+}
+function showAlert(msg, type) {
+  const b = $('alertBox'); b.className = type === 'success' ? 'alert-success' : 'alert-error'; b.textContent = msg; window.scrollTo({top:0,behavior:'smooth'});
+}
+function resetProductForm() { $('productForm').reset(); }
+
+onAuthStateChanged(auth, u => {
+  currentUserEmail = u?.email || null;
+  $('formWrapper').style.display = u ? 'block' : 'none';
+  $('authGate').style.display = u ? 'none' : 'block';
+});
+
+$('productForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!currentUserEmail) return showAlert('يجب تسجيل الدخول أولاً.', 'error');
+  const title = $('title').value.trim();
+  const description = $('description').value.trim();
+  const rawPrice = $('price').value.trim();
+  const imageUrls = parseUrls($('imageUrls').value);
+  const downloadUrl = $('downloadUrlInput').value.trim();
+  const free = /^(مجاني|مجانية|0+(?:[.,]0+)?)\$?$|^\$0+(?:[.,]0+)?$/i.test(rawPrice.replace(/\s+/g,''));
+  const price = free ? 'مجاني' : rawPrice;
+  if (!title || !description) return showAlert('أدخل عنوان المنتج ووصفه.', 'error');
+  if (!free && (isNaN(parseFloat(price)) || parseFloat(price) < 0)) return showAlert('السعر يجب أن يكون رقماً أو كلمة «مجاني».', 'error');
+  if (imageUrls.some(u => !isHttpUrl(u))) return showAlert('كل روابط الصور يجب أن تبدأ بـ http:// أو https://.', 'error');
+  if (!downloadUrl || !isHttpUrl(downloadUrl)) return showAlert('ضع رابط تحميل خارجي صالحاً للملف. لا يتم رفع الملفات إلى Firebase في هذه النسخة.', 'error');
+
+  const btn = $('submitBtn'); btn.disabled = true; btn.textContent = 'جاري إرسال المنتج...';
+  try {
+    const productRef = doc(collection(db, 'products'));
+    await setDoc(productRef, {
+      title, description, price, category: $('category').value,
+      imageUrl: imageUrls[0] || '', imageUrls, sellerEmail: currentUserEmail,
+      status: 'pending', createdAt: serverTimestamp()
+    });
+    await setDoc(doc(db, 'product_files', productRef.id), {
+      downloadUrl, fileName: 'رابط خارجي', sellerEmail: currentUserEmail,
+      deliveryType: 'external', createdAt: serverTimestamp()
+    });
+    await addDoc(collection(db, 'notifications'), {
+      userEmail: currentUserEmail, type: 'product_submission', title: 'تم إرسال منتجك 📦',
+      message: `تم استلام منتج «${title}» بنجاح. انتظر رد الإدارة في الإشعارات.`,
+      read: false, createdAt: serverTimestamp()
+    });
+    resetProductForm();
+    showAlert('تم إرسال المنتج للمراجعة بنجاح. بعد موافقة الإدارة سيظهر في المتجر. 🔔', 'success');
+  } catch (err) {
+    console.error(err); showAlert('تعذر إرسال المنتج: ' + (err?.message || 'خطأ غير معروف'), 'error');
+  } finally { btn.disabled = false; if (!btn.textContent.includes('تم إرسال')) btn.textContent = '📨 إرسال المنتج للمراجعة'; }
+});
 </script>
     <script type="module" src="./site-enhance.js"></script>
 

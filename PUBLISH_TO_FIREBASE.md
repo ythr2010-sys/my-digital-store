@@ -2,7 +2,7 @@
 
 1. ارفع ملفات الموقع إلى الاستضافة.
 2. انشر `firestore.rules` من Firebase Console.
-3. إذا أردت رفع ملفات كبيرة وإنشاء روابط تنزيل تلقائية من جهاز البائع، فعّل Cloud Storage في مشروع Firebase (يتطلب Blaze).
+3. إذا أردت رفع ملفات كبيرة وإنشاء روابط تنزيل تلقائية من جهاز البائع، فعّل External Storage / Cloud Storage في مشروع Firebase (يتطلب Blaze).
 4. انشر `storage.rules` بعد تفعيل Storage.
 5. إذا بقي المشروع على Spark، استخدم الروابط الخارجية أو الملفات الصغيرة المدعومة داخل Firestore.
 
@@ -14,7 +14,11 @@
 
 
 ## V8 — large product files
-- Product files use Cloud Storage when available, with a maximum object size of 5 TiB per file.
-- Files larger than the small Firestore fallback require Cloud Storage or an external download URL.
-- Cloud Storage for Firebase requires the Blaze pay-as-you-go plan.
+- Product files use External Storage / Cloud Storage when available, with a maximum object size of 5 TiB per file.
+- Files larger than the small Firestore fallback require External Storage / Cloud Storage or an external download URL.
+- External Storage / Cloud Storage for Firebase requires the Blaze pay-as-you-go plan.
 - Set budget alerts before enabling large uploads to avoid unexpected billing.
+
+
+## v14: Firebase Storage not required
+DigiVault v14 uses external file/image URLs. Deploy `firestore.rules`; the Firebase Storage rules are retained only for backward compatibility and are not referenced by `firebase.json`.

@@ -128,8 +128,8 @@
                 try {
                     const ordersSnap = await getDocs(query(collection(db, "orders"), where("buyerEmail", "==", currentUser.email)));
                     ordersSnap.forEach(d => { const o = d.data(); if (o.status === 'completed' && (o.items || []).some(i => i.id === productId)) hasPurchased = true; });
-                    const freeSnap = await getDocs(query(collection(db, "free_purchases"), where("buyerEmail", "==", currentUser.email)));
-                    freeSnap.forEach(d => { if (d.data().productId === productId) hasPurchased = true; });
+                    const freeSnap = await getDoc(doc(db, 'free_purchases', `${currentUser.uid}_${productId}`));
+                    if (freeSnap.exists()) hasPurchased = true;
                 } catch (e) { console.warn('purchase history unavailable:', e); }
             }
 
