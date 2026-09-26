@@ -1,0 +1,15 @@
+[
+  {
+    "AllowedOrigins": ["https://ythr2010-sys.github.io"],
+    "AllowedMethods": ["POST", "PUT", "DELETE"],
+    "AllowedHeaders": [
+      "authorization",
+      "content-type",
+      "x-amz-content-sha256",
+      "x-amz-date",
+      "x-amz-security-token"
+    ],
+    "ExposeHeaders": ["ETag"],
+    "MaxAgeSeconds": 3600
+  }
+]

@@ -7,3 +7,12 @@
 - تثبيت حد ملف واحد 5 TiB في واجهتي الإضافة والتعديل عند استخدام Firebase Cloud Storage.
 - توضيح بديل الروابط الخارجية للملفات الكبيرة.
 - إضافة `docs/STORAGE_OPTIONS.md` لشرح Firebase Storage وCloudflare R2.
+
+
+v15 — Direct Large File Upload
+- إضافة Upload Worker آمن للتحقق من Firebase ID tokens وإصدار R2 temporary credentials مقيدة بمسار البائع.
+- إضافة رفع multipart مباشر من المتصفح إلى R2 للملفات الكبيرة.
+- إضافة شريط تقدم وحذف الاعتماد على إدخال رابط الملف يدوياً في إضافة/تعديل المنتج.
+- حفظ storageKey واسم الملف والنوع والحجم في product_files بدلاً من Base64.
+- إصلاح نموذج إضافة المنتج الذي كان يفتقد حقول العنوان والوصف والسعر والتصنيف في v14.
+- إضافة إعدادات CORS ودليل نشر Worker.
