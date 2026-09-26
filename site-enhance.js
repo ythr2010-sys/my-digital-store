@@ -28,6 +28,11 @@ function init() {
     const a=document.createElement('a'); a.className='dv-home'; a.href='index.html'; a.textContent='⌂ الرئيسية';
     document.body.appendChild(a);
   }
+  if (!document.querySelector('.dv-seller')) {
+    const a=document.createElement('a'); a.className='dv-seller'; a.href='my-products.html'; a.textContent='📊 لوحة البائع';
+    a.style.cssText='position:fixed;bottom:18px;right:18px;z-index:99998;padding:10px 14px;border-radius:999px;background:rgba(20,20,36,.94);color:#fff;text-decoration:none;border:1px solid rgba(0,210,255,.25);box-shadow:0 8px 24px rgba(0,0,0,.22);font-weight:700';
+    document.body.appendChild(a);
+  }
   window.dvToast = (msg) => {
     const old=document.querySelector('.dv-toast'); if(old) old.remove();
     const t=document.createElement('div'); t.className='dv-toast'; t.textContent=msg; document.body.appendChild(t);

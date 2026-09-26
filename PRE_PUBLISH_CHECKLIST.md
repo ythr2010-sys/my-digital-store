@@ -23,3 +23,9 @@
 - Monitor Storage/Firestore usage and billing alerts.
 - Keep an admin audit trail for approvals/rejections and order actions.
 - Add a support/contact process and a clear refund policy before launch.
+
+## V10 checks
+- [ ] اختبار اختيار عدة صور في نفس المرة.
+- [ ] اختبار إضافة صور على دفعات ثم حذف صورة قبل الإرسال.
+- [ ] اختبار لوحة البائع من الرئيسية والمتجر والهاتف.
+- [ ] تفعيل Cloud Storage للصور/الملفات الكبيرة قبل الاستخدام التجاري.
