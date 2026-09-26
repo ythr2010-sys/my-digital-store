@@ -1,161 +1,74 @@
-// DigiVault v15 - browser-side R2 uploader
-import { AwsClient } from "https://esm.sh/aws4fetch@1.0.20";
-import {
-  DIGIVAULT_UPLOAD_WORKER,
-  DIGIVAULT_UPLOAD_ENABLED,
-  DIGIVAULT_MULTIPART_PART_SIZE,
-  DIGIVAULT_MULTIPART_CONCURRENCY
-} from "./upload-config.js";
+import { UPLOAD_WORKER_URL, R2_PUBLIC_BASE_URL, UPLOAD_LIMITS } from './upload-config.js';
 
-const DEFAULT_TYPE = "application/octet-stream";
-
-function encodePath(key) {
-  return String(key).split("/").map(encodeURIComponent).join("/");
+function cleanBaseUrl() { return String(R2_PUBLIC_BASE_URL || '').replace(/\/$/, ''); }
+function publicUrl(key) { return `${cleanBaseUrl()}/${String(key).split('/').map(encodeURIComponent).join('/')}`; }
+function assertConfigured() {
+  if (!UPLOAD_WORKER_URL || UPLOAD_WORKER_URL.includes('YOUR-DIGIVAULT')) throw new Error('لم يتم إعداد رابط Upload Worker بعد. عدّل upload-config.js.');
+  if (!R2_PUBLIC_BASE_URL || R2_PUBLIC_BASE_URL.includes('YOUR-R2-PUBLIC-DOMAIN')) throw new Error('لم يتم إعداد نطاق R2 العام بعد. عدّل upload-config.js.');
 }
-
-function r2ObjectUrl(accountId, bucket, key) {
-  return `https://${accountId}.r2.cloudflarestorage.com/${encodeURIComponent(bucket)}/${encodePath(key)}`;
-}
-
-function xmlEscape(value) {
-  return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
-}
-
-function parseXmlText(text, tag) {
-  const match = String(text).match(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, "i"));
-  return match ? match[1] : "";
-}
-
-function parseError(text) {
-  const code = parseXmlText(text, "Code");
-  const message = parseXmlText(text, "Message");
-  return code ? `${code}${message ? `: ${message}` : ""}` : `HTTP ${text}`;
-}
-
-async function getCredentials(user, file) {
-  if (!DIGIVAULT_UPLOAD_ENABLED) {
-    throw new Error("خدمة الرفع غير مفعّلة بعد. انشر Upload Worker ثم ضع رابطه في upload-config.js.");
-  }
+async function workerJson(path, body, user) {
   const token = await user.getIdToken();
-  const response = await fetch(`${DIGIVAULT_UPLOAD_WORKER.replace(/\/$/, "")}/credentials`, {
-    method: "POST",
-    headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      fileName: file.name,
-      contentType: file.type || DEFAULT_TYPE
-    })
+  const res = await fetch(`${UPLOAD_WORKER_URL.replace(/\/$/, '')}${path}`, {
+    method: 'POST', headers: {'Content-Type':'application/json', Authorization:`Bearer ${token}`}, body: JSON.stringify(body)
   });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "تعذر الحصول على صلاحية رفع آمنة.");
+  const data = await res.json().catch(()=>({}));
+  if (!res.ok) throw new Error(data.error || `Upload Worker error (${res.status})`);
   return data;
 }
-
-function makeClient(creds) {
-  return new AwsClient({
-    accessKeyId: creds.accessKeyId,
-    secretAccessKey: creds.secretAccessKey,
-    sessionToken: creds.sessionToken,
-    service: "s3",
-    region: "auto",
-    retries: 3
-  });
-}
-
-async function request(client, url, init = {}) {
-  const response = await client.fetch(url, init);
-  if (!response.ok) {
-    const body = await response.text().catch(() => "");
-    throw new Error(parseError(body || String(response.status)));
+function partCount(size, partSize) { return Math.ceil(size / partSize); }
+async function uploadPart(url, blob, retries=3) {
+  let last;
+  for (let attempt=0; attempt<retries; attempt++) {
+    try {
+      const res = await fetch(url, {method:'PUT', body:blob});
+      if (!res.ok) throw new Error(`فشل رفع جزء الملف (${res.status})`);
+      const etag = res.headers.get('ETag') || res.headers.get('etag');
+      return etag ? etag.replace(/^"|"$/g,'') : null;
+    } catch(e) { last=e; await new Promise(r=>setTimeout(r, 700*(attempt+1))); }
   }
-  return response;
+  throw last || new Error('فشل رفع جزء من الملف.');
 }
 
-async function multipartUpload({ client, objectUrl, file, contentType, onProgress }) {
-  const createUrl = `${objectUrl}?uploads`;
-  const createResponse = await request(client, createUrl, {
-    method: "POST",
-    headers: { "Content-Type": contentType }
-  });
-  const createXml = await createResponse.text();
-  const uploadId = parseXmlText(createXml, "UploadId");
-  if (!uploadId) throw new Error("تعذر إنشاء جلسة رفع متعددة الأجزاء.");
+export async function uploadToR2({user, file, kind='product', onProgress=()=>{}}) {
+  assertConfigured();
+  if (!file) throw new Error('لم يتم اختيار ملف.');
+  const isImage = kind === 'image';
+  const max = isImage ? UPLOAD_LIMITS.imageMaxBytes : UPLOAD_LIMITS.productFileMaxBytes;
+  if (file.size > max) throw new Error(isImage ? 'حجم الصورة أكبر من الحد المسموح (10 MB).' : 'حجم الملف يتجاوز حد R2 المعلن.');
+  if (isImage && !String(file.type || '').startsWith('image/')) throw new Error('الملف المختار ليس صورة.');
 
-  const partSize = Math.max(5 * 1024 * 1024, DIGIVAULT_MULTIPART_PART_SIZE);
-  const partCount = Math.ceil(file.size / partSize);
-  if (partCount > 10000) throw new Error("الملف كبير جداً لهذا الإعداد. زد حجم الجزء في upload-config.js.");
-
-  const parts = new Array(partCount);
-  let nextPart = 1;
+  const init = await workerJson('/multipart/initiate', {
+    fileName:file.name, contentType:file.type || 'application/octet-stream', size:file.size, kind
+  }, user);
+  const partSize = init.partSize || UPLOAD_LIMITS.partSizeBytes;
+  const count = partCount(file.size, partSize);
+  if (count > 10000) throw new Error('الملف يحتاج أكثر من 10,000 جزء. استخدم ملفاً أصغر أو ارفع partSize في Worker.');
+  const parts = [];
   let completed = 0;
-
+  const queue = Array.from({length:count}, (_,i)=>i+1);
   const worker = async () => {
-    while (true) {
-      const partNumber = nextPart++;
-      if (partNumber > partCount) return;
-      const start = (partNumber - 1) * partSize;
-      const end = Math.min(start + partSize, file.size);
-      const chunk = file.slice(start, end);
-      // aws4fetch signs ArrayBuffer bodies; only the current part is materialized in memory.
-      const chunkBuffer = await chunk.arrayBuffer();
-      const partUrl = `${objectUrl}?partNumber=${partNumber}&uploadId=${encodeURIComponent(uploadId)}`;
-      const response = await request(client, partUrl, {
-        method: "PUT",
-        headers: { "Content-Type": contentType },
-        body: chunkBuffer
-      });
-      const etag = response.headers.get("ETag") || response.headers.get("etag");
-      if (!etag) throw new Error(`لم يرجع التخزين ETag للجزء ${partNumber}.`);
-      parts[partNumber - 1] = { partNumber, etag };
+    while(queue.length) {
+      const partNumber = queue.shift();
+      const start = (partNumber-1)*partSize;
+      const end = Math.min(file.size, start+partSize);
+      const signed = await workerJson('/multipart/sign-part', {key:init.key, uploadId:init.uploadId, partNumber}, user);
+      const etag = await uploadPart(signed.url, file.slice(start,end));
+      if (!etag) throw new Error('خادم R2 لم يعُد ETag للجزء المرفوع. تأكد من إعداد CORS.');
+      parts.push({partNumber, etag});
       completed++;
-      onProgress?.(Math.round((completed / partCount) * 100));
+      onProgress(Math.round(completed/count*100));
     }
   };
-
   try {
-    const concurrency = Math.min(DIGIVAULT_MULTIPART_CONCURRENCY, partCount);
-    await Promise.all(Array.from({ length: concurrency }, () => worker()));
-
-    const completeXml = `<CompleteMultipartUpload>${parts.map(part =>
-      `<Part><PartNumber>${part.partNumber}</PartNumber><ETag>${xmlEscape(part.etag)}</ETag></Part>`
-    ).join("")}</CompleteMultipartUpload>`;
-
-    await request(client, `${objectUrl}?uploadId=${encodeURIComponent(uploadId)}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/xml" },
-      body: completeXml
-    });
-    onProgress?.(100);
-  } catch (error) {
-    try {
-      await client.fetch(`${objectUrl}?uploadId=${encodeURIComponent(uploadId)}`, { method: "DELETE" });
-    } catch {}
-    throw error;
+    await Promise.all(Array.from({length:Math.min(UPLOAD_LIMITS.concurrency,count)}, worker));
+    parts.sort((a,b)=>a.partNumber-b.partNumber);
+    const done = await workerJson('/multipart/complete', {key:init.key, uploadId:init.uploadId, parts}, user);
+    return { key:init.key, fileName:file.name, contentType:file.type || 'application/octet-stream', size:file.size, downloadUrl:done.downloadUrl || publicUrl(init.key) };
+  } catch (e) {
+    try { await workerJson('/multipart/abort', {key:init.key, uploadId:init.uploadId}, user); } catch {}
+    throw e;
   }
 }
 
-export async function uploadProductFile({ user, file, onProgress }) {
-  if (!user || !file) throw new Error("يجب تسجيل الدخول واختيار ملف.");
-  if (file.size <= 0) throw new Error("الملف فارغ.");
-  if (file.size > 5 * 1024 * 1024 * 1024 * 1024) throw new Error("الحد الأقصى النظري لملف R2 هو 5 TiB.");
-
-  const creds = await getCredentials(user, file);
-  const client = makeClient(creds);
-  const objectUrl = r2ObjectUrl(creds.accountId, creds.bucket, creds.key);
-  const contentType = file.type || DEFAULT_TYPE;
-
-  onProgress?.(0);
-  // v15 uses multipart upload for product files so the browser never has to
-  // materialize the entire file. This is the reliable path for large files.
-  await multipartUpload({ client, objectUrl, file, contentType, onProgress });
-
-  return {
-    key: creds.key,
-    fileName: file.name,
-    contentType,
-    size: file.size,
-    // The bucket should use a production custom domain for buyer downloads.
-    downloadUrl: creds.publicBaseUrl
-      ? `${String(creds.publicBaseUrl).replace(/\/$/, "")}/${encodePath(creds.key)}`
-      : ""
-  };
-}
+export const uploadProductFile = opts => uploadToR2({...opts, kind:'product'});
+export const uploadProductImage = opts => uploadToR2({...opts, kind:'image'});

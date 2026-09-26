@@ -1,11 +1,15 @@
-// DigiVault v15 - upload service configuration
-// بعد نشر Worker، ضع رابطه هنا. لا تضع أي مفاتيح Cloudflare في هذا الملف.
-export const DIGIVAULT_UPLOAD_WORKER = "https://YOUR-DIGIVAULT-UPLOAD-WORKER.workers.dev";
+// DigiVault v15 upload configuration.
+// Set this to the deployed Cloudflare Worker URL before publishing.
+export const UPLOAD_WORKER_URL = 'https://YOUR-DIGIVAULT-UPLOAD-WORKER.workers.dev';
 
-export const DIGIVAULT_UPLOAD_ENABLED =
-  /^https:\/\/(?!YOUR-DIGIVAULT-UPLOAD-WORKER)/i.test(DIGIVAULT_UPLOAD_WORKER);
+// Must point to the public R2 custom domain (recommended) or r2.dev domain.
+// Example: https://files.example.com
+export const R2_PUBLIC_BASE_URL = 'https://YOUR-R2-PUBLIC-DOMAIN.example.com';
 
-export const DIGIVAULT_UPLOAD_MAX_BYTES = 5 * 1024 * 1024 * 1024 * 1024; // 5 TiB (حد R2 النظري)
-export const DIGIVAULT_SINGLE_UPLOAD_LIMIT = 5 * 1024 * 1024 * 1024; // 5 GiB
-export const DIGIVAULT_MULTIPART_PART_SIZE = 50 * 1024 * 1024; // 50 MiB
-export const DIGIVAULT_MULTIPART_CONCURRENCY = 2;
+export const UPLOAD_LIMITS = {
+  productFileMaxBytes: 500 * 1024 ** 3, // Current UI limit with 50 MiB parts and max 10,000 parts
+  imageMaxBytes: 10 * 1024 ** 2,
+  maxImages: 8,
+  partSizeBytes: 50 * 1024 ** 2,
+  concurrency: 2
+};
