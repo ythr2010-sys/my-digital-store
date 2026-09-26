@@ -11,3 +11,10 @@
 
 ## v7
 بعد النشر تأكد من نشر `firestore.rules`. صفحة منتجاتي تستخدم query على sellerEmail، لذلك يجب أن تطابق القاعدة نفس شرط الملكية؛ هذا يتوافق مع طريقة تقييم Firestore للاستعلامات.
+
+
+## V8 — large product files
+- Product files use Cloud Storage when available, with a maximum object size of 5 TiB per file.
+- Files larger than the small Firestore fallback require Cloud Storage or an external download URL.
+- Cloud Storage for Firebase requires the Blaze pay-as-you-go plan.
+- Set budget alerts before enabling large uploads to avoid unexpected billing.

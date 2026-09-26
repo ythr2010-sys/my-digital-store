@@ -95,6 +95,10 @@
 
         let currentCategory = 'all';
         let allProductsCache = [];
+        const sortSelect = document.getElementById('sortSelect');
+        const priceFilter = document.getElementById('priceFilter');
+        const numericPrice = p => { const n = parseFloat(String(p.price ?? '').replace(/[^0-9.-]/g,'')); return Number.isFinite(n) ? n : 0; };
+        const isFree = p => ['مجاني','مجانية','0','0.0','0.00','0$','$0'].includes(String(p.price).trim()) || numericPrice(p) === 0;
 
         function updateCartBadge() {
             document.getElementById("cartBadgeCount").textContent = getCart().length;
@@ -150,7 +154,7 @@
                     <a href="product.html?id=${encodeURIComponent(p.id)}" class="product-card">
                         <div>
                             <div class="product-image-container">
-                                <img src="${esc(p.imgUrl)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x160?text=DigiVault'" alt="${esc(p.title)}">
+                                <img loading="lazy" src="${esc(p.imgUrl)}" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x160?text=DigiVault'" alt="${esc(p.title)}">
                             </div>
                             <span class="product-badge">${esc(p.badge)}</span>
                             <h3 class="product-title">${esc(p.title)}</h3>
@@ -176,11 +180,14 @@
 
         window.handleFilterAndSearch = function() {
             const queryText = (document.getElementById("searchInput")?.value || "").toLowerCase().trim();
-            const filtered = allProductsCache.filter(p => {
+            let filtered = allProductsCache.filter(p => {
                 const matchesCat = (currentCategory === 'all' || p.cat === currentCategory);
                 const matchesSearch = (p.title || "").toLowerCase().includes(queryText) || (p.desc || "").toLowerCase().includes(queryText);
-                return matchesCat && matchesSearch;
+                const matchesPrice = priceFilter?.value === 'free' ? isFree(p) : priceFilter?.value === 'paid' ? !isFree(p) : true;
+                return matchesCat && matchesSearch && matchesPrice;
             });
+            const sort = sortSelect?.value || 'newest';
+            filtered.sort((a,b) => sort === 'priceAsc' ? numericPrice(a)-numericPrice(b) : sort === 'priceDesc' ? numericPrice(b)-numericPrice(a) : sort === 'name' ? a.title.localeCompare(b.title,'ar') : 0);
             window.renderProducts(filtered);
         };
 
@@ -212,6 +219,9 @@
             await signOut(auth);
             window.location.href = "index.html";
         };
+
+        sortSelect?.addEventListener('change', window.handleFilterAndSearch);
+        priceFilter?.addEventListener('change', window.handleFilterAndSearch);
 
         document.addEventListener("DOMContentLoaded", () => {
             fetchApprovedProducts();

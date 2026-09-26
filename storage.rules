@@ -2,107 +2,31 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function userEmail() {
-      return request.auth.token.email;
-    }
-
+    function signedIn() { return request.auth != null; }
     function isAdmin() {
-      return isSignedIn()
-        && (
-          userEmail() == 'ythr2010@gmail.com' ||
-          firestore.exists(
-            /databases/(default)/documents/admins/$(userEmail())
-          )
-        );
+      return signedIn() && (
+        request.auth.token.email == 'ythr2010@gmail.com' ||
+        exists(/databases/(default)/documents/admins/$(request.auth.token.email))
+      );
+    }
+    function ownsProduct(productId) {
+      return signedIn() && get(/databases/(default)/documents/products/$(productId)).data.sellerEmail == request.auth.token.email;
     }
 
-    function isProductOwner(productId) {
-      return isSignedIn()
-        && firestore.exists(
-          /databases/(default)/documents/products/$(productId)
-        )
-        && firestore.get(
-          /databases/(default)/documents/products/$(productId)
-        ).data.sellerEmail == userEmail();
-    }
-
-    function isPendingProduct(productId) {
-      return firestore.exists(
-          /databases/(default)/documents/products/$(productId)
-        )
-        && firestore.get(
-          /databases/(default)/documents/products/$(productId)
-        ).data.status in ['pending', 'rejected'];
-    }
-
-    function isImage() {
-      return request.resource != null
-        && request.resource.contentType.matches('image/.*');
-    }
-
-    function imageSizeOk() {
-      return request.resource != null
-        && request.resource.size <= 5 * 1024 * 1024;
-    }
-
-    function productFileSizeOk() {
-      return request.resource != null
-        && request.resource.size <= 500 * 1024 * 1024;
-    }
-
-    function isFreePrice(value) {
-      return value == 'مجاني' || value == 'مجانية' || value == '0' || value == '0.0' || value == '0.00' || value == '$0' || value == '$0.0' || value == '$0.00' || value == '0$' || value == '0.0$' || value == '0.00$' || value == 0;
-    }
-
-    function isApprovedFreeProduct(productId) {
-      return firestore.exists(/databases/(default)/documents/products/$(productId))
-        && firestore.get(/databases/(default)/documents/products/$(productId)).data.status == 'approved'
-        && isFreePrice(firestore.get(/databases/(default)/documents/products/$(productId)).data.price);
-    }
-
-    /*
-     * DigiVault image path used by add-product.html:
-     * product-images/{productId}/{fileName}
-     */
+    // Product images: up to 5 MB each.
     match /product-images/{productId}/{fileName} {
       allow read: if true;
-
-      allow write: if isSignedIn()
-        && isImage()
-        && imageSizeOk()
-        && (
-          isAdmin()
-          || (isProductOwner(productId) && isPendingProduct(productId))
-        );
-
-      allow delete: if isAdmin()
-        || (isProductOwner(productId) && isPendingProduct(productId));
+      allow write, delete: if isAdmin() || (ownsProduct(productId) && request.resource.size <= 5 * 1024 * 1024 && request.resource.contentType.matches('image/.*'));
     }
 
-    /*
-     * DigiVault product file path used by add-product.html:
-     * products/{productId}/{fileName}
-     */
+    // Product files: Cloud Storage supports objects up to 5 TiB.
+    // Keep authorization in rules; the app stores only the generated URL/metadata in Firestore.
     match /products/{productId}/{fileName} {
-      allow read: if isAdmin() || isProductOwner(productId) || (isSignedIn() && isApprovedFreeProduct(productId));
-
-      allow write: if isSignedIn()
-        && productFileSizeOk()
-        && (
-          isAdmin()
-          || (isProductOwner(productId) && isPendingProduct(productId))
-        );
-
-      allow delete: if isAdmin();
+      allow read: if isAdmin() || (signedIn() && (ownsProduct(productId) || get(/databases/(default)/documents/products/$(productId)).data.status == 'approved'));
+      allow write: if isAdmin() || (ownsProduct(productId) && request.resource.size <= 5 * 1024 * 1024 * 1024 * 1024);
+      allow delete: if isAdmin() || ownsProduct(productId);
     }
 
-    match /{allPaths=**} {
-      allow read, write: if false;
-    }
+    match /{allPaths=**} { allow read, write: if false; }
   }
 }

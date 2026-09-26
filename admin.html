@@ -310,6 +310,22 @@
             } catch (e) { alert("خطأ في فتح الملف: " + e.message); }
         }
 
+        async function checkProductFile(productId) {
+            try {
+                const snap = await getDoc(doc(db, 'product_files', productId));
+                if (!snap.exists()) { alert('لا توجد بيانات ملف لهذا المنتج.'); return; }
+                const data = snap.data();
+                if (!data.downloadUrl) { alert('لا يوجد رابط تحميل.'); return; }
+                if (String(data.downloadUrl).startsWith('data:')) { alert(`✅ الملف مضمّن داخل النظام. الحجم المسجل: ${data.sourceSize ? (data.sourceSize/1024/1024).toFixed(2)+' MB' : 'غير معروف'}`); return; }
+                const controller = new AbortController(); const timer=setTimeout(()=>controller.abort(),10000);
+                try {
+                    const r=await fetch(data.downloadUrl,{method:'HEAD',mode:'cors',signal:controller.signal}); clearTimeout(timer);
+                    if(r.ok) alert(`✅ الرابط متاح. HTTP ${r.status}\nالنوع: ${r.headers.get('content-type')||data.contentType||'غير معروف'}\nالحجم: ${r.headers.get('content-length') ? (Number(r.headers.get('content-length'))/1024/1024).toFixed(2)+' MB' : (data.sourceSize ? (data.sourceSize/1024/1024).toFixed(2)+' MB' : 'غير معروف')}`);
+                    else alert(`⚠️ الرابط أعاد HTTP ${r.status}. افتحه يدويًا للتحقق.`);
+                } catch(e) { clearTimeout(timer); alert('⚠️ تعذر الفحص التلقائي بسبب سياسة CORS أو الخدمة الخارجية. زر تنزيل/فتح الملف ما زال متاحًا.'); }
+            } catch(e) { alert('تعذر فحص الملف: '+(e.message||e)); }
+        }
+
         async function approveProduct(id) {
             try {
                 const p = productsList.find(x => x.id === id);
