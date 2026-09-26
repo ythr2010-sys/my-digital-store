@@ -20,7 +20,7 @@ service cloud.firestore {
     }
 
     function isFreePrice(value) {
-      return value == 'مجاني' || value == 'مجانية' || value == '0' || value == '0.0' || value == '0.00' || value == '$0' || value == '$0.0' || value == '$0.00' || value == '0$' || value == '0.0$' || value == '0.00$' || value == 0;
+      return value == 'مجاني' || value == 'مجانية' || value == '0' || value == '0.0' || value == '0.00' || value == '0.000' || value == '$0' || value == '$0.0' || value == '$0.00' || value == '0$' || value == '0.0$' || value == '0.00$' || value == 0 || value == 0.0;
     }
 
     function isApprovedFreeProduct(productId) {

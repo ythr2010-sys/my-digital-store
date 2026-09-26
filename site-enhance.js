@@ -50,3 +50,12 @@ function init() {
   });
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+
+// DigiVault V11: seller dashboard + wishlist shortcuts
+(function(){
+  const path=location.pathname.split('/').pop()||'index.html';
+  if(!document.querySelector('a[href="my-products.html"]') && !['login.html','signup.html'].includes(path)){
+    const nav=document.querySelector('.nav-links,.navbar,.sidebar-menu');
+    if(nav){const a=document.createElement('a');a.href='my-products.html';a.textContent='📊 لوحة البائع';a.style.cssText='color:#00d2ff;font-weight:800;text-decoration:none;margin-inline:8px';nav.appendChild(a)}
+  }
+})();

@@ -249,13 +249,13 @@
             for (const item of cart) {
                 if (!isFreePrice(item.price)) { paid.push(item); continue; }
                 try {
-                    const claimId=`${auth.currentUser.uid}_${item.id}`;
+                    const claimId=`${user.uid}_${item.id}`;
                     const existing=await getDoc(doc(db,'free_purchases',claimId));
                     if (!existing.exists()) {
                         await setDoc(doc(db,'free_purchases',claimId),{buyerUid:user.uid,buyerEmail:currentBuyerEmail,productId:item.id,title:item.title||'منتج مجاني',createdAt:serverTimestamp()});
                         await addDoc(collection(db,'notifications'),{userEmail:currentBuyerEmail,type:'free_purchase',title:'تمت إضافة منتج مجاني 🎁',message:`تمت إضافة "${item.title||'المنتج'}" إلى مشترياتك دون الحاجة إلى الدفع.`,read:false,createdAt:serverTimestamp()});
                     }
-                } catch(e) { paid.push(item); }
+                } catch(e) { console.warn('Free item claim failed', item.id, e); paid.push(item); }
             }
             const old=getCart();
             if (paid.length !== old.length) { localStorage.setItem('digivaultCart', JSON.stringify(paid)); }
