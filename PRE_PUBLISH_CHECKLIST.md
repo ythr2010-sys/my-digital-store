@@ -42,3 +42,18 @@
 - [ ] تفعيل App Check
 - [ ] اختبار Firebase Rules على المشروع الفعلي
 - [ ] اختبار رفع/تحميل الملفات الكبيرة على Cloud Storage
+
+## V12 verification
+- [ ] Enable Firebase Storage before allowing device image/file uploads.
+- [ ] Test editing an old product that previously contained Base64 images.
+- [ ] Confirm product documents contain URLs/metadata only and stay below Firestore document limits.
+
+
+## V13 checks
+- [x] إصلاح قراءة وثيقة free_purchases غير الموجودة قبل إنشاء الشراء.
+- [x] المنتج المجاني يُضاف دون صفحة دفع.
+- [x] صفحة المشتريات تستعيد رابط الملف من product_files عند الحاجة.
+- [x] منع تخزين Base64 للصور/الملفات داخل وثيقة المنتج.
+- [x] حد واجهة الرفع لملف واحد: 5 TiB عند استخدام Cloud Storage.
+- [ ] اختبار فعلي لمنتج مجاني بعد نشر firestore.rules.
+- [ ] اختبار رفع ملف كبير فعلياً بعد تفعيل Cloud Storage.

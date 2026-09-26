@@ -99,7 +99,14 @@
             let html = '<div class="orders-list">';
             for (const card of list) {
                 if (card.kind === 'free') {
-                    const d=card.data; let url=d.downloadUrl||'';
+                    const d=card.data;
+                    let url=d.downloadUrl||'';
+                    if (!url && d.productId) {
+                        try {
+                            const fileSnap = await getDoc(doc(db, 'product_files', d.productId));
+                            if (fileSnap.exists()) url = fileSnap.data().downloadUrl || '';
+                        } catch (_) {}
+                    }
                     html += `<div class="order-card"><div class="order-head"><div><strong>🎁 ${esc(d.title||'منتج مجاني')}</strong><div class="order-meta">تمت الإضافة مجاناً • بدون دفع</div></div><span class="badge-status done">مملوك ✅</span></div><div class="order-item-row"><div><strong>ملف المنتج</strong></div>${url?`<a href="${esc(url)}" download="" target="_blank" rel="noopener noreferrer" class="btn-download">تنزيل الملف 📥</a>`:'<span class="order-meta">ملف التنزيل غير متاح حالياً</span>'}</div></div>`;
                     continue;
                 }

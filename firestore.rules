@@ -86,7 +86,12 @@ service cloud.firestore {
     }
 
     match /free_purchases/{purchaseId} {
+      // The client checks the deterministic document before creating it.
+      // A missing document has no resource.data, so allow a signed-in user to
+      // read only their own UID-prefixed purchase document. Existing documents
+      // remain restricted to their owner/admin.
       allow read: if isAdmin()
+        || (isSignedIn() && purchaseId.matches('^' + request.auth.uid + '_.*'))
         || (isSignedIn() && (resource.data.buyerUid == request.auth.uid || resource.data.buyerEmail == userEmail()));
 
       allow create: if isSignedIn()
