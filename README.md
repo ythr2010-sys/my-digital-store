@@ -1,31 +1,12 @@
-# DigiVault Storage Worker — Backblaze B2
+# DigiVault static site
 
-This Worker keeps the Backblaze B2 Application Key server-side and exposes authenticated multipart upload operations to the DigiVault frontend.
+This folder is the frontend. Deploy it separately from the Worker.
 
-## Environment
+For Cloudflare Pages:
 
-Set these Wrangler vars:
-- `FIREBASE_WEB_API_KEY`
-- `B2_ENDPOINT=https://s3.eu-central-003.backblazeb2.com`
-- `B2_BUCKET_NAME=digivault-files-2026`
-- `B2_REGION=eu-central-003`
-- `PART_SIZE_BYTES=52428800`
+- Root directory: `site`
+- Build command: `echo "No build required"`
+- Build output directory: `.`
+- Preview builds: optional; keep disabled until production is verified.
 
-Set these as Worker secrets:
-- `B2_KEY_ID`
-- `B2_APPLICATION_KEY`
-
-Never commit either secret to GitHub.
-
-## Deploy
-
-```bash
-npm install
-npx wrangler secret put B2_KEY_ID
-npx wrangler secret put B2_APPLICATION_KEY
-npx wrangler deploy
-```
-
-The frontend only needs the public Worker URL in `upload-config.js`.
-
-The B2 bucket should remain Private. Product images are served through `/media` using short-lived server-side signed access. Product files are not exposed as public B2 URLs.
+Set `upload-config.js` `UPLOAD_WORKER_URL` to the deployed Worker URL before testing uploads.
