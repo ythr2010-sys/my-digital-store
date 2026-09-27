@@ -1,13 +1,14 @@
 name = "digivault-upload-worker"
 main = "src/index.js"
-compatibility_date = "2026-09-26"
+compatibility_date = "2026-09-27"
 
 [vars]
 FIREBASE_WEB_API_KEY = "YOUR_FIREBASE_WEB_API_KEY"
-R2_ACCOUNT_ID = "YOUR_CLOUDFLARE_ACCOUNT_ID"
-R2_BUCKET_NAME = "YOUR_R2_BUCKET_NAME"
-R2_PUBLIC_BASE_URL = "https://YOUR-R2-PUBLIC-DOMAIN.example.com"
-R2_ACCESS_KEY_ID = "YOUR_R2_ACCESS_KEY_ID"
+B2_ENDPOINT = "https://s3.eu-central-003.backblazeb2.com"
+B2_BUCKET_NAME = "digivault-files-2026"
+B2_REGION = "eu-central-003"
 PART_SIZE_BYTES = "52428800"
 
-# Store the secret with: npx wrangler secret put R2_SECRET_ACCESS_KEY
+# Set these as Worker secrets; NEVER put them in this file or the website:
+# npx wrangler secret put B2_KEY_ID
+# npx wrangler secret put B2_APPLICATION_KEY

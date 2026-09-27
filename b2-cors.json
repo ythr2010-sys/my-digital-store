@@ -1,0 +1,9 @@
+{
+  "note": "Apply this rule to the B2 bucket after replacing the placeholder origin with the exact DigiVault production origin.",
+  "corsRuleName": "digivault-web",
+  "allowedOrigins": ["https://YOUR-DIGIVAULT-DOMAIN.example"],
+  "allowedMethods": ["GET", "PUT", "HEAD"],
+  "allowedHeaders": ["*"],
+  "exposeHeaders": ["ETag", "Content-Length", "Content-Type"],
+  "maxAgeSeconds": 3600
+}

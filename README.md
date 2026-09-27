@@ -1,17 +1,31 @@
-# DigiVault Upload Worker
+# DigiVault Storage Worker — Backblaze B2
 
-Cloudflare Worker that authenticates Firebase users and signs multipart R2 upload operations. Parent R2 secrets stay server-side.
+This Worker keeps the Backblaze B2 Application Key server-side and exposes authenticated multipart upload operations to the DigiVault frontend.
 
-## Required configuration
+## Environment
 
-Set values in `wrangler.toml`, then store the secret:
+Set these Wrangler vars:
+- `FIREBASE_WEB_API_KEY`
+- `B2_ENDPOINT=https://s3.eu-central-003.backblazeb2.com`
+- `B2_BUCKET_NAME=digivault-files-2026`
+- `B2_REGION=eu-central-003`
+- `PART_SIZE_BYTES=52428800`
+
+Set these as Worker secrets:
+- `B2_KEY_ID`
+- `B2_APPLICATION_KEY`
+
+Never commit either secret to GitHub.
+
+## Deploy
 
 ```bash
-npx wrangler secret put R2_SECRET_ACCESS_KEY
 npm install
+npx wrangler secret put B2_KEY_ID
+npx wrangler secret put B2_APPLICATION_KEY
 npx wrangler deploy
 ```
 
-Set `FIREBASE_WEB_API_KEY`, `R2_ACCOUNT_ID`, `R2_BUCKET_NAME`, `R2_ACCESS_KEY_ID`, and `R2_PUBLIC_BASE_URL` in Worker variables. The browser only receives short-lived presigned part URLs.
+The frontend only needs the public Worker URL in `upload-config.js`.
 
-Use a dedicated R2 token scoped to the DigiVault bucket. Do not commit secrets.
+The B2 bucket should remain Private. Product images are served through `/media` using short-lived server-side signed access. Product files are not exposed as public B2 URLs.

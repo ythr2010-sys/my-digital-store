@@ -1,22 +1,23 @@
-# DigiVault v15
+# DigiVault v16 changelog
 
-## رفع الملفات والصور مباشرة من الجهاز
-- إضافة رفع ملفات المنتجات مباشرة من الكمبيوتر/الهاتف إلى Cloudflare R2.
-- إضافة multipart upload للملفات الكبيرة مع إعادة محاولة للأجزاء الفاشلة.
-- إضافة رفع عدة صور مباشرة من الجهاز حتى 8 صور للمنتج.
-- إضافة معاينة الصور قبل إرسال المنتج.
-- إضافة حذف الصور من قائمة الصور قبل حفظ المنتج.
-- الإبقاء على إمكانية إضافة روابط صور خارجية عند الحاجة.
-- توحيد رفع الملف الرئيسي والصور عبر `r2-upload.js`.
-- إضافة Cloudflare Worker للتحقق من Firebase ID token وتوقيع عمليات R2 دون كشف مفاتيح R2 للمتصفح.
-- تقييد مفاتيح الكائنات بمجلد `uploads/<uid>/`.
-- إضافة `upload-config.js` و`upload-worker/` و`r2-cors.json`.
-- إصلاح إعدادات v15 التي كانت تشير إلى Worker غير موجود في الحزمة.
-- تحسين واجهة إضافة وتعديل المنتج للرفع والمعاينة والتقدم.
-- إصلاح/استكمال نموذج إضافة المنتج وحقوله الأساسية.
+## Storage migration
+- Replaced Cloudflare R2 integration with Backblaze B2 S3-compatible storage.
+- Bucket remains private with server-side encryption enabled.
+- Added Backblaze B2 multipart upload Worker using AWS Signature V4.
+- B2 Application Key stays server-side as Worker secrets.
+- Product images are served through a Worker media endpoint instead of public bucket URLs.
+- Product file links use temporary signed URLs.
+- Added B2 CORS setup documentation.
 
-## ما يزال مطلوباً قبل الإنتاج التجاري
-- نشر Worker وضبط R2 فعلياً.
-- ضبط CORS ونطاق الملفات العام.
-- إضافة بوابة تنزيل آمنة للمنتجات المدفوعة.
-- ربط الدفع الحقيقي ببوابة دفع خارجية وWebhook موثوق.
+## UX and reliability
+- Kept direct image upload from computer/phone.
+- Kept large-file multipart upload with retries and progress.
+- Kept up to 8 product images and 10 MB per image.
+- Kept free products flowing directly to purchases without card payment.
+- Added clearer storage configuration errors.
+
+## Remaining production hardening
+- Deploy the Worker and set its secrets.
+- Configure B2 CORS for the exact production origin.
+- Add a server-side payment webhook before accepting real paid orders.
+- Add a server-side authorization gate that verifies completed paid orders before issuing each paid-file download URL.
