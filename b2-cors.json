@@ -3,10 +3,10 @@
   "allowedOrigins": [
     "https://ythr2010-sys.github.io"
   ],
-  "allowedMethods": [
-    "GET",
-    "PUT",
-    "HEAD"
+  "allowedOperations": [
+    "s3_get",
+    "s3_put",
+    "s3_head"
   ],
   "allowedHeaders": [
     "*"

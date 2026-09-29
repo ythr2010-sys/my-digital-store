@@ -1,15 +1,20 @@
-# DigiVault deployment notes
+# DigiVault — خطة النشر
 
 ## Cloudflare Worker
-1. From the repository root, run `npm install`.
-2. Add B2 secrets in Cloudflare: `npx wrangler secret put B2_KEY_ID` and `npx wrangler secret put B2_APPLICATION_KEY`.
-3. Deploy with `npx wrangler deploy`.
-4. Check `GET https://my-digital-store.ythr2010.workers.dev/health` returns JSON with `ok: true`.
+1. من مجلد المشروع شغّل `npm install`.
+2. أضف أسرار B2 في Cloudflare باستخدام `npx wrangler secret put B2_KEY_ID` و`npx wrangler secret put B2_APPLICATION_KEY`.
+3. انشر باستخدام `npx wrangler deploy`.
+4. افتح `/health` على رابط Worker للتحقق من الاستجابة.
 
-## Backblaze B2 CORS
-Apply `b2-cors.json` to the `digivault-files-2026` bucket in Backblaze settings. The file alone does not apply settings. The allowed origin is the GitHub Pages origin without the repository path.
+## Firebase
+1. انشر `firestore.rules`.
+2. أضف `ythr2010-sys.github.io` إلى Firebase Authentication > Authorized domains.
 
-## Security and testing
-- Never commit or share B2 credentials.
-- Test with a small image and a small product file before large uploads.
-- Verify upload and download end-to-end before production use.
+## Backblaze B2
+طبّق قاعدة CORS الموجودة في `b2-cors.json` على bucket `digivault-files-2026`.
+
+## GitHub Pages
+انشر ملفات الموقع الثابتة من المستودع، ثم اختبر التسجيل، إضافة منتج، رفع صورة صغيرة، والتنزيل.
+
+## أمان
+لا تضع مفاتيح B2 السرية في GitHub أو ملفات الواجهة. اختبر الملفات الصغيرة قبل الملفات الكبيرة.
