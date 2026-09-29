@@ -1,14 +1,14 @@
-name = "digivault-upload-worker"
-main = "worker.js"
+name = "my-digital-store"
+main = "src/index.js"
 compatibility_date = "2026-09-27"
 
 [vars]
-FIREBASE_WEB_API_KEY = "YOUR_FIREBASE_WEB_API_KEY"
+FIREBASE_WEB_API_KEY = "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8"
 B2_ENDPOINT = "https://s3.eu-central-003.backblazeb2.com"
 B2_BUCKET_NAME = "digivault-files-2026"
 B2_REGION = "eu-central-003"
 PART_SIZE_BYTES = "52428800"
 
-# Set these as Worker secrets; NEVER put them in this file or the website:
+# Store these only as Cloudflare Worker secrets; never commit them:
 # npx wrangler secret put B2_KEY_ID
 # npx wrangler secret put B2_APPLICATION_KEY

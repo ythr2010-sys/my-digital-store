@@ -2,10 +2,8 @@
   "name": "digivault-upload-worker",
   "private": true,
   "scripts": {
-    "deploy": "wrangler deploy"
-  },
-  "dependencies": {
-    "jose": "^6.1.0"
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

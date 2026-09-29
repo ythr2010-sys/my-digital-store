@@ -1,22 +1,15 @@
-# DigiVault — خطة النشر
+# DigiVault deployment notes
 
-## 1. الاختبار
-- اختبر تسجيل الحساب وGoogle من نطاق HTTPS الحقيقي.
-- اختبر منتجاً مجانياً.
-- اختبر منتجاً مدفوعاً مع طلب دفع يدوي/إداري فقط إلى أن يتم ربط بوابة دفع حقيقية.
-- اختبر إضافة منتج ثم الموافقة عليه من Admin.
-- اختبر التعديل وإعادة الإرسال بعد الرفض.
+## Cloudflare Worker
+1. From the repository root, run `npm install`.
+2. Add B2 secrets in Cloudflare: `npx wrangler secret put B2_KEY_ID` and `npx wrangler secret put B2_APPLICATION_KEY`.
+3. Deploy with `npx wrangler deploy`.
+4. Check `GET https://my-digital-store.ythr2010.workers.dev/health` returns JSON with `ok: true`.
 
-## 2. Firebase
-- انشر `firestore.rules`.
-- لا تحتاج DigiVault v14 إلى Firebase Storage.
-- أضف نطاق الاستضافة الحقيقي إلى Firebase Authentication > Authorized domains.
+## Backblaze B2 CORS
+Apply `b2-cors.json` to the `digivault-files-2026` bucket in Backblaze settings. The file alone does not apply settings. The allowed origin is the GitHub Pages origin without the repository path.
 
-## 3. GitHub Pages
-المشروع عبارة عن ملفات ثابتة، لذلك يمكن نشره على GitHub Pages. يجب أن يكون المستودع متاحاً عبر HTTPS، ويجب إضافة نطاق GitHub Pages إلى Authorized domains في Firebase Authentication.
-
-## 4. نطاق خاص
-بعد نجاح الاختبارات، يمكن ربط نطاق مثل `digivault.example` باستضافة ثابتة مناسبة. لا تغيّر Firebase Auth domains قبل تحديث النطاقات المسموح بها.
-
-## 5. الدفع العالمي
-النسخة الحالية لا تعتبر إدخال رقم البطاقة/CVV داخل DigiVault نظام دفع إنتاجياً. للنسخة العالمية يجب ربط بوابة دفع تستضيف صفحة/واجهة الدفع الآمنة ثم تعيد webhook موثوقاً إلى Backend. لا تعتمد على قيمة `totalAmount` القادمة من المتصفح لتأكيد الدفع.
+## Security and testing
+- Never commit or share B2 credentials.
+- Test with a small image and a small product file before large uploads.
+- Verify upload and download end-to-end before production use.

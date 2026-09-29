@@ -1,5 +1,5 @@
 // DigiVault v16 - Backblaze B2 upload configuration.
-// Only the public Worker URL belongs here. Never put a B2 Application Key in this file.
+// Public Worker URL only; never place B2 credentials in frontend files.
 export const UPLOAD_WORKER_URL = 'https://my-digital-store.ythr2010.workers.dev';
 
 export const UPLOAD_LIMITS = {
