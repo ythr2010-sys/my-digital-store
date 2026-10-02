@@ -1,7 +1,6 @@
 name = "my-digital-store"
-main = "src/index.js"
+main = "worker.js"
 compatibility_date = "2026-09-27"
-
 [vars]
 FIREBASE_WEB_API_KEY = "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8"
 ALLOWED_ORIGIN = "https://ythr2010-sys.github.io"
