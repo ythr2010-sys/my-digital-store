@@ -1,9 +1,11 @@
 name = "my-digital-store"
 main = "worker.js"
 compatibility_date = "2026-09-27"
+
 [vars]
-FIREBASE_WEB_API_KEY = "AIzaSyClXL28rqPQr--pUu3N_Y-X3ihXEAKOyg8"
-ALLOWED_ORIGIN = "https://ythr2010-sys.github.io"
+FIREBASE_PROJECT_ID = "digivault-4c3a3"
+ALLOWED_ORIGINS = "https://ythr2010-sys.github.io"
+
 B2_ENDPOINT = "https://s3.eu-central-003.backblazeb2.com"
 B2_BUCKET_NAME = "digivault-files-2026"
 B2_REGION = "eu-central-003"
