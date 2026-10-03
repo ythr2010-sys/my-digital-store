@@ -1,7 +1,7 @@
 // Run: node --test tests/
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import worker from '../src/index.js';
+import worker from '../worker.js';
 
 const env = {
   FIREBASE_PROJECT_ID: 'proj', ALLOWED_ORIGINS: 'https://shop.example',

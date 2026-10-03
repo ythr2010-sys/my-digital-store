@@ -1,5 +1,5 @@
 name = "my-digital-store"
-main = "src/index.js"
+main = "worker.js"
 compatibility_date = "2026-09-27"
 
 # Public configuration only. Secrets go through `wrangler secret put` (see docs/SETUP.md).
