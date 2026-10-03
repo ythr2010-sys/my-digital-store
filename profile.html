@@ -49,6 +49,7 @@
         import { auth, db, esc } from "./firebase-init.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { downloadProduct } from "./b2-upload.js";
 
         onAuthStateChanged(auth, (user) => {
             if (user && user.email) loadPurchasesFromFirebase(user.email, user.uid);
@@ -100,24 +101,22 @@
             for (const card of list) {
                 if (card.kind === 'free') {
                     const d=card.data;
-                    let url=d.downloadUrl||'';
-                    if (!url && d.productId) {
-                        try {
-                            const fileSnap = await getDoc(doc(db, 'product_files', d.productId));
-                            if (fileSnap.exists()) url = fileSnap.data().downloadUrl || '';
-                        } catch (_) {}
-                    }
-                    html += `<div class="order-card"><div class="order-head"><div><strong>🎁 ${esc(d.title||'منتج مجاني')}</strong><div class="order-meta">تمت الإضافة مجاناً • بدون دفع</div></div><span class="badge-status done">مملوك ✅</span></div><div class="order-item-row"><div><strong>ملف المنتج</strong></div>${url?`<a href="${esc(url)}" download="" target="_blank" rel="noopener noreferrer" class="btn-download">تنزيل الملف 📥</a>`:'<span class="order-meta">ملف التنزيل غير متاح حالياً</span>'}</div></div>`;
+                    html += `<div class="order-card"><div class="order-head"><div><strong>🎁 ${esc(d.title||'منتج مجاني')}</strong><div class="order-meta">تمت الإضافة مجاناً • بدون دفع</div></div><span class="badge-status done">مملوك ✅</span></div><div class="order-item-row"><div><strong>ملف المنتج</strong></div><button type="button" class="btn-download" data-dl="${esc(d.productId||'')}">تنزيل الملف 📥</button></div></div>`;
                     continue;
                 }
                 const data=card.data, items=data.items||[], status=data.status||'pending', done=status==='completed';
                 const dateStr=data.createdAt?.toDate?data.createdAt.toDate().toLocaleDateString('ar-DZ'):'';
                 html += `<div class="order-card"><div class="order-head"><div><strong>طلب #${esc(card.id.slice(0,6))}</strong><div class="order-meta">${esc(dateStr)} • ${esc(data.paymentMethod||'')} • المجموع: ${esc(data.totalAmount||'0')} $</div></div><span class="badge-status ${done?'done':''}">${done?'مكتمل ✅':'قيد المراجعة ⏳'}</span></div>`;
-                const links=data.deliveryLinks||[];
-                items.forEach(item=>{ const link=links.find(l=>l.productId===item.id); html += `<div class="order-item-row"><div><strong>${esc(item.title||item.name||'منتج رقمي')}</strong></div>${done&&link?.url?`<a href="${esc(link.url)}" download="" target="_blank" rel="noopener noreferrer" class="btn-download">تنزيل الملف 📥</a>`:`<span class="order-meta">${done?'التسليم جاري من الإدارة':'بانتظار تأكيد الدفع'}</span>`}</div>`; });
+                items.forEach(item=>{ html += `<div class="order-item-row"><div><strong>${esc(item.title||item.name||'منتج رقمي')}</strong></div>${done?`<button type="button" class="btn-download" data-dl="${esc(item.id||'')}">تنزيل الملف 📥</button>`:`<span class="order-meta">بانتظار تأكيد الدفع</span>`}</div>`; });
                 html += '</div>';
             }
             html += '</div>'; container.className=""; container.innerHTML=html;
+            container.querySelectorAll('[data-dl]').forEach(btn => btn.addEventListener('click', async () => {
+                const label = btn.textContent; btn.disabled = true; btn.textContent = 'جاري التجهيز…';
+                try { await downloadProduct({ user: auth.currentUser, productId: btn.dataset.dl }); }
+                catch (e) { alert(e.message || 'تعذر التنزيل'); }
+                finally { btn.disabled = false; btn.textContent = label; }
+            }));
         }
     </script>
     <script type="module" src="./site-enhance.js"></script>

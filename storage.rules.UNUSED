@@ -1,0 +1,32 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() { return request.auth != null; }
+    function isAdmin() {
+      return signedIn() && (
+        request.auth.token.email == 'ythr2010@gmail.com' ||
+        exists(/databases/(default)/documents/admins/$(request.auth.token.email))
+      );
+    }
+    function ownsProduct(productId) {
+      return signedIn() && get(/databases/(default)/documents/products/$(productId)).data.sellerEmail == request.auth.token.email;
+    }
+
+    // Product images: up to 5 MB each.
+    match /product-images/{productId}/{fileName} {
+      allow read: if true;
+      allow write, delete: if isAdmin() || (ownsProduct(productId) && request.resource.size <= 5 * 1024 * 1024 && request.resource.contentType.matches('image/.*'));
+    }
+
+    // Product files: Cloud Storage supports objects up to 5 TiB.
+    // Keep authorization in rules; the app stores only the generated URL/metadata in Firestore.
+    match /products/{productId}/{fileName} {
+      allow read: if isAdmin() || (signedIn() && (ownsProduct(productId) || get(/databases/(default)/documents/products/$(productId)).data.status == 'approved'));
+      allow write: if isAdmin() || (ownsProduct(productId) && request.resource.size <= 5 * 1024 * 1024 * 1024 * 1024);
+      allow delete: if isAdmin() || ownsProduct(productId);
+    }
+
+    match /{allPaths=**} { allow read, write: if false; }
+  }
+}

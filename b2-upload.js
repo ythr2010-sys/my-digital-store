@@ -42,7 +42,7 @@ export async function uploadToR2({ user, file, kind = 'product', onProgress = ()
   const isImage = kind === 'image';
   const max = isImage ? UPLOAD_LIMITS.imageMaxBytes : UPLOAD_LIMITS.productFileMaxBytes;
   if (file.size > max) throw new Error(isImage ? 'حجم الصورة أكبر من الحد المسموح (10 MB).' : 'حجم الملف يتجاوز الحد المسموح.');
-  if (isImage && !String(file.type || '').startsWith('image/')) throw new Error('الملف المختار ليس صورة.');
+  if (isImage && !['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) throw new Error('الصور المسموحة: JPG أو PNG أو WebP أو GIF فقط.');
 
   const init = await workerJson('/multipart/initiate', {
     fileName: file.name,
@@ -78,7 +78,7 @@ export async function uploadToR2({ user, file, kind = 'product', onProgress = ()
       fileName: file.name,
       contentType: file.type || 'application/octet-stream',
       size: file.size,
-      downloadUrl: done.downloadUrl,
+      downloadUrl: done.downloadUrl || '',   // images only; product files are delivered via getProductDownloadUrl()
       deliveryType: 'b2-worker'
     };
   } catch (e) {
@@ -89,10 +89,15 @@ export async function uploadToR2({ user, file, kind = 'product', onProgress = ()
 export const uploadProductFile = opts => uploadToR2({ ...opts, kind: 'product' });
 export const uploadProductImage = opts => uploadToR2({ ...opts, kind: 'image' });
 
-export async function getSignedDownloadUrl({ user, key }) {
+// Asks the Worker for a fresh, short-lived link. The Worker re-checks the purchase/ownership server-side.
+export async function getProductDownloadUrl({ user, productId }) {
   assertConfigured();
-  if (!key) throw new Error('مفتاح الملف غير موجود.');
-  const data = await workerJson('/signed-download', { key }, user);
-  if (!data.url) throw new Error('تعذر إنشاء رابط تنزيل مؤقت.');
-  return data.url;
+  if (!productId) throw new Error('معرّف المنتج غير موجود.');
+  const data = await workerJson('/download', { productId }, user);
+  if (!data.url) throw new Error('تعذر إنشاء رابط تنزيل.');
+  return data;
+}
+export async function downloadProduct({ user, productId }) {
+  const { url } = await getProductDownloadUrl({ user, productId });
+  window.location.assign(url);
 }

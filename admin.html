@@ -133,6 +133,18 @@
             </div>
         </div>
 
+        <div class="card" id="paySettingsCard">
+            <h2>💳 إعدادات الدفع اليدوي</h2>
+            <p style="color:var(--text-sub);font-size:.85rem;margin:6px 0 12px;">تظهر هذه البيانات للمشترين في صفحة الدفع. لن تُقبل الطلبات حتى تفعّلها.</p>
+            <div style="display:grid;gap:10px;max-width:520px;">
+                <input id="setRip" placeholder="رقم الحساب البريدي RIP (الذهبية / BaridiMob)" style="padding:10px;border-radius:8px;border:1px solid var(--border-color);background:transparent;color:inherit;">
+                <input id="setCcp" placeholder="رقم حساب CCP" style="padding:10px;border-radius:8px;border:1px solid var(--border-color);background:transparent;color:inherit;">
+                <input id="setHolder" placeholder="اسم صاحب الحساب" style="padding:10px;border-radius:8px;border:1px solid var(--border-color);background:transparent;color:inherit;">
+                <label><input type="checkbox" id="setEnabled"> تفعيل استقبال الطلبات</label>
+                <button class="btn-action btn-approve" id="savePaySettings" type="button">حفظ إعدادات الدفع 💾</button>
+                <button class="btn-action btn-edit" id="migratePurchases" type="button" title="مرة واحدة بعد التحديث">🔁 ترحيل الطلبات المكتملة القديمة إلى صلاحيات التنزيل</button>
+            </div>
+        </div>
         <div class="card">
             <h3>👥 أحدث المستخدمين</h3>
             <div style="overflow-x:auto;"><table><thead><tr><th>الاسم</th><th>البريد</th><th>الدور</th><th>تاريخ الإنشاء</th></tr></thead>
@@ -162,6 +174,7 @@
 
     <script type="module">
         import { auth, db, checkIsAdmin, esc } from "./firebase-init.js";
+        import { getProductDownloadUrl } from "./b2-upload.js";
         import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { collection, getDocs, addDoc, doc, setDoc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -212,7 +225,46 @@
         document.getElementById("loginPass").addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById("loginBtn").click(); });
         document.getElementById("logoutBtn").addEventListener("click", async () => { await signOut(auth); });
 
-        function loadAllData() { loadProducts(); loadOrders(); loadMessages(); loadUsers(); loadVisitors(); loadUnreadNotifications(); }
+        function loadAllData() { loadPaySettings(); loadProducts(); loadOrders(); loadMessages(); loadUsers(); loadVisitors(); loadUnreadNotifications(); }
+
+        async function loadPaySettings() {
+            try {
+                const snap = await getDoc(doc(db, "settings", "payment")), d = snap.exists() ? snap.data() : {};
+                document.getElementById("setRip").value = d.ripNumber || "";
+                document.getElementById("setCcp").value = d.ccpNumber || "";
+                document.getElementById("setHolder").value = d.accountName || "";
+                document.getElementById("setEnabled").checked = d.enabled === true;
+            } catch (e) { console.warn(e); }
+        }
+        document.getElementById("savePaySettings").addEventListener("click", async () => {
+            const v = id => document.getElementById(id).value.trim().slice(0, 60);
+            try {
+                await setDoc(doc(db, "settings", "payment"), { ripNumber: v("setRip"), ccpNumber: v("setCcp"), accountName: v("setHolder"), enabled: document.getElementById("setEnabled").checked, updatedAt: serverTimestamp() });
+                await audit("settings.payment", "payment");
+                alert("تم حفظ إعدادات الدفع ✅");
+            } catch (e) { alert("خطأ: " + e.message); }
+        });
+
+        // One-time migration: completed orders created before v2 get purchases/{uid}_{productId} entitlement docs.
+        document.getElementById("migratePurchases").addEventListener("click", async () => {
+            if (!confirm("سيتم إنشاء صلاحيات تنزيل لكل الطلبات المكتملة السابقة. متابعة؟")) return;
+            try {
+                const snap = await getDocs(collection(db, "orders"));
+                let created = 0, skipped = 0;
+                for (const d of snap.docs) {
+                    const o = d.data();
+                    if (o.status !== "completed") continue;
+                    if (!o.buyerUid) { skipped++; continue; }
+                    for (const item of (o.items || [])) {
+                        if (!item.id) continue;
+                        await setDoc(doc(db, "purchases", `${o.buyerUid}_${item.id}`), { buyerUid: o.buyerUid, buyerEmail: o.buyerEmail || "", productId: item.id, title: item.title || "", orderId: d.id, migrated: true, createdAt: serverTimestamp() });
+                        created++;
+                    }
+                }
+                await audit("migration.purchases", "orders", { created, skipped });
+                alert(`تم إنشاء ${created} صلاحية. طلبات بلا buyerUid تم تخطيها: ${skipped}.`);
+            } catch (e) { alert("خطأ: " + e.message); }
+        });
 
         // ============ الإحصاءات والمستخدمون ============
         async function loadUsers(){
@@ -295,41 +347,28 @@
             });
         }
 
-        // عرض/تحميل ملف المنتج المرفوع من البائع
+        // Admin file inspection: ask the Worker for a short-lived link. No document.write / no seller-controlled HTML.
         async function viewProductFile(productId) {
             try {
-                const snap = await getDoc(doc(db, "product_files", productId));
-                if (!snap.exists()) { alert("لا يوجد ملف مرتبط بهذا المنتج."); return; }
-                const data = snap.data();
-                if (!data.downloadUrl) { alert("لا يوجد رابط تنزيل محفوظ لهذا المنتج. اطلب من البائع إضافة الملف أو رابط التحميل."); return; }
-                const w = window.open("about:blank", "_blank");
-                if (!w) { alert("اسمح بفتح نافذة الملف من المتصفح."); return; }
-                const safeName = String(data.fileName || "product-file").replace(/[<>]/g, "");
-                w.document.write(`<html lang="ar" dir="rtl"><head><title>فحص ملف المنتج</title><style>body{font-family:Arial;background:#111;color:#fff;padding:30px;text-align:center}a{display:inline-block;margin:10px;padding:12px 18px;border-radius:8px;background:#00d2ff;color:#000;text-decoration:none;font-weight:bold}iframe{width:95%;height:70vh;border:1px solid #333;border-radius:10px;margin-top:20px}</style></head><body><h2>📦 ${safeName}</h2><p>النوع: ${String(data.contentType||'غير معروف')} · الحجم: ${data.sourceSize?((data.sourceSize/1024/1024).toFixed(2)+' MB'):'غير معروف'} · الطريقة: ${String(data.deliveryType||'غير معروف')}</p><a href="${data.downloadUrl}" download="${safeName}" rel="noopener">⬇️ تنزيل الملف</a><a href="${data.downloadUrl}" target="_blank" rel="noopener">🔗 فتح الرابط</a><iframe src="${data.downloadUrl}" title="معاينة"></iframe></body></html>`);
-                w.document.close();
-            } catch (e) { alert("خطأ في فتح الملف: " + e.message); }
+                const { url } = await getProductDownloadUrl({ user: auth.currentUser, productId });
+                const a = document.createElement('a');
+                a.href = url; a.rel = 'noopener noreferrer'; a.target = '_blank';
+                document.body.appendChild(a); a.click(); a.remove();
+            } catch (e) { alert('تعذر فتح ملف المنتج: ' + (e.message || e)); }
         }
 
-        async function checkProductFile(productId) {
+        // Every privileged action leaves an immutable audit record (rules: create-only, admin-only).
+        async function audit(action, targetId, meta = {}) {
             try {
-                const snap = await getDoc(doc(db, 'product_files', productId));
-                if (!snap.exists()) { alert('لا توجد بيانات ملف لهذا المنتج.'); return; }
-                const data = snap.data();
-                if (!data.downloadUrl) { alert('لا يوجد رابط تحميل.'); return; }
-                if (String(data.downloadUrl).startsWith('data:')) { alert(`✅ الملف مضمّن داخل النظام. الحجم المسجل: ${data.sourceSize ? (data.sourceSize/1024/1024).toFixed(2)+' MB' : 'غير معروف'}`); return; }
-                const controller = new AbortController(); const timer=setTimeout(()=>controller.abort(),10000);
-                try {
-                    const r=await fetch(data.downloadUrl,{method:'HEAD',mode:'cors',signal:controller.signal}); clearTimeout(timer);
-                    if(r.ok) alert(`✅ الرابط متاح. HTTP ${r.status}\nالنوع: ${r.headers.get('content-type')||data.contentType||'غير معروف'}\nالحجم: ${r.headers.get('content-length') ? (Number(r.headers.get('content-length'))/1024/1024).toFixed(2)+' MB' : (data.sourceSize ? (data.sourceSize/1024/1024).toFixed(2)+' MB' : 'غير معروف')}`);
-                    else alert(`⚠️ الرابط أعاد HTTP ${r.status}. افتحه يدويًا للتحقق.`);
-                } catch(e) { clearTimeout(timer); alert('⚠️ تعذر الفحص التلقائي بسبب سياسة CORS أو الخدمة الخارجية. زر تنزيل/فتح الملف ما زال متاحًا.'); }
-            } catch(e) { alert('تعذر فحص الملف: '+(e.message||e)); }
+                await addDoc(collection(db, "audit_logs"), { adminEmail: auth.currentUser.email, action, targetId: String(targetId), meta, createdAt: serverTimestamp() });
+            } catch (e) { console.warn("audit log failed", e); }
         }
 
         async function approveProduct(id) {
             try {
                 const p = productsList.find(x => x.id === id);
                 await updateDoc(doc(db, "products", id), { status: "approved" });
+                await audit("product.approve", id, { title: p.title });
                 await notifyUser(p.sellerEmail, "product", "تم قبول منتجك ✅ 🎉",
                     `مبروك! تمت الموافقة على منتج "${p.title}" وأصبح معروضاً في المتجر الآن.`);
                 loadProducts();
@@ -342,6 +381,7 @@
             try {
                 const p = productsList.find(x => x.id === id);
                 await updateDoc(doc(db, "products", id), { status: "rejected", rejectionReason: reason });
+                await audit("product.reject", id, { title: p.title, reason });
                 await notifyUser(p.sellerEmail, "product", "تم رفض منتجك ❌",
                     `تم رفض منتج "${p.title}".
 السبب: ${reason}
@@ -387,6 +427,7 @@
             try {
                 await deleteDoc(doc(db, "products", id));
                 await deleteDoc(doc(db, "product_files", id));
+                await audit("product.delete", id);
                 loadProducts();
             } catch (e) { alert("خطأ: " + e.message); }
         }
@@ -483,29 +524,36 @@
             });
         }
 
-        // إتمام الطلب: توليد روابط التسليم من Storage أو الروابط الخارجية
+        // إتمام الطلب: يتحقق من الأسعار الحالية ثم يمنح الصلاحية (purchases) — لا تُخزَّن روابط تنزيل أبداً.
         async function completeOrder(orderId, orders) {
             const order = orders.find(o => o.id === orderId);
             if (!order) return;
+            if (!order.buyerUid) { alert("هذا الطلب قديم ولا يحتوي على معرّف المشتري (buyerUid). لا يمكن منح الصلاحية تلقائياً."); return; }
             try {
-                const deliveryLinks = [];
+                const granted = [];
+                let liveTotal = 0;
                 for (const item of (order.items || [])) {
                     if (!item.id) continue;
-                    const fileSnap = await getDoc(doc(db, "product_files", item.id));
-                    if (!fileSnap.exists()) continue;
-                    const fdata = fileSnap.data();
-                    let url = fdata.downloadUrl || null;
-                    if (url) {
-                        deliveryLinks.push({ productId: item.id, name: item.title || item.name, url });
-                    }
+                    const pSnap = await getDoc(doc(db, "products", item.id));
+                    if (!pSnap.exists()) continue;
+                    liveTotal += parseFloat(String(pSnap.data().price).replace(/[^0-9.]/g, "")) || 0;
+                    granted.push({ id: item.id, title: pSnap.data().title || item.title || "" });
                 }
-                if (deliveryLinks.length === 0) {
-                    alert("⚠️ لم يتم العثور على روابط تحميل لمنتجات هذا الطلب!");
-                    return;
+                if (!granted.length) { alert("⚠️ لا توجد منتجات صالحة في هذا الطلب."); return; }
+                const claimed = parseFloat(String(order.totalAmount).replace(/[^0-9.]/g, "")) || 0;
+                if (Math.abs(claimed - liveTotal) > 0.009) {
+                    if (!confirm(`⚠️ المبلغ المسجّل في الطلب (${claimed.toFixed(2)} $) يختلف عن مجموع الأسعار الحالية (${liveTotal.toFixed(2)} $).\nتأكد من المبلغ المستلم فعلياً قبل المتابعة. هل تريد إتمام الطلب؟`)) return;
                 }
-                await updateDoc(doc(db, "orders", orderId), { status: "completed", deliveryLinks });
+                for (const g of granted) {
+                    await setDoc(doc(db, "purchases", `${order.buyerUid}_${g.id}`), {
+                        buyerUid: order.buyerUid, buyerEmail: order.buyerEmail || "", productId: g.id, title: g.title,
+                        orderId, createdAt: serverTimestamp()
+                    });
+                }
+                await updateDoc(doc(db, "orders", orderId), { status: "completed", completedAt: serverTimestamp(), completedBy: auth.currentUser.email });
+                await audit("order.complete", orderId, { liveTotal, claimed, items: granted.map(g => g.id) });
                 await notifyUser(order.buyerEmail, "order", "تم تفعيل طلبك 🎉",
-                    "تم تأكيد دفعك! روابط التحميل أصبحت متاحة في صفحة مشترياتك. شكراً لثقتك!");
+                    "تم تأكيد دفعك! أصبحت ملفاتك متاحة للتنزيل من صفحة مشترياتك. شكراً لثقتك!");
                 loadOrders();
             } catch (e) { alert("خطأ: " + e.message); }
         }

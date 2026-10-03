@@ -73,6 +73,8 @@
                 <span id="authStatusText" style="color:var(--accent-cyan);">...</span>
             </div>
 
+            <div id="paySetupWarning" class="card-box" style="display:none;border-color:var(--danger-red);color:var(--danger-red);font-weight:700;">⚠️ طرق الدفع لم يتم إعدادها بعد من قِبل الإدارة، لذلك لا يمكن إرسال طلب شراء حالياً.</div>
+
             <div id="authGate">
                 <p style="margin-bottom:15px;font-size:1.05rem;">🔒 يجب تسجيل الدخول أولاً لإتمام عملية الدفع.</p>
                 <a href="login.html">اضغط هنا لتسجيل الدخول</a>
@@ -89,18 +91,14 @@
                         <div class="account-details">
                             <div class="account-row">
                                 <span>رقم الحساب البريدي (RIP):</span>
-                                <strong id="demoRip">00799999999999999999</strong>
+                                <strong id="demoRip">—</strong>
                                 <span class="copy-tag" data-copy="demoRip">نسخ</span>
                             </div>
                             <div class="account-row">
                                 <span>صاحب الحساب:</span>
                                 <span style="color:#fff;font-weight:bold;">الخزنة الرقمية</span>
                             </div>
-                            <div class="qr-preview">
-                                <p style="color:var(--text-sub);font-size:.8rem;">امسح رمز QR في تطبيق BaridiMob للتحويل المباشر:</p>
-                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=00799999999999999999" alt="BaridiMob QR">
-                            </div>
-                        </div>
+</div>
                         <form id="dahabiaForm" data-method="الذهبية / BaridiMob">
                             <div class="form-group">
                                 <label>رقم المعاملة (N° Transaction من تطبيق بريدي موب):</label>
@@ -120,7 +118,7 @@
                         <div class="account-details">
                             <div class="account-row">
                                 <span>رقم الحساب CCP:</span>
-                                <strong id="demoCcp">12345678 Clé 99</strong>
+                                <strong id="demoCcp">—</strong>
                                 <span class="copy-tag" data-copy="demoCcp">نسخ</span>
                             </div>
                             <div class="account-row">
@@ -161,9 +159,11 @@
     <script type="module">
         import { auth, db, getCart, esc } from "./firebase-init.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { collection, addDoc, setDoc, getDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, addDoc, setDoc, getDoc, getDocs, query, where, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        let currentUser = null;
         let currentBuyerEmail = null;
+        let paymentSettings = null;
         let calculatedTotalNum = 0;
 
         function showToast(message, type = 'success') {
@@ -179,6 +179,7 @@
             const checkoutGrid = document.getElementById("checkoutGrid");
             const authGate = document.getElementById("authGate");
             if (user && user.email) {
+                currentUser = user;
                 currentBuyerEmail = user.email;
                 document.getElementById("buyerEmailText").innerText = user.email;
                 document.getElementById("authStatusText").innerText = "متصل ✅";
@@ -186,6 +187,7 @@
                 authGate.style.display = "none";
                 loadSummary();
             } else {
+                currentUser = null;
                 currentBuyerEmail = null;
                 checkoutGrid.style.display = "none";
                 authGate.style.display = "block";
@@ -212,6 +214,35 @@
             });
         });
 
+        async function loadPaymentSettings() {
+            try {
+                const snap = await getDoc(doc(db, 'settings', 'payment'));
+                paymentSettings = snap.exists() ? snap.data() : null;
+            } catch { paymentSettings = null; }
+            const ok = !!(paymentSettings && paymentSettings.enabled === true && (paymentSettings.ripNumber || paymentSettings.ccpNumber));
+            document.getElementById('paySetupWarning').style.display = ok ? 'none' : 'block';
+            if (ok) {
+                document.getElementById('demoRip').textContent = paymentSettings.ripNumber || '—';
+                document.getElementById('demoCcp').textContent = paymentSettings.ccpNumber || '—';
+            }
+            document.querySelectorAll('.btn-submit').forEach(b => { b.disabled = !ok; });
+            return ok;
+        }
+
+        // Never trust the localStorage cart for prices: re-read every product from Firestore.
+        async function refreshPrices(cart) {
+            const fresh = [];
+            for (const item of cart) {
+                try {
+                    const snap = await getDoc(doc(db, 'products', item.id));
+                    if (!snap.exists() || snap.data().status !== 'approved') continue;
+                    const p = snap.data();
+                    fresh.push({ id: item.id, title: p.title, price: p.price, sellerEmail: p.sellerEmail || '' });
+                } catch { /* unavailable products are dropped */ }
+            }
+            return fresh;
+        }
+
         function isFreePrice(value) {
             const p=String(value??'').trim().toLowerCase().replace(/\s+/g,'');
             return p==='مجاني'||p==='مجانية'||p==='0'||p==='0.0'||p==='0.00'||p==='$0'||p==='$0.0'||p==='$0.00'||p==='0$'||p==='0.0$'||p==='0.00$';
@@ -222,10 +253,10 @@
             for (const item of cart) {
                 if (!isFreePrice(item.price)) { paid.push(item); continue; }
                 try {
-                    const claimId=`${user.uid}_${item.id}`;
+                    const claimId=`${currentUser.uid}_${item.id}`;
                     const existing=await getDoc(doc(db,'free_purchases',claimId));
                     if (!existing.exists()) {
-                        await setDoc(doc(db,'free_purchases',claimId),{buyerUid:user.uid,buyerEmail:currentBuyerEmail,productId:item.id,title:item.title||'منتج مجاني',createdAt:serverTimestamp()});
+                        await setDoc(doc(db,'free_purchases',claimId),{buyerUid:currentUser.uid,buyerEmail:currentBuyerEmail,productId:item.id,title:item.title||'منتج مجاني',createdAt:serverTimestamp()});
                         try { await addDoc(collection(db,'notifications'),{userEmail:currentBuyerEmail,type:'free_purchase',title:'تمت إضافة منتج مجاني 🎁',message:`تمت إضافة "${item.title||'المنتج'}" إلى مشترياتك دون الحاجة إلى الدفع.`,read:false,createdAt:serverTimestamp()}); } catch(_) {}
                     }
                 } catch(e) { console.warn('Free item claim failed', item.id, e); paid.push(item); }
@@ -241,6 +272,9 @@
             calculatedTotalNum=0;
             if (!cart.length) { container.innerHTML="<p style='color:var(--text-sub);'>السلة فارغة. <a href='shop.html' style='color:var(--accent-cyan);'>تصفح المنتجات</a></p>"; document.getElementById("orderTotal").innerText="0.00 $"; return; }
             cart=await claimFreeItems(cart);
+            cart=await refreshPrices(cart);
+            localStorage.setItem('digivaultCart', JSON.stringify(cart.map(({sellerEmail, ...r}) => r)));
+            await loadPaymentSettings();
             if (!cart.length) {
                 container.innerHTML="<div style='text-align:center;padding:20px;color:var(--accent-green);font-weight:800;'>تم استلام المنتجات المجانية وإضافتها إلى مشترياتك 🎁</div>";
                 document.getElementById("orderTotal").innerText="0.00 $";
@@ -283,11 +317,13 @@
                 return;
             }
 
-            const cart = getCart();
+            if (!(await loadPaymentSettings())) { showToast("طرق الدفع غير مُعدّة بعد", "error"); return; }
+            const cart = await refreshPrices(getCart());
             if (cart.length === 0) {
-                showToast("السلة فارغة!", "error");
+                showToast("السلة فارغة أو أن المنتجات لم تعد متاحة!", "error");
                 return;
             }
+            calculatedTotalNum = cart.reduce((t, i) => t + (parseFloat(String(i.price).replace(/[^0-9.]/g, '')) || 0), 0);
 
             if (!validateFields(method)) {
                 showToast("يرجى تصحيح الأخطاء في الحقول", "error");
@@ -311,10 +347,10 @@
                 }
 
                 // ✅ أمان: لا نخزن أي رابط تحميل في الطلب أبداً
-                const safeItems = cart.map(({ downloadUrl, fileUrl, ...rest }) => rest);
+                const safeItems = cart.map(({ id, title, price, sellerEmail }) => ({ id, title, price, sellerEmail }));
 
                 await addDoc(collection(db, "orders"), {
-                    buyerUid: user.uid,
+                    buyerUid: currentUser.uid,
                     buyerEmail: currentBuyerEmail,
                     items: safeItems,
                     totalAmount: calculatedTotalNum.toFixed(2),

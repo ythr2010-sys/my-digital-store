@@ -1,198 +1,229 @@
 rules_version = '2';
 
+// DigiVault Firestore rules v2.
+// IMPORTANT: admin access requires a VERIFIED email. Verify the admin account's email
+// (Firebase console > Authentication, or sign in with Google) before publishing these rules.
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function userEmail() {
-      return request.auth.token.email;
-    }
+    function signedIn() { return request.auth != null; }
+    function email() { return request.auth.token.email; }
+    function verified() { return signedIn() && request.auth.token.email_verified == true; }
 
     function isAdmin() {
-      return isSignedIn()
-        && (
-          userEmail() == 'ythr2010@gmail.com' ||
-          exists(/databases/$(database)/documents/admins/$(userEmail()))
-        );
+      return verified() && (
+        email() == 'ythr2010@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(email()))
+      );
     }
 
-    function isFreePrice(value) {
-      return value == 'مجاني' || value == 'مجانية' || value == '0' || value == '0.0' || value == '0.00' || value == '0.000' || value == '$0' || value == '$0.0' || value == '$0.00' || value == '0$' || value == '0.0$' || value == '0.00$' || value == 0 || value == 0.0;
+    function str(v, max) { return v is string && v.size() > 0 && v.size() <= max; }
+    function isFreePrice(v) {
+      return v == 'مجاني' || v == 'مجانية' || v == '0' || v == '0.0' || v == '0.00' || v == '$0' || v == '0$' || v == 0 || v == 0.0;
+    }
+    function productData(id) { return get(/databases/$(database)/documents/products/$(id)).data; }
+    function isApprovedFreeProduct(id) {
+      return exists(/databases/$(database)/documents/products/$(id))
+        && productData(id).status == 'approved' && isFreePrice(productData(id).price);
+    }
+    // Entitlement docs. purchases/* is written ONLY by an admin (or, later, a trusted server).
+    function hasPurchase(id) {
+      return signedIn() && exists(/databases/$(database)/documents/purchases/$(request.auth.uid + '_' + id));
+    }
+    function hasFreeClaim(id) {
+      return signedIn() && exists(/databases/$(database)/documents/free_purchases/$(request.auth.uid + '_' + id));
+    }
+    function ownsProductDoc(id) {
+      return verified() && exists(/databases/$(database)/documents/products/$(id))
+        && productData(id).sellerEmail == email();
     }
 
-    function isApprovedFreeProduct(productId) {
-      return exists(/databases/$(database)/documents/products/$(productId))
-        && get(/databases/$(database)/documents/products/$(productId)).data.status == 'approved'
-        && isFreePrice(get(/databases/$(database)/documents/products/$(productId)).data.price);
+    // ---------- products ----------
+    function validProduct(d) {
+      return str(d.title, 150) && str(d.description, 5000)
+        && (d.price is string && d.price.size() <= 20 || d.price is number)
+        && str(d.category, 40)
+        && (!('imageUrls' in d) || (d.imageUrls is list && d.imageUrls.size() <= 8))
+        && (!('imageUrl' in d) || d.imageUrl is string && d.imageUrl.size() <= 1024)
+        && (!('promoImages' in d) || (d.promoImages is list && d.promoImages.size() <= 8));
     }
-
     match /products/{productId} {
       allow read: if isAdmin()
         || resource.data.status == 'approved'
-        || (isSignedIn() && resource.data.sellerEmail == userEmail());
+        || (verified() && resource.data.sellerEmail == email());
 
-      allow create: if isSignedIn()
-        && request.resource.data.sellerEmail == userEmail()
-        && request.resource.data.status == 'pending';
+      allow create: if isAdmin() || (verified()
+        && request.resource.data.keys().hasOnly(['title','description','price','category','imageUrl','imageUrls','promoImages','sellerEmail','status','createdAt'])
+        && request.resource.data.sellerEmail == email()
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt == request.time
+        && validProduct(request.resource.data));
 
+      // Seller edits always send the product back to review; sellers cannot touch status/rating/featured/etc.
       allow update: if isAdmin()
-        || (
-          isSignedIn()
-          && resource.data.sellerEmail == userEmail()
+        || (verified()
+          && resource.data.sellerEmail == email()
           && request.resource.data.sellerEmail == resource.data.sellerEmail
-          && (resource.data.status == 'pending' || resource.data.status == 'rejected' || resource.data.status == 'approved')
           && request.resource.data.status == 'pending'
-          && request.resource.data.diff(resource.data)
-              .affectedKeys().hasOnly([
-                'title','description','price','category','imageUrl','imageUrls',
-                'promoImages','updatedAt','status','rejectionReason'
-              ])
-        );
+          && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['title','description','price','category','imageUrl','imageUrls','promoImages','updatedAt','status','rejectionReason'])
+          && validProduct(request.resource.data));
 
       allow delete: if isAdmin();
     }
 
+    // Protected file metadata (storage KEY only; links are minted by the Worker after an entitlement check).
     match /product_files/{productId} {
       allow read: if isAdmin()
-        || (isSignedIn() && resource.data.sellerEmail == userEmail())
-        || (isSignedIn() && isApprovedFreeProduct(productId));
+        || ownsProductDoc(productId)
+        || (signedIn() && isApprovedFreeProduct(productId) && hasFreeClaim(productId))
+        || hasPurchase(productId);
 
-      allow create: if isSignedIn()
-        && request.resource.data.sellerEmail == userEmail()
-        && exists(/databases/$(database)/documents/products/$(productId))
-        && get(/databases/$(database)/documents/products/$(productId))
-             .data.sellerEmail == userEmail();
+      allow create: if isAdmin() || (ownsProductDoc(productId)
+        && request.resource.data.sellerEmail == email()
+        && request.resource.data.storageKey is string
+        && request.resource.data.storageKey.matches('^uploads/' + request.auth.uid + '/products/.+'));
 
-      allow update: if isSignedIn()
-        && resource.data.sellerEmail == userEmail()
-        && request.resource.data.sellerEmail == resource.data.sellerEmail;
+      allow update: if isAdmin() || (ownsProductDoc(productId)
+        && request.resource.data.sellerEmail == resource.data.sellerEmail
+        && request.resource.data.storageKey.matches('^uploads/' + request.auth.uid + '/products/.+'));
 
       allow delete: if isAdmin();
     }
 
+    // ---------- orders / entitlements ----------
     match /orders/{orderId} {
-      allow read: if isAdmin()
-        || (isSignedIn() && (resource.data.buyerUid == request.auth.uid || resource.data.buyerEmail == userEmail()));
+      allow read: if isAdmin() || (signedIn() && resource.data.buyerUid == request.auth.uid)
+        || (verified() && resource.data.buyerEmail == email());   // legacy orders created before buyerUid existed
 
-      allow create: if isSignedIn()
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['buyerUid','buyerEmail','items','totalAmount','paymentMethod','paymentDetails','status','createdAt'])
         && request.resource.data.buyerUid == request.auth.uid
-        && request.resource.data.buyerEmail == userEmail()
-        && request.resource.data.status == 'pending';
+        && request.resource.data.buyerEmail == email()
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.items is list && request.resource.data.items.size() > 0 && request.resource.data.items.size() <= 50;
 
       allow update, delete: if isAdmin();
+    }
+
+    match /purchases/{purchaseId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.buyerUid == request.auth.uid);
+      allow write: if isAdmin();
     }
 
     match /free_purchases/{purchaseId} {
-      // The client checks the deterministic document before creating it.
-      // A missing document has no resource.data, so allow a signed-in user to
-      // read only their own UID-prefixed purchase document. Existing documents
-      // remain restricted to their owner/admin.
-      allow read: if isAdmin()
-        || (isSignedIn() && purchaseId.matches('^' + request.auth.uid + '_.*'))
-        || (isSignedIn() && (resource.data.buyerUid == request.auth.uid || resource.data.buyerEmail == userEmail()));
-
-      allow create: if isSignedIn()
+      allow read: if isAdmin() || (signedIn() && purchaseId.matches('^' + request.auth.uid + '_.*'));
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['buyerUid','buyerEmail','productId','title','createdAt'])
         && request.resource.data.buyerUid == request.auth.uid
-        && request.resource.data.buyerEmail == userEmail()
+        && request.resource.data.buyerEmail == email()
         && request.resource.data.productId is string
         && isApprovedFreeProduct(request.resource.data.productId)
-        && purchaseId == request.auth.uid + '_' + request.resource.data.productId;
-
+        && purchaseId == request.auth.uid + '_' + request.resource.data.productId
+        && request.resource.data.createdAt == request.time;
       allow update, delete: if isAdmin();
     }
 
-    match /contact_messages/{messageId} {
-      allow create: if true;
-      allow read, update, delete: if isAdmin();
-    }
-
-    match /notifications/{notificationId} {
-      allow create: if isAdmin()
-        && request.resource.data.userEmail is string
-        || (isSignedIn()
-          && request.resource.data.userEmail == userEmail()
-          && request.resource.data.type in ['product_submission', 'free_purchase']);
-
-      allow read: if isAdmin()
-        || (isSignedIn() && resource.data.userEmail == userEmail());
-
-      allow update: if isAdmin()
-        || (
-          isSignedIn()
-          && resource.data.userEmail == userEmail()
-          && request.resource.data.diff(resource.data)
-              .affectedKeys().hasOnly(['read'])
-        );
-
-      allow delete: if isAdmin()
-        || (isSignedIn() && resource.data.userEmail == userEmail());
-    }
-
-    match /reviews/{reviewId} {
-      allow read: if true;
-      allow create: if isSignedIn()
-        && request.resource.data.userEmail == userEmail();
-      allow update, delete: if isAdmin()
-        || (isSignedIn() && resource.data.userEmail == userEmail());
-    }
-
-    match /comments/{commentId} {
-      allow read: if true;
-      allow create: if isSignedIn()
-        && request.resource.data.userEmail == userEmail();
-
-      allow update: if isAdmin()
-        || (isSignedIn() && resource.data.userEmail == userEmail())
-        || (
-          isSignedIn()
-          && resource.data.productId is string
-          && exists(/databases/$(database)/documents/products/$(resource.data.productId))
-          && get(/databases/$(database)/documents/products/$(resource.data.productId))
-               .data.sellerEmail == userEmail()
-        );
-
-      allow delete: if isAdmin()
-        || (isSignedIn() && resource.data.userEmail == userEmail());
-    }
-
-    match /users/{uid} {
-      allow read: if isAdmin()
-        || (isSignedIn() && request.auth.uid == uid);
-
-      allow create: if isSignedIn()
-        && request.auth.uid == uid
-        && (
-          request.resource.data.role == 'user'
-          || (isAdmin() && request.resource.data.role == 'admin')
-        );
-
-      allow update: if isAdmin()
-        || (
-          isSignedIn()
-          && request.auth.uid == uid
-          && !request.resource.data.diff(resource.data)
-              .affectedKeys().hasAny(['role', 'email', 'uid'])
-        );
-
-      allow delete: if isAdmin();
-    }
-
-    match /admins/{adminEmail} {
-      allow read: if isAdmin() && adminEmail == userEmail();
-      allow create, update, delete: if false;
-    }
-
-    match /visits/{visitId} {
-      allow create: if true;
+    match /download_logs/{logId} {
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid','productId','reason','createdAt']);
       allow read: if isAdmin();
       allow update, delete: if false;
     }
 
-    match /{document=**} {
-      allow read, write: if false;
+    // ---------- reviews & comments ----------
+    // One review per buyer per product (deterministic id) and only with an entitlement doc => "verified purchase".
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['productId','userEmail','userName','rating','verified','createdAt'])
+        && request.resource.data.productId is string
+        && reviewId == request.auth.uid + '_' + request.resource.data.productId
+        && request.resource.data.userEmail == email()
+        && str(request.resource.data.userName, 80)
+        && request.resource.data.rating is int && request.resource.data.rating >= 1 && request.resource.data.rating <= 5
+        && request.resource.data.verified == true
+        && request.resource.data.createdAt == request.time
+        && (hasPurchase(request.resource.data.productId) || hasFreeClaim(request.resource.data.productId));
+      allow update: if isAdmin() || (signedIn() && resource.data.userEmail == email()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rating'])
+        && request.resource.data.rating is int && request.resource.data.rating >= 1 && request.resource.data.rating <= 5);
+      allow delete: if isAdmin() || (signedIn() && resource.data.userEmail == email());
     }
+
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['productId','userEmail','userName','text','reply','createdAt'])
+        && request.resource.data.userEmail == email()
+        && str(request.resource.data.text, 1500) && str(request.resource.data.userName, 80)
+        && request.resource.data.reply == null
+        && request.resource.data.createdAt == request.time;
+      allow update: if isAdmin()
+        || (signedIn() && resource.data.userEmail == email()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text'])
+            && str(request.resource.data.text, 1500))
+        || (ownsProductDoc(resource.data.productId)             // seller may ONLY add a reply
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reply']));
+      allow delete: if isAdmin() || (signedIn() && resource.data.userEmail == email());
+    }
+
+    // ---------- notifications ----------
+    match /notifications/{notificationId} {
+      allow create: if (isAdmin() && request.resource.data.userEmail is string)
+        || (verified() && request.resource.data.userEmail == email()
+            && request.resource.data.type in ['product_submission', 'free_purchase']);
+      allow read: if isAdmin() || (verified() && resource.data.userEmail == email());
+      allow update: if isAdmin() || (verified() && resource.data.userEmail == email()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']));
+      allow delete: if isAdmin() || (verified() && resource.data.userEmail == email());
+    }
+
+    // ---------- users / admins / settings / audit ----------
+    match /users/{uid} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow create: if signedIn() && request.auth.uid == uid
+        && (request.resource.data.role == 'user' || (isAdmin() && request.resource.data.role == 'admin'));
+      allow update: if isAdmin() || (signedIn() && request.auth.uid == uid
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role','email','uid','sellerStatus','sellerApproved']));
+      allow delete: if isAdmin();
+    }
+
+    match /admins/{adminEmail} {
+      allow read: if isAdmin() && adminEmail == email();
+      allow create, update, delete: if false;     // manage admins from the Firebase console only
+    }
+
+    // Public payment instructions shown at checkout (bank/CCP numbers, account holder). Admin-editable.
+    match /settings/{docId} {
+      allow read: if docId == 'payment';
+      allow write: if isAdmin();
+    }
+
+    match /audit_logs/{logId} {
+      allow create: if isAdmin() && request.resource.data.adminEmail == email();
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // ---------- public intake (validated, size-limited) ----------
+    match /contact_messages/{messageId} {
+      allow create: if request.resource.data.keys().hasOnly(['ticketId','requestType','name','email','message','status','adminReply','createdAt'])
+        && str(request.resource.data.name, 100) && str(request.resource.data.email, 200)
+        && str(request.resource.data.message, 3000) && str(request.resource.data.ticketId, 20)
+        && request.resource.data.requestType in ['feedback','issue','inquiry']
+        && request.resource.data.status == 'pending' && request.resource.data.adminReply == ''
+        && request.resource.data.createdAt == request.time;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /visits/{visitId} {
+      allow create: if request.resource.data.keys().size() <= 6 && request.resource.data.createdAt == request.time;
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    match /{document=**} { allow read, write: if false; }
   }
 }

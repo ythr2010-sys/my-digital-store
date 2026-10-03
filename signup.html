@@ -222,7 +222,7 @@
     <!-- كود الربط بـ Firebase (Auth + Firestore) وإدارة المصادقة -->
     <script type="module">
         import { auth, db } from "./firebase-init.js";
-        import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { createUserWithEmailAndPassword, sendEmailVerification, GoogleAuthProvider, signInWithPopup, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const googleProvider = new GoogleAuthProvider();
@@ -291,6 +291,7 @@
 
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                try { await sendEmailVerification(userCredential.user); } catch (_) {}
                 const user = userCredential.user;
 
                 // تحديث اسم المستخدم في Auth

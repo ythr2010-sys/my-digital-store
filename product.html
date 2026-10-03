@@ -126,8 +126,8 @@
             hasPurchased = false;
             if (currentUser?.email) {
                 try {
-                    const ordersSnap = await getDocs(query(collection(db, "orders"), where("buyerEmail", "==", currentUser.email)));
-                    ordersSnap.forEach(d => { const o = d.data(); if (o.status === 'completed' && (o.items || []).some(i => i.id === productId)) hasPurchased = true; });
+                    const paidSnap = await getDoc(doc(db, 'purchases', `${currentUser.uid}_${productId}`));
+                    if (paidSnap.exists()) hasPurchased = true;
                     const freeSnap = await getDoc(doc(db, 'free_purchases', `${currentUser.uid}_${productId}`));
                     if (freeSnap.exists()) hasPurchased = true;
                 } catch (e) { console.warn('purchase history unavailable:', e); }
@@ -253,7 +253,7 @@
             }
             if (!hasPurchased) {
                 area.innerHTML = `<p style="color:var(--text-sub);font-size:.9rem;">⭐ يمكن فقط للمشترين تقييم هذا المنتج.</p>
-                    ${reviews.map(r => `<div class="review-item">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)} — <strong>${esc(r.userName)}</strong></div>`).join('')}`;
+                    ${reviews.map(r => `<div class="review-item">${'★'.repeat(Math.max(0,Math.min(5,Math.round(r.rating)||0)))}${'☆'.repeat(5 - Math.max(0,Math.min(5,Math.round(r.rating)||0)))} — <strong>${esc(r.userName)}</strong></div>`).join('')}`;
                 return;
             }
 
@@ -265,7 +265,7 @@
                     ${[1,2,3,4,5].map(i => `<span data-val="${i}" class="${i <= myRating ? 'lit' : 'dim'}">★</span>`).join('')}
                 </div>
                 <div id="ratingMsg" style="font-size:.82rem;color:var(--accent-green);margin-top:6px;min-height:18px;"></div>
-                ${reviews.map(r => `<div class="review-item">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)} — <strong>${esc(r.userName)}</strong></div>`).join('')}`;
+                ${reviews.map(r => `<div class="review-item">${'★'.repeat(Math.max(0,Math.min(5,Math.round(r.rating)||0)))}${'☆'.repeat(5 - Math.max(0,Math.min(5,Math.round(r.rating)||0)))} — <strong>${esc(r.userName)}</strong></div>`).join('')}`;
 
             document.querySelectorAll('#starInput span').forEach(star => {
                 star.addEventListener('click', async () => {
@@ -280,11 +280,13 @@
                         if (existing) {
                             await updateDoc(doc(db, "reviews", existing.id), { rating: val });
                         } else {
-                            await addDoc(collection(db, "reviews"), {
+                            // Deterministic id = one review per buyer per product; Firestore rules require an entitlement doc (verified purchase).
+                            await setDoc(doc(db, "reviews", `${currentUser.uid}_${productId}`), {
                                 productId,
                                 userEmail: currentUser.email,
-                                userName: currentUser.displayName || currentUser.email.split('@')[0],
+                                userName: (currentUser.displayName || currentUser.email.split('@')[0]).slice(0, 80),
                                 rating: val,
+                                verified: true,
                                 createdAt: serverTimestamp()
                             });
                         }

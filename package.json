@@ -4,12 +4,10 @@
   "type": "module",
   "scripts": {
     "deploy": "wrangler deploy",
-    "dev": "wrangler dev"
-  },
-  "dependencies": {
-    "jose": "^6.2.12"
+    "dev": "wrangler dev",
+    "test": "node --test tests/worker.test.mjs"
   },
   "devDependencies": {
-    "wrangler": "^4.146.0"
+    "wrangler": "^4.0.0"
   }
 }

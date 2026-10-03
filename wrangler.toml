@@ -1,12 +1,16 @@
 name = "my-digital-store"
-main = "worker.js"
+main = "src/index.js"
 compatibility_date = "2026-09-27"
 
+# Public configuration only. Secrets go through `wrangler secret put` (see docs/SETUP.md).
 [vars]
 FIREBASE_PROJECT_ID = "digivault-4c3a3"
+# Comma-separated list of exact site origins allowed to call the Worker (no trailing slash).
 ALLOWED_ORIGINS = "https://ythr2010-sys.github.io"
-
 B2_ENDPOINT = "https://s3.eu-central-003.backblazeb2.com"
 B2_BUCKET_NAME = "digivault-files-2026"
 B2_REGION = "eu-central-003"
 PART_SIZE_BYTES = "52428800"
+MAX_FILE_BYTES = "5368709120"
+MAX_IMAGE_BYTES = "10485760"
+MAX_UPLOADS_PER_HOUR = "40"

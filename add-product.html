@@ -160,6 +160,7 @@ async function handleImages(files){ if(!currentUser)return showAlert('يجب ت�
 
 onAuthStateChanged(auth, u => {
   currentUser = u || null;
+  if (u && !u.emailVerified && u.providerData.some(p => p.providerId === 'password')) showAlert('لإضافة منتجات يجب تأكيد بريدك الإلكتروني أولاً (تحقق من بريدك أو أعد الإرسال من الشريط العلوي).', 'error');
   $('formWrapper').style.display = u ? 'block' : 'none';
   $('authGate').style.display = u ? 'none' : 'block';
 });
@@ -182,8 +183,7 @@ async function handleFile(file) {
   $('submitBtn').disabled=true;
   try {
     const result = await uploadProductFile({ user: currentUser, file, onProgress: p => setProgress(p, `جاري الرفع… ${p}%`) });
-    if (!result.downloadUrl) throw new Error('تم تم رفع الملف، لكن Storage Worker غير مضبوط بعد.');
-    $('downloadUrlInput').value=result.downloadUrl;
+    if (!result.key) throw new Error('تم رفع الملف لكن لم يتم استلام مرجع التخزين.');
     $('storageKeyInput').value=result.key;
     $('fileNameInput').value=result.fileName;
     setProgress(100, 'اكتمل رفع الملف ✓');
@@ -201,19 +201,19 @@ $('productForm').addEventListener('submit', async e => {
   e.preventDefault();
   if (!currentUser) return showAlert('يجب تسجيل الدخول أولاً.', 'error');
   const title=$('title').value.trim(), description=$('description').value.trim(), rawPrice=$('price').value.trim();
-  const imageUrls=parseUrls($('imageUrls').value), downloadUrl=$('downloadUrlInput').value.trim();
+  const imageUrls=parseUrls($('imageUrls').value), storageKey=$('storageKeyInput').value.trim();
   const free=/^(مجاني|مجانية|0+(?:[.,]0+)?)\$?$|^\$0+(?:[.,]0+)?$/i.test(rawPrice.replace(/\s+/g,''));
   const price=free?'مجاني':rawPrice;
   if (!title || !description) return showAlert('أدخل عنوان المنتج ووصفه.', 'error');
   if (!free && (isNaN(parseFloat(price)) || parseFloat(price)<0)) return showAlert('السعر يجب أن يكون رقماً أو كلمة «مجاني».', 'error');
   if (imageUrls.some(u=>!isHttpUrl(u))) return showAlert('كل روابط الصور يجب أن تبدأ بـ http:// أو https://.', 'error');
-  if (!downloadUrl) return showAlert('ارفع ملف المنتج أولاً قبل إرسال المنتج للمراجعة.', 'error');
+  if (!storageKey) return showAlert('ارفع ملف المنتج أولاً قبل إرسال المنتج للمراجعة.', 'error');
 
   const btn=$('submitBtn'); btn.disabled=true; btn.textContent='جاري إرسال المنتج...';
   try {
     const productRef=doc(collection(db,'products'));
     await setDoc(productRef,{ title, description, price, category:$('category').value, imageUrl:imageUrls[0]||'', imageUrls, sellerEmail:currentUser.email, status:'pending', createdAt:serverTimestamp() });
-    await setDoc(doc(db,'product_files',productRef.id),{ downloadUrl, storageKey:$('storageKeyInput').value, fileName:$('fileNameInput').value, contentType:$('productFile').files?.[0]?.type||'application/octet-stream', sourceSize:$('productFile').files?.[0]?.size||0, sellerEmail:currentUser.email, deliveryType:'b2-worker', createdAt:serverTimestamp() });
+    await setDoc(doc(db,'product_files',productRef.id),{ storageKey, fileName:$('fileNameInput').value, contentType:$('productFile').files?.[0]?.type||'application/octet-stream', sourceSize:$('productFile').files?.[0]?.size||0, sellerEmail:currentUser.email, deliveryType:'b2-worker', createdAt:serverTimestamp() });
     await addDoc(collection(db,'notifications'),{ userEmail:currentUser.email, type:'product_submission', title:'تم إرسال منتجك 📦', message:`تم استلام منتج «${title}» بنجاح. انتظر رد الإدارة في الإشعارات.`, read:false, createdAt:serverTimestamp() });
     $('productForm').reset(); uploadedImageUrls=[]; renderImages(); resetUploadFields(); $('uploadHint').textContent='تم إرسال المنتج للمراجعة بنجاح.';
     showAlert('تم رفع الملف وإرسال المنتج للمراجعة بنجاح. بعد موافقة الإدارة سيظهر في المتجر. 🔔','success');

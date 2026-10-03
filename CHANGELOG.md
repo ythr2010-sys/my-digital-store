@@ -21,3 +21,6 @@
 - Configure B2 CORS for the exact production origin.
 - Add a server-side payment webhook before accepting real paid orders.
 - Add a server-side authorization gate that verifies completed paid orders before issuing each paid-file download URL.
+
+## v2 — Security & delivery foundation
+See `docs/AUDIT.md`. Worker rewritten (entitlement-checked `/download`, strict CORS, upload validation, local JWT verification); Firestore rules rewritten; checkout/profile/admin/product/add-product/edit-product patched; email verification added; payment numbers moved to admin settings; audit logs; Worker test suite.

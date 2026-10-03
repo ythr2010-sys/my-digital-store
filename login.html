@@ -275,7 +275,7 @@
 
     <script type="module">
         import { auth, db } from "./firebase-init.js";
-        import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         let isSignUp=false;
@@ -327,7 +327,7 @@
           setLoading(true);alertBox.style.display='none';
           try{
             let user;
-            if(isSignUp){user=(await createUserWithEmailAndPassword(auth,email,password)).user;await updateProfile(user,{displayName:name});}
+            if(isSignUp){user=(await createUserWithEmailAndPassword(auth,email,password)).user;await updateProfile(user,{displayName:name});try{await sendEmailVerification(user)}catch(_){}}
             else user=(await signInWithEmailAndPassword(auth,email,password)).user;
             await saveUser(user);finish(user);
           }catch(e){

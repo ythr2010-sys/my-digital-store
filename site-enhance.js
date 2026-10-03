@@ -1,6 +1,6 @@
 // DigiVault global UI enhancements
 import { auth, db } from './firebase-init.js';
-import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+import { onAuthStateChanged, sendEmailVerification } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 import { collection, query, where, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
 const ensureStyles = () => {
@@ -39,6 +39,18 @@ function init() {
     setTimeout(()=>t.remove(),3500);
   };
   onAuthStateChanged(auth, user => {
+    document.querySelector('.dv-verify')?.remove();
+    const sellerBtn = document.querySelector('.dv-seller'); if (sellerBtn) sellerBtn.hidden = !user;
+    const needsVerify = user && user.email && !user.emailVerified && user.providerData.some(p => p.providerId === 'password');
+    if (needsVerify) {
+      const bar = document.createElement('div'); bar.className = 'dv-verify';
+      bar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:100001;background:#3b3200;color:#ffd84d;padding:8px 14px;text-align:center;font:700 13px Tajawal,Arial';
+      bar.append('يرجى تأكيد بريدك الإلكتروني لتفعيل الإشعارات وميزات البائع. ');
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = 'إعادة إرسال رسالة التأكيد';
+      b.style.cssText = 'margin-inline-start:8px;padding:3px 10px;border-radius:6px;border:0;cursor:pointer;font:inherit';
+      b.onclick = async () => { try { await sendEmailVerification(user); b.textContent = 'تم الإرسال ✓'; b.disabled = true; } catch { b.textContent = 'حاول لاحقاً'; } };
+      bar.append(b); document.body.appendChild(bar);
+    }
     const badge=document.querySelector('.dv-badge');
     if(!badge) return;
     if(!user?.email){ badge.hidden=true; return; }
