@@ -13,10 +13,12 @@ async function signingKey(secret, date, region) {
   return k;
 }
 const amzDate = (d = new Date()) => { const iso = d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z'); return { full: iso, short: iso.slice(0, 8) }; };
-const encPath = p => String(p).split('/').map(encodeURIComponent).join('/');
+const rfc3986 = value => encodeURIComponent(String(value)).replace(/[!'()*]/g, c => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+const encPath = p => String(p).split('/').map(rfc3986).join('/');
 const canonicalQuery = params => [...params.entries()]
+  .map(([k, v]) => [rfc3986(k), rfc3986(v)])
   .sort((a, b) => a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]))
-  .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
+  .map(([k, v]) => `${k}=${v}`).join('&');
 const objectPath = (env, key) => `/${encodeURIComponent(env.B2_BUCKET_NAME)}/${encPath(key)}`;
 
 // ---------- CORS (strict allow-list; never reflects arbitrary origins) ----------
@@ -42,25 +44,42 @@ const json = (body, status, cors) => new Response(JSON.stringify(body), {
 
 // ---------- B2 / S3 signing ----------
 async function signedRequest(env, method, path, query = '', payloadHash = '', extraHeaders = {}) {
-  const host = new URL(env.B2_ENDPOINT).host, now = amzDate(), region = env.B2_REGION;
-  const scope = `${now.short}/${region}/s3/aws4_request`;
+  const endpoint = new URL(env.B2_ENDPOINT);
+  const host = endpoint.host;
+  const now = amzDate();
+  const region = String(env.B2_REGION);
   const ph = payloadHash || await sha256('');
-  const headersObj = { host, ...extraHeaders };
-  const keys = Object.keys(headersObj).map(x => x.toLowerCase()).sort();
+  const headersObj = {
+    host,
+    ...Object.fromEntries(Object.entries(extraHeaders).map(([k, v]) => [k.toLowerCase(), String(v)])),
+    'x-amz-content-sha256': ph,
+    'x-amz-date': now.full
+  };
+  const keys = Object.keys(headersObj).sort();
   const canonicalHeaders = keys.map(k => `${k}:${String(headersObj[k]).trim()}\n`).join('');
   const signedHeaders = keys.join(';');
   const canonical = `${method}\n${path}\n${query}\n${canonicalHeaders}\n${signedHeaders}\n${ph}`;
+  const scope = `${now.short}/${region}/s3/aws4_request`;
   const sts = `AWS4-HMAC-SHA256\n${now.full}\n${scope}\n${await sha256(canonical)}`;
   const sig = hex(await hmac(await signingKey(env.B2_APPLICATION_KEY, now.short, region), sts));
   return {
-    url: `${env.B2_ENDPOINT}${path}${query ? `?${query}` : ''}`,
-    headers: { ...headersObj, Authorization: `AWS4-HMAC-SHA256 Credential=${env.B2_KEY_ID}/${scope}, SignedHeaders=${signedHeaders}, Signature=${sig}`, 'x-amz-date': now.full, 'x-amz-content-sha256': ph }
+    url: `${endpoint.origin}${path}${query ? `?${query}` : ''}`,
+    headers: {
+      ...headersObj,
+      Authorization: `AWS4-HMAC-SHA256 Credential=${env.B2_KEY_ID}/${scope}, SignedHeaders=${signedHeaders}, Signature=${sig}`
+    }
   };
 }
 async function presign(env, method, key, queryParams = {}, expires = 300) {
   const host = new URL(env.B2_ENDPOINT).host, now = amzDate(), region = env.B2_REGION;
   const scope = `${now.short}/${region}/s3/aws4_request`;
-  const q = new URLSearchParams({ ...queryParams, 'X-Amz-Algorithm': 'AWS4-HMAC-SHA256', 'X-Amz-Credential': `${env.B2_KEY_ID}/${scope}`, 'X-Amz-Date': now.full, 'X-Amz-Expires': String(expires), 'X-Amz-SignedHeaders': 'host' });
+  const q = new URLSearchParams();
+  for (const [k, v] of Object.entries(queryParams)) q.set(k, String(v));
+  q.set('X-Amz-Algorithm', 'AWS4-HMAC-SHA256');
+  q.set('X-Amz-Credential', `${env.B2_KEY_ID}/${scope}`);
+  q.set('X-Amz-Date', now.full);
+  q.set('X-Amz-Expires', String(expires));
+  q.set('X-Amz-SignedHeaders', 'host');
   const path = objectPath(env, key);
   const canonical = `${method}\n${path}\n${canonicalQuery(q)}\nhost:${host}\n\nhost\nUNSIGNED-PAYLOAD`;
   const sts = `AWS4-HMAC-SHA256\n${now.full}\n${scope}\n${await sha256(canonical)}`;
@@ -121,9 +140,10 @@ const IMAGE_TYPES = { 'image/jpeg': ['jpg', 'jpeg'], 'image/png': ['png'], 'imag
 const ext = name => (String(name).toLowerCase().match(/\.([a-z0-9]{1,8})$/) || [])[1] || '';
 const safeName = name => String(name || 'file').normalize('NFKC').replace(/[^\p{L}\p{N}._ -]/gu, '_').replace(/\.{2,}/g, '.').slice(0, 180) || 'file';
 const makeKey = (uid, name, kind) => `uploads/${uid}/${kind}/${crypto.randomUUID()}-${safeName(name)}`;
+const xmlEscape = value => String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 const keyOwnedBy = (uid, key) => typeof key === 'string' && key.length < 1024 && key.startsWith(`uploads/${uid}/`) && !key.includes('..');
-const isImageKey = key => typeof key === 'string' && key.length < 1024 && /^uploads\/[A-Za-z0-9]+\/images\/[0-9a-f-]{36}-[^/]+$/.test(key);
-const isProductKey = key => typeof key === 'string' && key.length < 1024 && /^uploads\/[A-Za-z0-9]+\/products\/[0-9a-f-]{36}-[^/]+$/.test(key);
+const isImageKey = key => typeof key === 'string' && key.length < 1024 && /^uploads\/[A-Za-z0-9_-]+\/images\/[0-9a-f-]{36}-[^/]+$/.test(key);
+const isProductKey = key => typeof key === 'string' && key.length < 1024 && /^uploads\/[A-Za-z0-9_-]+\/products\/[0-9a-f-]{36}-[^/]+$/.test(key);
 export function validateUpload(env, data) {
   const size = Number(data.size);
   if (!Number.isFinite(size) || size <= 0) return 'Invalid file size';
@@ -178,10 +198,10 @@ export default {
     const { headers: cors, originAllowed } = corsFor(req, env);
     if (req.method === 'OPTIONS') return new Response(null, { status: originAllowed ? 204 : 403, headers: cors });
     if (!originAllowed) return json({ error: 'Origin not allowed' }, 403, cors);
+    const url = new URL(req.url);
+    if (req.method === 'GET' && url.pathname === '/health') return json({ ok: true, service: 'my-digital-store', version: 'v3' }, 200, cors);
     for (const k of ['B2_KEY_ID', 'B2_APPLICATION_KEY', 'B2_ENDPOINT', 'B2_BUCKET_NAME', 'B2_REGION', 'FIREBASE_PROJECT_ID'])
       if (!env[k]) return json({ error: `Worker is not configured (${k} missing)` }, 503, cors);
-    const url = new URL(req.url);
-
     // Public image proxy — images only, strict key shape, forced image content-type.
     if (req.method === 'GET' && url.pathname === '/media') {
       const key = url.searchParams.get('key') || '';
@@ -226,7 +246,7 @@ export default {
         if (!Array.isArray(data.parts) || !data.parts.length || data.parts.length > 10000) return json({ error: 'Invalid completion data' }, 400, cors);
         const parts = data.parts.map(p => ({ n: Number(p.partNumber), etag: String(p.etag || '').replace(/[^A-Za-z0-9"-]/g, '') })).sort((a, b) => a.n - b.n);
         if (parts.some(p => !Number.isInteger(p.n) || p.n < 1 || p.n > 10000 || !p.etag)) return json({ error: 'Invalid part list' }, 400, cors);
-        const xml = `<CompleteMultipartUpload>${parts.map(p => `<Part><PartNumber>${p.n}</PartNumber><ETag>${p.etag}</ETag></Part>`).join('')}</CompleteMultipartUpload>`;
+        const xml = `<CompleteMultipartUpload>${parts.map(p => `<Part><PartNumber>${p.n}</PartNumber><ETag>${xmlEscape(p.etag)}</ETag></Part>`).join('')}</CompleteMultipartUpload>`;
         const r = await signedRequest(env, 'POST', objectPath(env, data.key), `uploadId=${encodeURIComponent(data.uploadId)}`, await sha256(xml), { 'content-type': 'application/xml' });
         const rr = await fetch(r.url, { method: 'POST', headers: r.headers, body: xml });
         if (!rr.ok) return json({ error: 'Storage could not finish the upload' }, 502, cors);
@@ -240,7 +260,7 @@ export default {
         await fetch(r.url, { method: 'DELETE', headers: r.headers });
         return json({ ok: true }, 200, cors);
       }
-      if (url.pathname === '/download') {
+      if (url.pathname === '/download' || url.pathname === '/signed-download') {
         // Entitlement is decided from Firestore (via the caller's own token + security rules), never from the client.
         const grant = await entitlement(env, token, user, String(data.productId || ''));
         if (!grant) return json({ error: 'You do not have access to this file' }, 403, cors);
